@@ -1,7 +1,9 @@
 package org.datamate.identity.domain.exception.authorization;
 
-public class NamespaceNotFoundException extends RuntimeException {
+import org.datamate.identity.shared.exception.BaseException;
+
+public class NamespaceNotFoundException extends BaseException {
     public NamespaceNotFoundException(String message) {
-        super(message);
+        super("namespace.notFound", message);
     }
 }

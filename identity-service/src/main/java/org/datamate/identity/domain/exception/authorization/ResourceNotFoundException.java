@@ -1,7 +1,9 @@
 package org.datamate.identity.domain.exception.authorization;
 
-public class ResourceNotFoundException extends RuntimeException {
+import org.datamate.identity.shared.exception.BaseException;
+
+public class ResourceNotFoundException extends BaseException {
     public ResourceNotFoundException(String message) {
-        super(message);
+        super("resource.notFound", message);
     }
 }
