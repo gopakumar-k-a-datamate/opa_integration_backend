@@ -49,7 +49,13 @@ Fetches the complete permission matrix for a specific subject (Role or User) wit
 ```
 
 ### PUT `/internal/authz/policies`
-Bulk upserts or soft-deletes policies. When this endpoint is called, the library automatically triggers the Policy Compiler to regenerate the OPA bundle.
+Performs a **Full-State Sync** for the specified Subject in this module. Because the UI manages the entire matrix for a given Role within a specific Module, the payload represents the **Desired State**. 
+
+**Sync Logic:**
+1. Fetch all existing policies for this subject in the local DB.
+2. Iterate payload: Update existing matches, insert new ones.
+3. Soft-delete any existing policies in the DB that are *missing* from the incoming payload (meaning the Admin unchecked them).
+4. Trigger the Policy Compiler to regenerate the OPA bundle.
 
 **Request Body:**
 ```json

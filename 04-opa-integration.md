@@ -71,6 +71,28 @@ flowchart LR
 4. **Bundle:** Compress into `bundle.tar.gz`.
 5. **Cache:** Generate an `ETag` (MD5 hash) and upsert into the local `authz_policy_bundle_cache` table.
 
+### AST to Rego Translation Algorithm
+
+When translating the `expression_json` AST into Rego:
+
+- **AND Groups:** Multiple conditions inside an `AND` block are simply appended as new lines within the same Rego rule block, because statements in a Rego block are implicitly `AND`ed.
+  ```rego
+  allow_rule if {
+      input.resource.amount <= 10000
+      input.resource.bank != "CASH"
+  }
+  ```
+- **OR Groups:** An `OR` block requires the compiler to generate **multiple Rego blocks** for the same policy. In Rego, multiple blocks with the same name act as a logical `OR`.
+  ```rego
+  # Condition: amount <= 1000 OR bank == "HDFC"
+  allow_rule if {
+      input.resource.amount <= 1000
+  }
+  allow_rule if {
+      input.resource.bank == "HDFC"
+  }
+  ```
+
 ---
 
 ## 3. Generated Rego — Corrected DENY Logic
