@@ -1,49 +1,48 @@
-# Dynamic Policy-Based Authorization using OPA
+# Federated Policy-Based Authorization using OPA
 
 ## Goal
-Transition from static **Role → Permission** mappings to dynamic, business-rule-based **Policies**, keeping **OPA (Open Policy Agent)** as the Policy Decision Point (PDP) while managing rules entirely via a UI.
+Transition from static **Role → Permission** mappings to dynamic, business-rule-based **Policies**, keeping **OPA (Open Policy Agent)** as the Policy Decision Point (PDP). 
+To ensure true microservice scalability and loose coupling, this architecture uses a **Federated Authorization Library** model, where the Identity module acts strictly as an Identity Provider, and each application service manages its own authorization state.
 
 ---
 
-## High-Level Architecture
+## High-Level Architecture (Federated Model)
 
 ```mermaid
 flowchart TB
-    subgraph AdminUI["Admin UI"]
+    subgraph AdminUI["Admin UI / API Gateway"]
         RoleGrid["Role-Permission Grid"]
         CondBuilder["Condition Builder"]
     end
 
-    subgraph IdentityModule["Identity Module (Java)"]
-        PolicyAPI["Policy CRUD API"]
-        FieldRegistry["Resource Field Registry"]
-        Compiler["Policy Compiler"]
-        BundleAPI["Bundle Serving API"]
+    subgraph IdentityModule["Identity Module (IdP)"]
+        UserDB[("User / Role DB")]
+        RoleAPI["Role API (Read-Only)"]
     end
 
-    subgraph Database["Database"]
-        PolicyDB[("Policy Tables")]
-        BundleCache[("Bundle Cache\n(per namespace)")]
-        FieldTable[("Resource Fields")]
+    subgraph ApplicationService["Application Service (e.g., Finance)"]
+        subgraph AuthzLibrary["authz-core (Shared Library)"]
+            PolicyAPI["Policy CRUD API"]
+            Compiler["Policy Compiler"]
+            BundleAPI["Bundle Serving API"]
+        end
+        PEP["PEP (Policy Enforcement Point)"]
+        LocalAuthzDB[("Local Authz Tables")]
     end
 
-    subgraph Runtime["Runtime (per app instance)"]
-        OPA["OPA Sidecar"]
-        PEP["PEP\n(Policy Enforcement Point)"]
-        AppService["Application Service"]
+    subgraph Runtime["Runtime"]
+        OPA["Local OPA Sidecar"]
     end
 
-    RoleGrid -->|CRUD| PolicyAPI
-    CondBuilder -->|reads fields| FieldRegistry
-    PolicyAPI -->|read/write| PolicyDB
-    FieldRegistry -->|read/write| FieldTable
+    AdminUI -->|"1. fetch roles"| RoleAPI
+    AdminUI -->|"2. manage policies"| PolicyAPI
+    PolicyAPI -->|read/write| LocalAuthzDB
     PolicyAPI -->|on save| Compiler
-    Compiler -->|reads| PolicyDB
-    Compiler -->|validates fields| FieldTable
-    Compiler -->|writes bundle| BundleCache
+    Compiler -->|reads policies| LocalAuthzDB
+    Compiler -->|writes bundle| LocalAuthzDB
     OPA -->|polls| BundleAPI
-    BundleAPI -->|reads| BundleCache
-    AppService -->|"check permission"| PEP
+    BundleAPI -->|reads| LocalAuthzDB
+    ApplicationService -->|"check permission"| PEP
     PEP -->|query| OPA
 ```
 
@@ -51,33 +50,26 @@ flowchart TB
 
 ## Core Concepts
 
-The system is built on a **resource hierarchy** that defines _what_ is being protected, and a **policy layer** that defines _who_ can access it and _when_.
+The system is built on a **Federated Library** that encapsulates authorization logic. It is embedded in every application module/microservice.
 
 ### How They Work Together
 
-1. A **Namespace** groups related contexts (e.g., `finance`, `clinical`).
-2. A **Resource** lives in a namespace and represents a specific entity (e.g., `journal`).
-3. A **Resource Field** defines attributes of a resource that can be used in policy conditions (e.g., `amount`, `bank`).
-4. A **Permission** lives on a resource and represents a specific action (e.g., `create`). Auto-generates a code like `finance:journal:create`.
+1. **Identity Provider:** The central Identity module only manages Users, standard Roles (e.g., `ACCOUNTANT`), and User-Role assignments.
+2. **Shared Library (`authz-core`):** A reusable dependency injected into application services. It provisions local database tables and exposes standard REST APIs for the Admin UI and OPA.
+3. **Local Resources:** An application service defines its own **Resources** (grouped by a `namespace` for bounded context), **Permissions**, and **Condition Fields** via annotations on its Commands.
+4. **Local Auto-Registration:** At startup, the `authz-core` library scans the local application for annotations and upserts them into its **local** database schema. No central sync is required.
+5. **Local Policies:** A **Policy** ties a local Permission to a standard Role and adds dynamic conditions. The `authz-core` library compiles these policies into Rego and serves the bundle to the local OPA sidecar.
 
-> **Note on Registration:** To completely decouple teams, Namespaces, Resources, Permissions, and Resource Fields are **all 100% auto-registered on startup** via reflection on Application Commands. There are NO migration scripts required from the application teams.
-5. A **Role** is a standard role definition. Users are assigned to roles via the **User Role** table.
-6. A **Policy** ties a Permission to a Subject (Role or User) and adds dynamic conditions. **The policy table IS the role-to-permission mapping** — no separate mapping table is needed.
-
-### Entity Relationship Diagram
+### Entity Relationship Diagram (per Application Database)
 
 ```mermaid
 erDiagram
-    NAMESPACE ||--o{ RESOURCE : contains
     RESOURCE ||--o{ PERMISSION : has
-    RESOURCE ||--o{ RESOURCE_FIELD : defines
+    PERMISSION ||--o{ CONDITION_FIELD : defines
     PERMISSION ||--o{ POLICY : "governed by"
-    ROLE ||--o{ POLICY : "subject of"
-    ROLE ||--o{ USER_ROLE : "assigned via"
-    USER ||--o{ USER_ROLE : "has"
-    USER ||--o{ POLICY : "subject of (direct)"
-    POLICY_BUNDLE_CACHE }o--|| NAMESPACE : "scoped to"
+    POLICY_BUNDLE_CACHE ||--o{ POLICY : "caches"
 ```
+*(Note: Roles and Users are managed externally in the Identity Provider, so the local Policy table simply stores the `role_name` or `user_id` as a reference).*
 
 ---
 
@@ -85,13 +77,11 @@ erDiagram
 
 | Decision | Rationale |
 |---|---|
-| **Policy table = role-permission mapping** | No separate `role_permission` table. Every permission assignment is a policy, optionally enriched with conditions. |
+| **Federated Library Model** | The Identity module does not own policies. Each application manages its own authz state via the `authz-core` library, ensuring perfect loose coupling and zero central bottlenecks. |
+| **100% Local Auto-Registration** | `@PolicyResource` and `@PolicyField` annotations on application commands auto-register Resources, Permissions, and Fields into the *local* database on startup. |
 | **JSON AST for conditions** | Normalized DB tables for nested AND/OR groups are overly complex. JSON maps perfectly to UI rule builders. |
-| **Per-namespace bundles** | Each namespace gets its own `bundle.tar.gz`. Enables granular regeneration and prepares for microservice split. |
-| **100% Auto-Registration** | `@PolicyResource` and `@PolicyField` annotations on application commands auto-register Namespaces, Resources, Permissions, and Fields with the identity module on startup. Zero migration scripts required from application teams. |
 | **DENY overrides ALLOW** | Any matching DENY policy blocks access regardless of ALLOW policies. Enforced via `not deny_rule` in Rego. |
-| **On-demand bundle regeneration** | Bundle is recompiled synchronously when admin saves policy changes. No event-driven complexity. |
-| **One OPA per app instance** | Same topology for modulith and microservices. |
+| **Local OPA Bundle Cache** | The `authz-core` library compiles Rego and stores the zipped bundle in the local database, serving it directly to the local OPA sidecar. |
 | **Soft deletes on all entities** | All tables use `deleted_at` timestamp. `NULL` = active. |
 
 ---
@@ -100,7 +90,8 @@ erDiagram
 
 | Document | Contents |
 |---|---|
-| [02-database-schema.md](file:///Users/apple/Documents/opa_integration_backend/02-database-schema.md) | All table schemas with column definitions and examples |
-| [03-policy-engine.md](file:///Users/apple/Documents/opa_integration_backend/03-policy-engine.md) | Condition engine, conflict resolution, field registry, deprecation handling |
-| [04-opa-integration.md](file:///Users/apple/Documents/opa_integration_backend/04-opa-integration.md) | Compiler pipeline, Rego generation, bundle management, OPA deployment, input contract |
-| [05-admin-ui-workflow.md](file:///Users/apple/Documents/opa_integration_backend/05-admin-ui-workflow.md) | Role-permission grid, condition builder, deprecated field warnings |
+| [02-database-schema.md](file:///Users/apple/Documents/opa_integration_backend/02-database-schema.md) | Identity Schema vs. Library Schema with column definitions |
+| [03-policy-engine.md](file:///Users/apple/Documents/opa_integration_backend/03-policy-engine.md) | Condition engine, local field registry, local deprecation handling |
+| [04-opa-integration.md](file:///Users/apple/Documents/opa_integration_backend/04-opa-integration.md) | Local compiler pipeline, Rego generation, OPA deployment |
+| [05-admin-ui-workflow.md](file:///Users/apple/Documents/opa_integration_backend/05-admin-ui-workflow.md) | Modular Role-permission grid, condition builder |
+| [06-api-endpoints.md](file:///Users/apple/Documents/opa_integration_backend/06-api-endpoints.md) | REST APIs exposed by the authz-core library |

@@ -1,20 +1,20 @@
-# OPA Integration
+# OPA Integration (Federated Library)
 
-This document covers the OPA input contract, the policy compiler pipeline, Rego code generation, per-namespace bundle management, and OPA deployment topology.
+This document covers the OPA input contract, the local policy compiler pipeline, Rego code generation, local bundle management, and OPA deployment topology in the federated model.
 
 ---
 
 ## 1. OPA Input Contract
 
-The calling service (**PEP — Policy Enforcement Point**) must construct the following input when querying OPA.
+The calling service (**PEP — Policy Enforcement Point**) must construct the following input when querying its local OPA sidecar.
 
 ### Fixed Fields (always present)
 
 | Field | Type | Source | Description |
 |---|---|---|---|
 | `input.user.id` | Number | JWT / Session | The authenticated user's ID |
-| `input.user.roles` | String[] | `user_role` table | User's assigned role names |
-| `input.permission` | String | Application code | The permission code (e.g., `finance:journal:create`) |
+| `input.user.roles` | String[] | JWT / Session | User's assigned role names (issued by IdP) |
+| `input.permission` | String | Application code | The permission code (e.g., `journal:create`) |
 
 ### Dynamic Fields (vary by resource)
 
@@ -22,15 +22,13 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 |---|---|---|---|
 | `input.resource.*` | Varies | Application context | Resource-specific attributes relevant to the current operation |
 
-The shape of `input.resource` is **dynamic** — it depends on what resource is being accessed. The calling service passes the fields defined in the `resource_field` registry for that resource.
-
 ### Example — Creating a journal entry
 
 ```json
 {
   "input": {
     "user": { "id": 42, "roles": ["ACCOUNTANT", "MANAGER"] },
-    "permission": "finance:journal:create",
+    "permission": "journal:create",
     "resource": {
       "amount": 8500,
       "bank": "HDFC",
@@ -40,56 +38,38 @@ The shape of `input.resource` is **dynamic** — it depends on what resource is 
 }
 ```
 
-### Example — Viewing a patient record
-
-```json
-{
-  "input": {
-    "user": { "id": 42, "roles": ["NURSE"] },
-    "permission": "clinical:patient:view",
-    "resource": {
-      "ward": "ICU",
-      "severity": "CRITICAL"
-    }
-  }
-}
-```
-
 ### PEP Responsibility and AOP Enforcement
 
 The PEP (middleware or shared library) is responsible for:
-
-1. Extracting the user from the JWT / session
-2. Looking up their roles from the `user_role` table
-3. Constructing the `input` JSON with the resource context from the current operation
-4. Sending the query to OPA and enforcing the decision
+1. Extracting the user and roles from the incoming JWT (issued by the central Identity module).
+2. Constructing the `input` JSON with the resource context.
+3. Sending the query to the local OPA sidecar and enforcing the decision.
 
 **Recommended Implementation:**
-Use an AOP Aspect in the Application Layer to intercept use cases. The aspect inspects the incoming Command object, reads the `@PolicyResource` annotation to extract the `namespace`, `name`, and `action` (which combine to form the `permission` code, e.g., `finance:journal:create`), and reads the `@PolicyField` values to build the `input.resource` JSON. This keeps the Use Case logic 100% free of authorization code.
+Use an AOP Aspect in the Application Layer to intercept use cases. The aspect inspects the incoming Command object, reads the `@PolicyResource` annotation to extract the `name` and `action` (which form `permission`, e.g., `journal:create`), and reads the `@PolicyField` values to build the `input.resource` JSON.
 
 ---
 
-## 2. Policy Compiler Pipeline
+## 2. Local Policy Compiler Pipeline
 
-Instead of evaluating permissions in the database at runtime, a Java service acts as a **Policy Compiler** that translates DB policies into Rego code.
+The `authz-core` library acts as a **Policy Compiler** that translates the local DB policies into Rego code.
 
 ### Workflow
 
 ```mermaid
 flowchart LR
-    A["Load enabled policies\nfrom DB"] --> B["Validate field references\nagainst resource_field"]
+    A["Load enabled policies\nfrom Local DB"] --> B["Validate field references\nagainst local authz_condition_field"]
     B --> C["Parse expression_json\nAST"]
-    C --> D["Generate Rego code\n(per namespace)"]
-    D --> E["Create bundle.tar.gz\n(per namespace)"]
-    E --> F["Save to\npolicy_bundle_cache"]
+    C --> D["Generate Rego code"]
+    D --> E["Create bundle.tar.gz"]
+    E --> F["Save to\nauthz_policy_bundle_cache"]
 ```
 
-1. **Load:** Fetch all enabled, non-deleted policies from the database for the affected namespace.
-2. **Validate:** Check that all field references in `expression_json` exist in the `resource_field` registry and have correct types. Skip policies with deprecated fields (they should already be auto-disabled).
-3. **Parse & Compile:** Parse the `expression_json` AST and recursively translate it into Rego code.
-4. **Generate DENY guard:** For each namespace, generate `allow_rule` and `deny_rule` blocks. The final `allow` rule uses the `not deny_rule` pattern to ensure DENY always overrides ALLOW.
-5. **Bundle:** Compress into `bundle.tar.gz` with the appropriate Rego file(s) and `manifest.json`.
-6. **Cache:** Generate an `ETag` (MD5 hash of the bundle) and upsert both the BLOB and ETag into `policy_bundle_cache` for this namespace.
+1. **Load:** Fetch all enabled, non-deleted policies from the local `authz_policy` table.
+2. **Validate:** Check that all field references in `expression_json` exist in the local `authz_condition_field` registry. Skip policies with deprecated fields.
+3. **Parse & Compile:** Parse the AST and translate it into Rego code.
+4. **Bundle:** Compress into `bundle.tar.gz`.
+5. **Cache:** Generate an `ETag` (MD5 hash) and upsert into the local `authz_policy_bundle_cache` table.
 
 ---
 
@@ -98,7 +78,7 @@ flowchart LR
 The compiler generates Rego with separate `allow_rule` and `deny_rule` blocks, combined via a final `allow` decision that enforces DENY-overrides-ALLOW:
 
 ```rego
-package finance.authz
+package app.authz
 
 default allow := false
 default deny_rule := false
@@ -108,28 +88,8 @@ default deny_rule := false
 # Accountant Policy
 allow_rule if {
     "ACCOUNTANT" in input.user.roles
-    input.permission == "finance:journal:create"
+    input.permission == "journal:create"
     input.resource.amount <= 10000
-}
-
-# Manager Policy
-allow_rule if {
-    "MANAGER" in input.user.roles
-    input.permission == "finance:journal:create"
-    input.resource.amount <= 20000
-}
-
-# User 42 Override
-allow_rule if {
-    input.user.id == 42
-    input.permission == "finance:journal:create"
-    input.resource.amount <= 15000
-}
-
-# Unconditional view access for Accountant
-allow_rule if {
-    "ACCOUNTANT" in input.user.roles
-    input.permission == "finance:journal:view"
 }
 
 # --- DENY Rules ---
@@ -137,115 +97,62 @@ allow_rule if {
 # John Deny Policy (unconditional)
 deny_rule if {
     input.user.id == 123
-    input.permission == "finance:journal:create"
+    input.permission == "journal:create"
 }
 
 # --- Final Decision ---
-# DENY always overrides ALLOW
 allow if {
     allow_rule
     not deny_rule
 }
 ```
 
-### How This Evaluates
-
-- Multiple `allow_rule if {...}` blocks are **OR'd** → most permissive match wins
-- Multiple `deny_rule if {...}` blocks are **OR'd** → any matching deny blocks access
-- `allow` is only `true` if **at least one** `allow_rule` matches AND **zero** `deny_rule` match
-
-### Evaluation Examples
-
-| User | Permission | Resource | allow_rule | deny_rule | **Result** |
-|---|---|---|---|---|---|
-| User 42 (ACCOUNTANT, MANAGER) | finance:journal:create | amount: 8500 | ✅ (ACCOUNTANT ≤10K) | ❌ | **ALLOW** |
-| User 42 (ACCOUNTANT, MANAGER) | finance:journal:create | amount: 15000 | ✅ (MANAGER ≤20K, USER ≤15K) | ❌ | **ALLOW** |
-| User 42 (ACCOUNTANT, MANAGER) | finance:journal:create | amount: 25000 | ❌ (all exceed) | ❌ | **DENY** |
-| User 123 (ACCOUNTANT) | finance:journal:create | amount: 5000 | ✅ (ACCOUNTANT ≤10K) | ✅ (user 123 deny) | **DENY** |
-
 ---
 
-## 4. Per-Namespace Bundle Management
-
-Each namespace gets its own `bundle.tar.gz`, stored independently in `policy_bundle_cache`.
-
-### Bundle Structure
-
-```
-finance-bundle.tar.gz
-├── finance/
-│   └── authz.rego        # package finance.authz
-└── .manifest             # OPA bundle manifest
-```
+## 4. Local Bundle Serving & Regeneration
 
 ### Bundle Serving Endpoint
 
+The `authz-core` library exposes an endpoint on the microservice itself:
 ```
-GET /bundles/{namespace}
+GET /internal/authz/bundle
 
 Headers:
   If-None-Match: "abc123"       (OPA's current ETag)
-
-Response (bundle changed):
-  200 OK
-  Content-Type: application/gzip
-  ETag: "def456"
-  Body: <bundle.tar.gz bytes>
-
-Response (bundle unchanged):
-  304 Not Modified
 ```
 
 ### Bundle Regeneration Strategy
 
-Bundle regeneration is triggered **on-demand** when an admin saves policy changes via the UI.
+Bundle regeneration is triggered **on-demand** when an admin saves policy changes via the local library's REST API.
 
 ```
-Admin saves policy changes for a role
-    → Backend updates policy rows in DB
-    → Backend identifies affected namespace(s)
-    → For each affected namespace:
-        → PolicyCompiler.regenerateBundle(namespaceId)
-        → New bundle + ETag upserted into policy_bundle_cache
-    → Returns 200 OK to the admin UI
-    → Next OPA poll picks up the new bundle
+Admin saves policy changes via UI
+    → API Gateway routes request to specific microservice (e.g., Finance)
+    → Library updates policy rows in local DB
+    → Library recompiles bundle and upserts into local authz_policy_bundle_cache
+    → Returns 200 OK
+    → Next local OPA poll picks up the new bundle
 ```
-
-**Why not event-driven:** The only source of policy changes is the admin UI. Synchronous regeneration on save is the simplest correct approach.
-
-**Optimization (if needed later):** If regeneration becomes slow with thousands of policies, make it async — return 200 OK immediately, fire an async task, and show a "Publishing changes..." toast in the UI.
 
 ---
 
-## 5. OPA Deployment
+## 5. OPA Deployment Topology
 
-**One OPA instance per application instance**, for both modulith and microservice deployments.
+**One OPA instance per application instance.**
 
-### OPA Configuration (Modulith)
+### OPA Configuration
 
-In a modulith, the single OPA instance loads bundles for **all namespaces**:
+In a microservice or modulith, the local OPA sidecar loads the bundle directly from its host application (which runs the `authz-core` library).
 
 ```yaml
 services:
-  identity-backend:
+  local-app:
     url: http://localhost:8080
 
 bundles:
-  finance:
-    service: identity-backend
-    resource: /bundles/finance
-    polling:
-      min_delay_seconds: 10
-      max_delay_seconds: 30
-  clinical:
-    service: identity-backend
-    resource: /bundles/clinical
-    polling:
-      min_delay_seconds: 10
-      max_delay_seconds: 30
-  inventory:
-    service: identity-backend
-    resource: /bundles/inventory
+  authz:
+    service: local-app
+    resource: /internal/authz/bundle
     polling:
       min_delay_seconds: 10
       max_delay_seconds: 30
@@ -254,27 +161,4 @@ decision_logs:
   console: true
 ```
 
-### OPA Configuration (Microservices — Future)
-
-Each microservice's OPA loads **only its namespace**:
-
-```yaml
-# Finance service's OPA config
-services:
-  identity-backend:
-    url: http://identity-service:8080
-
-bundles:
-  finance:
-    service: identity-backend
-    resource: /bundles/finance
-    polling:
-      min_delay_seconds: 10
-      max_delay_seconds: 30
-```
-
-### Adding New Namespaces
-
-When a new namespace is auto-registered at startup, the OPA config must be updated to include the new bundle source. This requires an OPA restart.
-
-For fully dynamic namespace discovery (no restart), OPA's [Discovery](https://www.openpolicyagent.org/docs/latest/management-discovery/) feature can be used later — a "discovery bundle" tells OPA what other bundles to load. Not necessary for the initial implementation.
+Because OPA runs side-by-side with the application and fetches the bundle locally, there is virtually zero network latency for authorization checks.

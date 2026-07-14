@@ -1,89 +1,80 @@
-# Admin UI Workflow
+# Admin UI Workflow (Federated Model)
 
-This document describes the admin-facing UI flows for managing role-permission mappings, building conditions, and handling deprecated field warnings.
+This document describes the admin-facing UI flows in the federated library architecture, where the UI must aggregate data from the central Identity Provider and the individual application modules.
 
 ---
 
 ## 1. Role-Permission Grid
 
-The primary UI for managing authorization. The admin selects a role and sees a grid of all available permissions, grouped by resource.
+The primary UI for managing authorization. Because permissions and policies live inside the individual application microservices, the UI is organized by **Module Tabs**.
 
 ### Layout
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  Role: [ACCOUNTANT ▼]                                  [Save]   │
+│  Role: [ACCOUNTANT ▼]    (fetched from IdP)                     │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  📁 finance / journal                                            │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ ☑ create    [Conditions: amount ≤ 10K]              [⚙] [🔛]│ │
-│  │ ☑ view      [No conditions]                         [⚙] [🔛]│ │
-│  │ ☐ delete    [—]                                          │ │
-│  │ ☐ approve   [—]                                          │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│                                                                  │
-│  📁 finance / report                                             │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ ☑ view      [No conditions]                         [⚙] [🔛]│ │
-│  │ ☐ export    [—]                                          │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│                                                                  │
+│                                                                 │
+│  [ Finance Module ]  [ Clinical Module ]  [ Inventory Module ]  │
+│                                                                 │
+│  📁 journal                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │ ☑ create    [Conditions: amount ≤ 10K]              [⚙] [🔛]││
+│  │ ☑ view      [No conditions]                         [⚙] [🔛]││
+│  │ ☐ delete    [—]                                             ││
+│  │ ☐ approve   [—]                                             ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                 │
+│  📁 report                                                      │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │ ☑ view      [No conditions]                         [⚙] [🔛]││
+│  │ ☐ export    [—]                                             ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                 │
+│                                                      [Save]     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Actions
+### Data Query (How the UI gets data)
 
-| Action | What It Does | DB Effect |
-|---|---|---|
-| **Check** a permission | Grants the permission to this role (unconditional) | Creates a `policy` row: `effect=ALLOW, expression_json=NULL` |
-| **Uncheck** a permission | Revokes the permission | Soft-deletes the `policy` row |
-| **⚙ (Conditions)** | Opens the condition builder | Updates `policy.expression_json` |
-| **🔛 (Enable/Disable toggle)** | Temporarily disables a policy without removing it | Toggles `policy.enabled` |
-| **Save** | Persists all changes and triggers bundle regeneration | Updates policy rows → triggers `PolicyCompiler.regenerateBundle()` for affected namespace(s) |
+1. **Fetch Roles:** The UI fetches the available roles from the central Identity Provider (`GET /api/idp/roles`).
+2. **Fetch Policies:** When the user clicks the "Finance Module" tab, the UI calls the Finance microservice directly (or via an API Gateway routing to Finance).
 
-### Data Query
-
-The grid is populated by querying the `policy` table filtered by role:
+The `authz-core` library in the Finance module executes this local query:
 
 ```sql
 SELECT 
     p.code AS permission_code,
     p.action,
+    r.namespace,
     r.name AS resource_name,
-    ns.name AS namespace_name,
     pol.id AS policy_id,
     pol.effect,
     pol.expression_json,
     pol.enabled,
     pol.disabled_reason
-FROM permission p
-JOIN resource r ON p.resource_id = r.id
-JOIN permission_namespace ns ON r.namespace_id = ns.id
-LEFT JOIN policy pol ON pol.permission_id = p.id 
+FROM authz_permission p
+JOIN authz_resource r ON p.resource_id = r.id
+LEFT JOIN authz_policy pol ON pol.permission_id = p.id 
     AND pol.subject_type = 'ROLE' 
-    AND pol.subject_id = :roleId
+    AND pol.subject_id = :roleName
     AND pol.deleted_at IS NULL
 WHERE p.deleted_at IS NULL
   AND r.deleted_at IS NULL
-ORDER BY ns.name, r.name, p.action;
+ORDER BY r.namespace, r.name, p.action;
 ```
-
-- `LEFT JOIN` ensures unchecked permissions (no policy row) still appear in the grid
-- A non-null `pol.id` means the permission is checked (mapped)
-- `pol.expression_json IS NOT NULL` means conditions are attached
 
 ---
 
 ## 2. Condition Builder
 
-A visual rule builder that opens when the admin clicks **⚙** on a permission. Powered by the `condition_field` registry.
+A visual rule builder that opens when the admin clicks **⚙** on a permission. Powered by the local `authz_condition_field` registry.
 
 ### Layout
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
-│  Condition Builder — finance:journal:create                   │
+│  Condition Builder — journal:create                           │
 ├──────────────────────────────────────────────────────────────┤
 │                                                               │
 │  IF  [ALL ▼]  of the following:                               │
@@ -102,13 +93,13 @@ A visual rule builder that opens when the admin clicks **⚙** on a permission. 
 
 ### How Fields Are Loaded
 
-The condition builder fetches available fields from the `condition_field` table:
+The condition builder fetches fields from the library's local table:
 
 ```sql
 SELECT field_name, field_type, display_name, allowed_values, options_endpoint
-FROM condition_field
+FROM authz_condition_field
 WHERE permission_id = :permissionId
-  AND status = 'ACTIVE'        -- excludes deprecated fields
+  AND status = 'ACTIVE'        
   AND deleted_at IS NULL
 ORDER BY display_name;
 ```
@@ -117,63 +108,29 @@ ORDER BY display_name;
 
 | Element | Behavior |
 |---|---|
-| **Field dropdown** | Populated from `condition_field` for this specific action/permission. Only `ACTIVE` fields shown. |
+| **Field dropdown** | Populated from `authz_condition_field` for this specific action/permission. Only `ACTIVE` fields shown. |
 | **Operator dropdown** | Filtered by `field_type`: NUMBER gets `<=, >=, ==, !=, <, >`; STRING gets `==, !=, in, not_in` |
-| **Value input** | • Free text for `NUMBER`/`DATE`<br>• Static dropdown if `allowed_values` exists (e.g., bank → CASH, HDFC)<br>• Dynamic dropdown if `options_endpoint` exists. UI fetches data on the fly and expects `[{id, display}]`. |
+| **Value input** | • Free text for `NUMBER`/`DATE`<br>• Static dropdown if `allowed_values` exists<br>• Dynamic dropdown if `options_endpoint` exists. UI fetches data on the fly and expects `[{id, display}]`. |
 | **ALL/ANY toggle** | Maps to `"operator": "AND"` / `"operator": "OR"` in the JSON AST |
-| **Add Group** | Creates a nested condition group (for complex `(A AND B) OR (C AND D)` logic) |
-
-### Validation on Apply
-
-When the admin clicks **Apply**, the condition is validated:
-1. All fields must exist in `condition_field` and be `ACTIVE`
-2. All values must match the field's `field_type`
-3. If `allowed_values` is defined, the value must be in the list
 
 ---
 
 ## 3. Deprecated Field Warnings
 
-When a field is removed from code and policies are auto-disabled (see [03-policy-engine.md §3.2](file:///Users/apple/Documents/opa_integration_backend/03-policy-engine.md)), the admin UI shows a warning.
+When a field is removed from local code and policies are auto-disabled, the admin UI shows a warning banner *inside* that module's tab.
 
 ### Warning Banner
 
-Displayed at the top of the role-permission grid when any policies have been auto-disabled:
-
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  ⚠️ 2 policies were auto-disabled because referenced fields  │
 │     were removed from code.                                   │
 │                                                               │
-│  • ACCOUNTANT → finance:journal:create                        │
-│    Field "bank" was removed from code                         │
-│  • MANAGER → finance:journal:create                           │
+│  • ACCOUNTANT → journal:create                                │
 │    Field "bank" was removed from code                         │
 │                                                               │
 │  [Review & Fix]                                               │
 └──────────────────────────────────────────────────────────────┘
-```
-
-### Data Query for Warnings
-
-```sql
-SELECT 
-    pol.id,
-    pol.disabled_reason,
-    pol.subject_type,
-    CASE pol.subject_type 
-        WHEN 'ROLE' THEN r.name 
-        WHEN 'USER' THEN u.name 
-    END AS subject_name,
-    p.code AS permission_code
-FROM policy pol
-JOIN permission p ON pol.permission_id = p.id
-LEFT JOIN role r ON pol.subject_type = 'ROLE' AND pol.subject_id = r.id
-LEFT JOIN "user" u ON pol.subject_type = 'USER' AND pol.subject_id = u.id
-WHERE pol.enabled = false
-  AND pol.disabled_reason IS NOT NULL
-  AND pol.deleted_at IS NULL
-ORDER BY pol.updated_at DESC;
 ```
 
 ### Admin Actions on Disabled Policies
@@ -181,35 +138,29 @@ ORDER BY pol.updated_at DESC;
 | Action | Effect |
 |---|---|
 | **Edit conditions** | Opens the condition builder. Admin removes or replaces the deprecated field reference. On save, `enabled` is set back to `true` and `disabled_reason` is cleared. |
-| **Delete policy** | Soft-deletes the policy. If no other policies reference the deprecated field, it is auto-removed on next startup. |
-| **Re-enable (force)** | Admin can force-enable a policy with a deprecated field — but the condition will silently fail at OPA runtime (field won't be in `input.resource`). UI should show a warning. |
+| **Delete policy** | Soft-deletes the policy. If no other policies reference the deprecated field, the local diff-sync auto-removes it on next startup. |
 
 ---
 
 ## 4. Save Workflow
 
-When the admin clicks **Save** on the role-permission grid:
+When the admin clicks **Save** inside a module tab:
 
 ```mermaid
 sequenceDiagram
     participant Admin
     participant UI
-    participant Backend
-    participant DB
-    participant Compiler
-    participant BundleCache
-
+    participant FinanceApp as FinanceApp (authz-core)
+    participant LocalDB
+    participant LocalOPA
+ 
     Admin->>UI: Click Save
-    UI->>Backend: PUT /api/roles/{id}/policies (changed policies)
-    Backend->>DB: Update/insert/soft-delete policy rows
-    Backend->>Backend: Identify affected namespace(s)
-    loop For each affected namespace
-        Backend->>Compiler: regenerateBundle(namespaceId)
-        Compiler->>DB: Load enabled policies for namespace
-        Compiler->>Compiler: Validate fields, parse AST, generate Rego
-        Compiler->>BundleCache: Upsert bundle + ETag
-    end
-    Backend->>UI: 200 OK
-    UI->>Admin: "Changes saved. Policies will take effect shortly."
-    Note over BundleCache: OPA polls and picks up<br/>new bundle within seconds
+    UI->>FinanceApp: PUT /internal/authz/roles/ACCOUNTANT/policies
+    FinanceApp->>LocalDB: Update/insert/soft-delete policy rows
+    FinanceApp->>FinanceApp: Trigger Library Compiler
+    FinanceApp->>LocalDB: Validate fields, parse AST, generate Rego
+    FinanceApp->>LocalDB: Upsert bundle + ETag into authz_policy_bundle_cache
+    FinanceApp->>UI: 200 OK
+    UI->>Admin: "Changes saved."
+    Note over LocalOPA: OPA sidecar polls FinanceApp and<br/>picks up new bundle within seconds
 ```
