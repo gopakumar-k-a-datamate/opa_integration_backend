@@ -1,7 +1,8 @@
 package org.datamate.identity.bootstrap;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -9,10 +10,11 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RoleStagingSeeder {
+    @EnableLogger
+    private Logger log;
     private final JdbcTemplate jdbcTemplate;
 
     public void seed() {

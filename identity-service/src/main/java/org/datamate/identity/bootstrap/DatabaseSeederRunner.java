@@ -1,15 +1,17 @@
 package org.datamate.identity.bootstrap;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DatabaseSeederRunner implements CommandLineRunner {
+    @EnableLogger
+    private Logger log;
     private final RoleStagingSeeder roleSeeder;
     private final UserStagingSeeder userSeeder;
 
