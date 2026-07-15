@@ -1,0 +1,20 @@
+package org.datamate.authz.application.port.out.policy;
+
+import org.datamate.authz.domain.model.policy.entity.Resource;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+/** Persistence operations for {@code authz_resource}. */
+public interface ResourcePersistencePort {
+
+    /** Insert or update a resource identified by {@code (namespace, name)}. */
+    Resource upsert(UUID id, String namespace, String name, String description);
+
+    List<Resource> findAllActive();
+
+    Optional<Resource> findByNamespaceAndName(String namespace, String name);
+}
+
+
