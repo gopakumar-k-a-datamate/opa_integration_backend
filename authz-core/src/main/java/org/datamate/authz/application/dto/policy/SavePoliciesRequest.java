@@ -16,9 +16,10 @@ import java.util.List;
  * </ul>
  * </p>
  */
-public record SavePoliciesRequestDto(
+public record SavePoliciesRequest(
         SubjectType subjectType,
         String subjectId,
         List<PolicyItemDto> policies
 ) {}
+
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 
 /**
- * A single policy entry inside a {@link SavePoliciesRequestDto}.
+ * A single policy entry inside a {@link SavePoliciesRequest}.
  *
  * @param permissionCode  e.g. {@code "finance:journal:create"}
  * @param effect          {@code ALLOW} or {@code DENY}
@@ -19,5 +19,6 @@ public record PolicyItemDto(
         boolean enabled,
         boolean isDeleted
 ) {}
+
 
 

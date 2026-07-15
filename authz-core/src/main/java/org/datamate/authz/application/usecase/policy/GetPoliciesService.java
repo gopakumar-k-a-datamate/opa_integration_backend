@@ -1,5 +1,7 @@
 package org.datamate.authz.application.usecase.policy;
 
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.application.dto.policy.PolicyGridItemDto;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
  * existing policies for the given subject. A permission with no policy row
  * appears in the grid as unchecked (enabled=false, no effect, no condition).
  */
+@RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
 public class GetPoliciesService implements GetPoliciesUseCase {
@@ -34,18 +37,7 @@ public class GetPoliciesService implements GetPoliciesUseCase {
     private final ResourcePersistencePort resourcePort;
     private final PolicyPersistencePort policyPort;
     private final ObjectMapper objectMapper;
-
-    public GetPoliciesService(PermissionPersistencePort permissionPort,
-                              ResourcePersistencePort resourcePort,
-                              PolicyPersistencePort policyPort,
-                              ObjectMapper objectMapper) {
-        this.permissionPort = permissionPort;
-        this.resourcePort = resourcePort;
-        this.policyPort = policyPort;
-        this.objectMapper = objectMapper;
-    }
-
-    @Override
+@Override
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId) {
         // Build resource lookup map
         Map<UUID, Resource> resourcesById = resourcePort.findAllActive()
@@ -107,5 +99,7 @@ public class GetPoliciesService implements GetPoliciesUseCase {
         }
     }
 }
+
+
 
 

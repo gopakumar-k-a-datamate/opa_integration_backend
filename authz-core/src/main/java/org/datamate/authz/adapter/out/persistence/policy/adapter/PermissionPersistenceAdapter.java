@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.out.persistence.policy.adapter;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.adapter.out.persistence.policy.entity.PermissionJpaEntity;
 import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataPermissionRepository;
 import org.datamate.authz.application.port.out.policy.PermissionPersistencePort;
@@ -10,16 +12,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Component
 public class PermissionPersistenceAdapter implements PermissionPersistencePort {
 
     private final SpringDataPermissionRepository repository;
-
-    public PermissionPersistenceAdapter(SpringDataPermissionRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
+@Override
     public Permission upsert(UUID id, UUID resourceId, String action, String code,
                                   String description) {
         PermissionJpaEntity entity = repository
@@ -59,4 +57,6 @@ public class PermissionPersistenceAdapter implements PermissionPersistencePort {
                 e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
     }
 }
+
+
 

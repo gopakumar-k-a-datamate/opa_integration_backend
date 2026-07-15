@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.in.startup;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
 import org.datamate.authz.application.port.out.policy.ConditionFieldPersistencePort;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
  * all {@link PolicyResource}-annotated classes into the local {@code authz_*} tables
  * and perform diff-based field sync.
  */
+@RequiredArgsConstructor
 @Component
 public class StartupScanner implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -46,20 +49,7 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
     private final PolicyCompilerPort compilerPort;
 
     private volatile boolean alreadyRan = false;
-
-    public StartupScanner(ResourcePersistencePort resourcePort,
-                               PermissionPersistencePort permissionPort,
-                               ConditionFieldPersistencePort conditionFieldPort,
-                               PolicyPersistencePort policyPort,
-                               PolicyCompilerPort compilerPort) {
-        this.resourcePort = resourcePort;
-        this.permissionPort = permissionPort;
-        this.conditionFieldPort = conditionFieldPort;
-        this.policyPort = policyPort;
-        this.compilerPort = compilerPort;
-    }
-
-    @Override
+@Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (alreadyRan) return;
@@ -169,5 +159,7 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
         }
     }
 }
+
+
 
 

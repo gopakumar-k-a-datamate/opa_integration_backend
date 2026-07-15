@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.in.rest.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.application.port.in.policy.GetOpaBundleUseCase;
 import org.datamate.authz.domain.model.policy.entity.PolicyBundleCache;
 import org.springframework.http.HttpHeaders;
@@ -30,17 +32,13 @@ import java.util.Optional;
  *       max_delay_seconds: 30
  * }</pre>
  */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/internal/authz")
 public class BundleController {
 
     private final GetOpaBundleUseCase getOpaBundleUseCase;
-
-    public BundleController(GetOpaBundleUseCase getOpaBundleUseCase) {
-        this.getOpaBundleUseCase = getOpaBundleUseCase;
-    }
-
-    /**
+/**
      * Serves the compiled OPA bundle.
      *
      * <p>If the client sends {@code If-None-Match} matching the current bundle's ETag,
@@ -77,5 +75,7 @@ public class BundleController {
                 .body(bundle.getBundleData());
     }
 }
+
+
 
 

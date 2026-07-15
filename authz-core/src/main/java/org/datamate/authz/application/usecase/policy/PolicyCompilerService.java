@@ -1,5 +1,7 @@
 package org.datamate.authz.application.usecase.policy;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.application.port.out.policy.PermissionPersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyPersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyBundleCachePersistencePort;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
  *   <li>Compute MD5 ETag and upsert into {@code authz_policy_bundle_cache}.</li>
  * </ol>
  */
+@RequiredArgsConstructor
 @Service
 public class PolicyCompilerService implements PolicyCompilerPort {
 
@@ -44,20 +47,7 @@ public class PolicyCompilerService implements PolicyCompilerPort {
     private final PolicyBundleCachePersistencePort bundleCachePort;
     private final RegoGenerator regoGenerator;
     private final TarGzBundleBuilder bundleBuilder;
-
-    public PolicyCompilerService(PolicyPersistencePort policyPort,
-                                 PermissionPersistencePort permissionPort,
-                                 PolicyBundleCachePersistencePort bundleCachePort,
-                                 RegoGenerator regoGenerator,
-                                 TarGzBundleBuilder bundleBuilder) {
-        this.policyPort = policyPort;
-        this.permissionPort = permissionPort;
-        this.bundleCachePort = bundleCachePort;
-        this.regoGenerator = regoGenerator;
-        this.bundleBuilder = bundleBuilder;
-    }
-
-    @Override
+@Override
     @Transactional
     public synchronized void recompile() {
         List<Policy> enabledPolicies = policyPort.findAllEnabled();
@@ -88,5 +78,7 @@ public class PolicyCompilerService implements PolicyCompilerPort {
         }
     }
 }
+
+
 
 

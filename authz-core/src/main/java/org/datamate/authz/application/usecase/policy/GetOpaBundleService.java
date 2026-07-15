@@ -1,5 +1,7 @@
 package org.datamate.authz.application.usecase.policy;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.application.port.in.policy.GetOpaBundleUseCase;
 import org.datamate.authz.application.port.out.policy.PolicyBundleCachePersistencePort;
 import org.datamate.authz.domain.model.policy.entity.PolicyBundleCache;
@@ -11,20 +13,18 @@ import java.util.Optional;
 /**
  * Fetches the current compiled OPA bundle from the local {@code authz_policy_bundle_cache} table.
  */
+@RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
 public class GetOpaBundleService implements GetOpaBundleUseCase {
 
     private final PolicyBundleCachePersistencePort bundleCachePort;
-
-    public GetOpaBundleService(PolicyBundleCachePersistencePort bundleCachePort) {
-        this.bundleCachePort = bundleCachePort;
-    }
-
-    @Override
+@Override
     public Optional<PolicyBundleCache> getBundle() {
         return bundleCachePort.getBundle();
     }
 }
+
+
 
 

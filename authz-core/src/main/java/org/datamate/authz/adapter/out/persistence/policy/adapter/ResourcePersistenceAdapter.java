@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.out.persistence.policy.adapter;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.adapter.out.persistence.policy.entity.ResourceJpaEntity;
 import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataResourceRepository;
 import org.datamate.authz.application.port.out.policy.ResourcePersistencePort;
@@ -10,16 +12,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Component
 public class ResourcePersistenceAdapter implements ResourcePersistencePort {
 
     private final SpringDataResourceRepository repository;
-
-    public ResourcePersistenceAdapter(SpringDataResourceRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
+@Override
     public Resource upsert(UUID id, String namespace, String name, String description) {
         ResourceJpaEntity entity = repository
                 .findByNamespaceAndNameAndDeletedAtIsNull(namespace, name)
@@ -52,4 +50,6 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
                 e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
     }
 }
+
+
 

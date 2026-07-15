@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.out.persistence.policy.adapter;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.adapter.out.persistence.policy.entity.PolicyJpaEntity;
 import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataPolicyRepository;
 import org.datamate.authz.application.port.out.policy.PolicyPersistencePort;
@@ -13,16 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Component
 public class PolicyPersistenceAdapter implements PolicyPersistencePort {
 
     private final SpringDataPolicyRepository repository;
-
-    public PolicyPersistenceAdapter(SpringDataPolicyRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
+@Override
     public List<Policy> findAllEnabled() {
         return repository.findAllByEnabledTrueAndDeletedAtIsNull()
                 .stream().map(this::toDomain).toList();
@@ -100,5 +98,7 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
         );
     }
 }
+
+
 
 

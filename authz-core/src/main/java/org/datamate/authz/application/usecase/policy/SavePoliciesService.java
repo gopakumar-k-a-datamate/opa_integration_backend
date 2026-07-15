@@ -1,8 +1,10 @@
 package org.datamate.authz.application.usecase.policy;
 
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.application.dto.policy.PolicyItemDto;
-import org.datamate.authz.application.dto.policy.SavePoliciesRequestDto;
+import org.datamate.authz.application.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.application.port.in.policy.SavePoliciesUseCase;
 import org.datamate.authz.application.port.out.policy.PermissionPersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyPersistencePort;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
  * </ol>
  * </p>
  */
+@RequiredArgsConstructor
 @Service
 public class SavePoliciesService implements SavePoliciesUseCase {
 
@@ -40,20 +43,9 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     private final PermissionPersistencePort permissionPort;
     private final PolicyCompilerPort compilerPort;
     private final ObjectMapper objectMapper;
-
-    public SavePoliciesService(PolicyPersistencePort policyPort,
-                               PermissionPersistencePort permissionPort,
-                               PolicyCompilerPort compilerPort,
-                               ObjectMapper objectMapper) {
-        this.policyPort = policyPort;
-        this.permissionPort = permissionPort;
-        this.compilerPort = compilerPort;
-        this.objectMapper = objectMapper;
-    }
-
-    @Override
+@Override
     @Transactional
-    public void savePolicies(SavePoliciesRequestDto request) {
+    public void savePolicies(SavePoliciesRequest request) {
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();
 
@@ -120,5 +112,8 @@ public class SavePoliciesService implements SavePoliciesUseCase {
         }
     }
 }
+
+
+
 
 

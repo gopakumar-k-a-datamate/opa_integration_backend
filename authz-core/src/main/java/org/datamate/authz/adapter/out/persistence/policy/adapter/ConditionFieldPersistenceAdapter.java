@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.out.persistence.policy.adapter;
 
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.adapter.out.persistence.policy.entity.ConditionFieldJpaEntity;
@@ -15,19 +17,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Component
 public class ConditionFieldPersistenceAdapter implements ConditionFieldPersistencePort {
 
     private final SpringDataConditionFieldRepository repository;
     private final ObjectMapper objectMapper;
-
-    public ConditionFieldPersistenceAdapter(SpringDataConditionFieldRepository repository,
-                                                 ObjectMapper objectMapper) {
-        this.repository = repository;
-        this.objectMapper = objectMapper;
-    }
-
-    @Override
+@Override
     public ConditionField upsert(UUID id, UUID permissionId, String fieldName,
                                       FieldType fieldType, String displayName,
                                       List<String> allowedValues, String optionsEndpoint) {
@@ -114,4 +110,6 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
         }
     }
 }
+
+
 

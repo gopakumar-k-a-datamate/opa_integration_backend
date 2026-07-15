@@ -1,5 +1,7 @@
 package org.datamate.authz.adapter.out.persistence.policy.adapter;
 
+import lombok.RequiredArgsConstructor;
+
 import org.datamate.authz.adapter.out.persistence.policy.entity.PolicyBundleCacheJpaEntity;
 import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataPolicyBundleCacheRepository;
 import org.datamate.authz.application.port.out.policy.PolicyBundleCachePersistencePort;
@@ -9,16 +11,12 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Component
 public class PolicyBundleCachePersistenceAdapter implements PolicyBundleCachePersistencePort {
 
     private final SpringDataPolicyBundleCacheRepository repository;
-
-    public PolicyBundleCachePersistenceAdapter(SpringDataPolicyBundleCacheRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
+@Override
     public Optional<PolicyBundleCache> getBundle() {
         return repository.findFirstByOrderByCreatedAtDesc().map(this::toDomain);
     }
@@ -42,4 +40,6 @@ public class PolicyBundleCachePersistenceAdapter implements PolicyBundleCachePer
         return new PolicyBundleCache(e.getId(), e.getBundleData(), e.getEtag(), e.getCreatedAt());
     }
 }
+
+
 
