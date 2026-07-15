@@ -11,7 +11,6 @@ import org.datamate.identity.domain.model.Role;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +29,7 @@ public class RoleManagementService implements RoleManagementUseCase {
     }
 
     @Override
-    public RoleDto getRole(UUID id) {
+    public RoleDto getRole(Long id) {
         Role role = rolePort.findById(id)
                 .orElseThrow(() -> new RoleNotFoundException("Role not found"));
         return mapToDto(role);
@@ -44,7 +43,7 @@ public class RoleManagementService implements RoleManagementUseCase {
     }
 
     @Override
-    public void deleteRole(UUID id) {
+    public void deleteRole(Long id) {
         rolePort.delete(id);
     }
 

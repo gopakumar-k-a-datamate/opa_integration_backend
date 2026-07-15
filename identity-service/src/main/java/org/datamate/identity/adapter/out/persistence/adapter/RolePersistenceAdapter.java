@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -27,7 +26,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public Optional<Role> findById(UUID id) {
+    public Optional<Role> findById(Long id) {
         return repository.findById(id).map(mapper::mapToDomain);
     }
 
@@ -37,7 +36,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public void delete(UUID id) {
+    public void delete(Long id) {
         repository.deleteById(id);
     }
 

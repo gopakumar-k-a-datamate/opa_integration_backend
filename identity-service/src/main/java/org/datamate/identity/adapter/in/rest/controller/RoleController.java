@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/roles")
@@ -23,7 +22,7 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleDto> getRole(@PathVariable UUID id) {
+    public ResponseEntity<RoleDto> getRole(@PathVariable Long id) {
         return ResponseEntity.ok(roleManagementUseCase.getRole(id));
     }
 
@@ -33,7 +32,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
         roleManagementUseCase.deleteRole(id);
         return ResponseEntity.noContent().build();
     }

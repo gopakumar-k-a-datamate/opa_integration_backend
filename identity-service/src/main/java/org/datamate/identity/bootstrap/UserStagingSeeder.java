@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,11 +24,11 @@ public class UserStagingSeeder {
         String adminPassword = passwordEncoder.encode("admin123");
         String userPassword = passwordEncoder.encode("user123");
 
-        insertUser(UUID.fromString("10000000-0000-0000-0000-000000000001"), "admin@123.com", adminPassword, "System", "Admin");
-        insertUser(UUID.fromString("10000000-0000-0000-0000-000000000002"), "user@123.com", userPassword, "Standard", "User");
+        insertUser(1L, "admin@123.com", adminPassword, "System", "Admin");
+        insertUser(2L, "user@123.com", userPassword, "Standard", "User");
     }
 
-    private void insertUser(UUID id, String email, String passwordHash, String firstName, String lastName) {
+    private void insertUser(Long id, String email, String passwordHash, String firstName, String lastName) {
         String checkSql = "SELECT COUNT(*) FROM users WHERE email = ?";
         Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, email);
         if (count != null && count > 0) {

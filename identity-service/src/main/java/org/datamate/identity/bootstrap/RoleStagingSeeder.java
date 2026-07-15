@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -20,11 +19,11 @@ public class RoleStagingSeeder {
     public void seed() {
         log.info("Seeding Roles...");
         
-        insertRole(UUID.fromString("00000000-0000-0000-0000-000000000001"), "ADMIN", "Administrator Role");
-        insertRole(UUID.fromString("00000000-0000-0000-0000-000000000002"), "USER", "Standard User Role");
+        insertRole(1L, "ADMIN", "Administrator Role");
+        insertRole(2L, "USER", "Standard User Role");
     }
 
-    private void insertRole(UUID id, String name, String description) {
+    private void insertRole(Long id, String name, String description) {
         String checkSql = "SELECT COUNT(*) FROM role WHERE id = ?";
         Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, id);
         if (count != null && count > 0) {
