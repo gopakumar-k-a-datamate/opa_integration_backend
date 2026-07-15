@@ -14,7 +14,7 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 |---|---|---|---|
 | `input.user.id` | Number | JWT / Session | The authenticated user's ID |
 | `input.user.roles` | String[] | JWT / Session | User's assigned role names (issued by IdP) |
-| `input.permission` | String | Application code | The permission code (e.g., `journal:create`) |
+| `input.permission` | String | Application code | The permission code (e.g., `finance:journal:create`) |
 
 ### Dynamic Fields (vary by resource)
 
@@ -28,7 +28,7 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 {
   "input": {
     "user": { "id": 42, "roles": ["ACCOUNTANT", "MANAGER"] },
-    "permission": "journal:create",
+    "permission": "finance:journal:create",
     "resource": {
       "amount": 8500,
       "bank": "HDFC",
@@ -43,10 +43,10 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 The PEP (middleware or shared library) is responsible for:
 1. Extracting the user and roles from the incoming JWT (issued by the central Identity module).
 2. Constructing the `input` JSON with the resource context.
-3. Sending the query to the local OPA sidecar and enforcing the decision.
+3. Sending the query to the local OPA sidecar for the specific namespace (e.g., `POST /v1/data/app/authz/{namespace}/allow`) and enforcing the decision.
 
 **Recommended Implementation:**
-Use an AOP Aspect in the Application Layer to intercept use cases. The aspect inspects the incoming Command object, reads the `@PolicyResource` annotation to extract the `name` and `action` (which form `permission`, e.g., `journal:create`), and reads the `@PolicyField` values to build the `input.resource` JSON.
+Use an AOP Aspect in the Application Layer to intercept use cases. The aspect inspects the incoming Command object, reads the `@PolicyResource` annotation to extract the `namespace`, `name`, and `action` (which form `permission`, e.g., `finance:journal:create`), and reads the `@PolicyField` values to build the `input.resource` JSON.
 
 ---
 
@@ -58,18 +58,18 @@ The `authz-core` library acts as a **Policy Compiler** that translates the local
 
 ```mermaid
 flowchart LR
-    A["Load enabled policies\nfrom Local DB"] --> B["Validate field references\nagainst local authz_condition_field"]
+    A["Load enabled policies\nfor Namespace"] --> B["Validate field references\nagainst local authz_condition_field"]
     B --> C["Parse expression_json\nAST"]
     C --> D["Generate Rego code"]
     D --> E["Create bundle.tar.gz"]
-    E --> F["Save to\nauthz_policy_bundle_cache"]
+    E --> F["Save to cache\nfor Namespace"]
 ```
 
-1. **Load:** Fetch all enabled, non-deleted policies from the local `authz_policy` table.
+1. **Load:** Fetch all enabled, non-deleted policies from the local `authz_policy` table for the *affected namespace*.
 2. **Validate:** Check that all field references in `expression_json` exist in the local `authz_condition_field` registry. Skip policies with deprecated fields.
-3. **Parse & Compile:** Parse the AST and translate it into Rego code.
+3. **Parse & Compile:** Parse the AST and translate it into Rego code scoped to the namespace (e.g., `package app.authz.finance`).
 4. **Bundle:** Compress into `bundle.tar.gz`.
-5. **Cache:** Generate an `ETag` (MD5 hash) and upsert into the local `authz_policy_bundle_cache` table.
+5. **Cache:** Generate an `ETag` (MD5 hash) and upsert into the local `authz_policy_bundle_cache` table for that specific namespace.
 
 ### AST to Rego Translation Algorithm
 
@@ -100,7 +100,7 @@ When translating the `expression_json` AST into Rego:
 The compiler generates Rego with separate `allow_rule` and `deny_rule` blocks, combined via a final `allow` decision that enforces DENY-overrides-ALLOW:
 
 ```rego
-package app.authz
+package app.authz.finance
 
 default allow := false
 default deny_rule := false
@@ -110,7 +110,7 @@ default deny_rule := false
 # Accountant Policy
 allow_rule if {
     "ACCOUNTANT" in input.user.roles
-    input.permission == "journal:create"
+    input.permission == "finance:journal:create"
     input.resource.amount <= 10000
 }
 
@@ -119,7 +119,7 @@ allow_rule if {
 # John Deny Policy (unconditional)
 deny_rule if {
     input.user.id == 123
-    input.permission == "journal:create"
+    input.permission == "finance:journal:create"
 }
 
 # --- Final Decision ---
@@ -137,7 +137,7 @@ allow if {
 
 The `authz-core` library exposes an endpoint on the microservice itself:
 ```
-GET /internal/authz/bundle
+GET /internal/authz/bundle/{namespace}
 
 Headers:
   If-None-Match: "abc123"       (OPA's current ETag)
@@ -145,15 +145,15 @@ Headers:
 
 ### Bundle Regeneration Strategy
 
-Bundle regeneration is triggered **on-demand** when an admin saves policy changes via the local library's REST API.
+Bundle regeneration is triggered **on-demand** when an admin saves policy changes via the local library's REST API. The library recompiles only the namespace that was modified.
 
-```
+```text
 Admin saves policy changes via UI
     → API Gateway routes request to specific microservice (e.g., Finance)
     → Library updates policy rows in local DB
-    → Library recompiles bundle and upserts into local authz_policy_bundle_cache
+    → Library recompiles bundle for the affected namespace and upserts into local authz_policy_bundle_cache
     → Returns 200 OK
-    → Next local OPA poll picks up the new bundle
+    → Next local OPA poll for that namespace picks up the new bundle
 ```
 
 ---
@@ -164,7 +164,7 @@ Admin saves policy changes via UI
 
 ### OPA Configuration
 
-In a microservice or modulith, the local OPA sidecar loads the bundle directly from its host application (which runs the `authz-core` library).
+In a microservice or modulith, the local OPA sidecar loads the bundle directly from its host application (which runs the `authz-core` library). OPA configuration is generated at startup to poll multiple topic-wise endpoints for all active namespaces.
 
 ```yaml
 services:
@@ -172,9 +172,15 @@ services:
     url: http://localhost:8080
 
 bundles:
-  authz:
+  finance:
     service: local-app
-    resource: /internal/authz/bundle
+    resource: /internal/authz/bundle/finance
+    polling:
+      min_delay_seconds: 10
+      max_delay_seconds: 30
+  clinical:
+    service: local-app
+    resource: /internal/authz/bundle/clinical
     polling:
       min_delay_seconds: 10
       max_delay_seconds: 30
@@ -183,4 +189,4 @@ decision_logs:
   console: true
 ```
 
-Because OPA runs side-by-side with the application and fetches the bundle locally, there is virtually zero network latency for authorization checks.
+Because OPA runs side-by-side with the application and fetches the bundles locally, there is virtually zero network latency for authorization checks.

@@ -157,10 +157,10 @@ sequenceDiagram
     Admin->>UI: Click Save
     UI->>FinanceApp: PUT /internal/authz/roles/ACCOUNTANT/policies
     FinanceApp->>LocalDB: Update/insert/soft-delete policy rows
-    FinanceApp->>FinanceApp: Trigger Library Compiler
-    FinanceApp->>LocalDB: Validate fields, parse AST, generate Rego
-    FinanceApp->>LocalDB: Upsert bundle + ETag into authz_policy_bundle_cache
+    FinanceApp->>FinanceApp: Trigger Library Compiler (for affected namespace)
+    FinanceApp->>LocalDB: Validate fields, parse AST, generate Rego for namespace
+    FinanceApp->>LocalDB: Upsert bundle + ETag into authz_policy_bundle_cache for namespace
     FinanceApp->>UI: 200 OK
     UI->>Admin: "Changes saved."
-    Note over LocalOPA: OPA sidecar polls FinanceApp and<br/>picks up new bundle within seconds
+    Note over LocalOPA: OPA sidecar polls FinanceApp for namespace<br/>and picks up new bundle within seconds
 ```

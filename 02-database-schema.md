@@ -128,13 +128,14 @@ The core authorization rule. This maps global subjects (Roles/Users from the IdP
 ---
 
 ### 5. Policy Bundle Cache (`authz_policy_bundle_cache`)
-Stores the compiled OPA bundle for this application service. 
+Stores the compiled OPA bundles for this application service, separated by namespace.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | BIGINT | PK, auto-generated | |
+| `namespace` | VARCHAR | UNIQUE, NOT NULL | The bounded context this bundle represents |
 | `bundle_data` | BLOB/BYTEA | NOT NULL | The compiled `bundle.tar.gz` |
 | `etag` | VARCHAR | NOT NULL | MD5 hash of the bundle for conditional serving |
 | `created_at` | TIMESTAMP | NOT NULL | When this bundle was generated |
 
-*(Note: There is exactly one row in this table per application service database, updated whenever local policies change).*
+*(Note: There is exactly one row in this table per namespace, updated whenever local policies for that namespace change).*

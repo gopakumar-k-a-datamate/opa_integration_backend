@@ -119,8 +119,11 @@ Fetches the active `authz_condition_field` definitions for a specific permission
 
 ## 3. OPA Runtime
 
-### GET `/internal/authz/bundle`
-Serves the compiled OPA bundle (`bundle.tar.gz`) for this application module. Queried continuously by the local OPA sidecar.
+### GET `/internal/authz/bundle/{namespace}`
+Serves the compiled OPA bundle (`bundle.tar.gz`) for a specific namespace in this application module. Queried continuously by the local OPA sidecar.
+
+**Path Variables:**
+- `namespace` (required): e.g., `finance`, `clinical`
 
 **Headers:**
 - `If-None-Match`: The ETag (MD5 hash) of the bundle OPA currently holds.

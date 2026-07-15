@@ -67,7 +67,7 @@ erDiagram
     RESOURCE ||--o{ PERMISSION : has
     PERMISSION ||--o{ CONDITION_FIELD : defines
     PERMISSION ||--o{ POLICY : "governed by"
-    POLICY_BUNDLE_CACHE ||--o{ POLICY : "caches"
+    POLICY_BUNDLE_CACHE ||--o{ POLICY : "caches (per namespace)"
 ```
 *(Note: Roles and Users are managed externally in the Identity Provider, so the local Policy table simply stores the `role_name` or `user_id` as a reference).*
 
@@ -81,7 +81,7 @@ erDiagram
 | **100% Local Auto-Registration** | `@PolicyResource` and `@PolicyField` annotations on application commands auto-register Resources, Permissions, and Fields into the *local* database on startup. |
 | **JSON AST for conditions** | Normalized DB tables for nested AND/OR groups are overly complex. JSON maps perfectly to UI rule builders. |
 | **DENY overrides ALLOW** | Any matching DENY policy blocks access regardless of ALLOW policies. Enforced via `not deny_rule` in Rego. |
-| **Local OPA Bundle Cache** | The `authz-core` library compiles Rego and stores the zipped bundle in the local database, serving it directly to the local OPA sidecar. |
+| **Local OPA Bundle Cache** | The `authz-core` library compiles Rego and stores zipped bundles *per namespace* in the local database, serving them directly to the local OPA sidecar. |
 | **Soft deletes on all entities** | All tables use `deleted_at` timestamp. `NULL` = active. |
 
 ---
