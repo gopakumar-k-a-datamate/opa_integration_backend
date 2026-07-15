@@ -9,6 +9,8 @@ import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataCo
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 import org.datamate.authz.application.port.out.policy.ConditionFieldPersistencePort;
 import org.datamate.authz.domain.model.policy.entity.ConditionField;
+import org.datamate.authz.adapter.out.persistence.policy.mapper.ConditionFieldPersistenceMapper;
+import org.datamate.authz.adapter.out.persistence.policy.mapper.JsonMapper;
 import org.datamate.authz.domain.model.policy.enumtype.FieldStatus;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +24,8 @@ import java.util.UUID;
 public class ConditionFieldPersistenceAdapter implements ConditionFieldPersistencePort {
 
     private final SpringDataConditionFieldRepository repository;
-    private final ObjectMapper objectMapper;
+    private final ConditionFieldPersistenceMapper mapper;
+    private final JsonMapper jsonMapper;
 @Override
     public ConditionField upsert(UUID id, UUID permissionId, String fieldName,
                                       FieldType fieldType, String displayName,
@@ -31,32 +34,22 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
                 .findByPermissionIdAndFieldNameAndDeletedAtIsNull(permissionId, fieldName)
                 .orElseGet(ConditionFieldJpaEntity::new);
 
-        if (entity.getId() == null) {
-            entity.setId(id);
-        }
-        entity.setPermissionId(permissionId);
-        entity.setFieldName(fieldName);
-        entity.setFieldType(fieldType);
-        entity.setDisplayName(displayName);
-        entity.setAllowedValues(serializeList(allowedValues));
-        entity.setOptionsEndpoint(optionsEndpoint);
-        entity.setStatus(FieldStatus.ACTIVE);
-        entity.setDeletedAt(null);
+        mapper.updateEntity(entity, id, permissionId, fieldName, fieldType, displayName, allowedValues, optionsEndpoint);
 
-        return toDomain(repository.save(entity));
+        return mapper.toDomain(repository.save(entity));
     }
 
     @Override
     public List<ConditionField> findActiveByPermissionId(UUID permissionId) {
         return repository
                 .findByPermissionIdAndStatusAndDeletedAtIsNull(permissionId, FieldStatus.ACTIVE)
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public List<ConditionField> findAllByPermissionId(UUID permissionId) {
         return repository.findByPermissionIdAndDeletedAtIsNull(permissionId)
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -64,7 +57,7 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
                                                                         String fieldName) {
         return repository
                 .findByPermissionIdAndFieldNameAndDeletedAtIsNull(permissionId, fieldName)
-                .map(this::toDomain);
+                .map(mapper::toDomain);
     }
 
     @Override
@@ -81,33 +74,6 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
             entity.setDeletedAt(LocalDateTime.now());
             repository.save(entity);
         });
-    }
-
-    private ConditionField toDomain(ConditionFieldJpaEntity e) {
-        return new ConditionField(
-                e.getId(), e.getPermissionId(), e.getFieldName(), e.getFieldType(),
-                e.getDisplayName(), deserializeList(e.getAllowedValues()),
-                e.getOptionsEndpoint(), e.getStatus(),
-                e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt()
-        );
-    }
-
-    private String serializeList(List<String> list) {
-        if (list == null || list.isEmpty()) return null;
-        try {
-            return objectMapper.writeValueAsString(list);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private List<String> deserializeList(String json) {
-        if (json == null || json.isBlank()) return List.of();
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
-        } catch (Exception e) {
-            return List.of();
-        }
     }
 }
 

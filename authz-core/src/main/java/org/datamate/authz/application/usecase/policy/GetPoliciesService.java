@@ -2,9 +2,8 @@ package org.datamate.authz.application.usecase.policy;
 
 import lombok.RequiredArgsConstructor;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.application.dto.policy.PolicyGridItemDto;
+import org.datamate.authz.application.dto.policy.mapper.PolicyDtoMapper;
 import org.datamate.authz.application.port.in.policy.GetPoliciesUseCase;
 import org.datamate.authz.application.port.out.policy.PermissionPersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyPersistencePort;
@@ -36,7 +35,7 @@ public class GetPoliciesService implements GetPoliciesUseCase {
     private final PermissionPersistencePort permissionPort;
     private final ResourcePersistencePort resourcePort;
     private final PolicyPersistencePort policyPort;
-    private final ObjectMapper objectMapper;
+    private final PolicyDtoMapper policyDtoMapper;
 @Override
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId) {
         // Build resource lookup map
@@ -58,45 +57,10 @@ public class GetPoliciesService implements GetPoliciesUseCase {
             if (resource == null) continue;
 
             Policy policy = policyByPermissionId.get(permission.getId());
-            result.add(toDto(permission, resource, policy));
+            result.add(policyDtoMapper.toDto(permission, resource, policy));
         }
 
         return result;
-    }
-
-    private PolicyGridItemDto toDto(Permission permission, Resource resource,
-                                    Policy policy) {
-        if (policy == null) {
-            return new PolicyGridItemDto(
-                    permission.getCode(),
-                    permission.getAction(),
-                    resource.getNamespace(),
-                    resource.getName(),
-                    null, null, null, false, null
-            );
-        }
-
-        JsonNode expressionNode = parseJson(policy.getExpressionJson());
-        return new PolicyGridItemDto(
-                permission.getCode(),
-                permission.getAction(),
-                resource.getNamespace(),
-                resource.getName(),
-                policy.getId(),
-                policy.getEffect(),
-                expressionNode,
-                policy.isEnabled(),
-                policy.getDisabledReason()
-        );
-    }
-
-    private JsonNode parseJson(String json) {
-        if (json == null || json.isBlank()) return null;
-        try {
-            return objectMapper.readTree(json);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }
 

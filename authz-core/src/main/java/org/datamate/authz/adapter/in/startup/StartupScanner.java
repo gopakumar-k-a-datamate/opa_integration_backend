@@ -49,6 +49,7 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
     private final PolicyCompilerPort compilerPort;
 
     private volatile boolean alreadyRan = false;
+
 @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent event) {

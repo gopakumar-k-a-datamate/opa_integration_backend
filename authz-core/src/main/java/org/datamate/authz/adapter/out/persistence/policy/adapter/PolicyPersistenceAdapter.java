@@ -6,6 +6,7 @@ import org.datamate.authz.adapter.out.persistence.policy.entity.PolicyJpaEntity;
 import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataPolicyRepository;
 import org.datamate.authz.application.port.out.policy.PolicyPersistencePort;
 import org.datamate.authz.domain.model.policy.entity.Policy;
+import org.datamate.authz.adapter.out.persistence.policy.mapper.PolicyPersistenceMapper;
 import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
 import org.springframework.stereotype.Component;
@@ -20,17 +21,18 @@ import java.util.UUID;
 public class PolicyPersistenceAdapter implements PolicyPersistencePort {
 
     private final SpringDataPolicyRepository repository;
+    private final PolicyPersistenceMapper mapper;
 @Override
     public List<Policy> findAllEnabled() {
         return repository.findAllByEnabledTrueAndDeletedAtIsNull()
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public List<Policy> findBySubject(SubjectType subjectType, String subjectId) {
         return repository
                 .findBySubjectTypeAndSubjectIdAndDeletedAtIsNull(subjectType, subjectId)
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -40,13 +42,13 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
         return repository
                 .findByPermissionIdAndSubjectTypeAndSubjectIdAndDeletedAtIsNull(
                         permissionId, subjectType, subjectId)
-                .map(this::toDomain);
+                .map(mapper::toDomain);
     }
 
     @Override
     public List<Policy> findEnabledReferencingField(UUID permissionId, String fieldName) {
         return repository.findEnabledReferencingField(permissionId, fieldName)
-                .stream().map(this::toDomain).toList();
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -58,19 +60,9 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
                         permissionId, subjectType, subjectId)
                 .orElseGet(PolicyJpaEntity::new);
 
-        if (entity.getId() == null) {
-            entity.setId(id);
-        }
-        entity.setPermissionId(permissionId);
-        entity.setSubjectType(subjectType);
-        entity.setSubjectId(subjectId);
-        entity.setEffect(effect);
-        entity.setExpressionJson(expressionJson);
-        entity.setEnabled(enabled);
-        entity.setDisabledReason(disabledReason);
-        entity.setDeletedAt(null);
+        mapper.updateEntity(entity, id, permissionId, subjectType, subjectId, effect, expressionJson, enabled, disabledReason);
 
-        return toDomain(repository.save(entity));
+        return mapper.toDomain(repository.save(entity));
     }
 
     @Override
@@ -88,14 +80,6 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
             entity.setDisabledReason(reason);
             repository.save(entity);
         });
-    }
-
-    private Policy toDomain(PolicyJpaEntity e) {
-        return new Policy(
-                e.getId(), e.getPermissionId(), e.getSubjectType(), e.getSubjectId(),
-                e.getEffect(), e.getExpressionJson(), e.isEnabled(), e.getDisabledReason(),
-                e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt()
-        );
     }
 }
 

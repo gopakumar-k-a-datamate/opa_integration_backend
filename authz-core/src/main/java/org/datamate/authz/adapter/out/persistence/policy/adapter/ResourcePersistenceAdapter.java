@@ -6,6 +6,7 @@ import org.datamate.authz.adapter.out.persistence.policy.entity.ResourceJpaEntit
 import org.datamate.authz.adapter.out.persistence.policy.repository.SpringDataResourceRepository;
 import org.datamate.authz.application.port.out.policy.ResourcePersistencePort;
 import org.datamate.authz.domain.model.policy.entity.Resource;
+import org.datamate.authz.adapter.out.persistence.policy.mapper.ResourcePersistenceMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,38 +18,29 @@ import java.util.UUID;
 public class ResourcePersistenceAdapter implements ResourcePersistencePort {
 
     private final SpringDataResourceRepository repository;
+    private final ResourcePersistenceMapper mapper;
 @Override
     public Resource upsert(UUID id, String namespace, String name, String description) {
         ResourceJpaEntity entity = repository
                 .findByNamespaceAndNameAndDeletedAtIsNull(namespace, name)
                 .orElseGet(ResourceJpaEntity::new);
 
-        if (entity.getId() == null) {
-            entity.setId(id);
-        }
-        entity.setNamespace(namespace);
-        entity.setName(name);
-        entity.setDescription(description);
-        entity.setDeletedAt(null);
+        mapper.updateEntity(entity, id, namespace, name, description);
 
-        return toDomain(repository.save(entity));
+        return mapper.toDomain(repository.save(entity));
     }
 
     @Override
     public List<Resource> findAllActive() {
-        return repository.findAllByDeletedAtIsNull().stream().map(this::toDomain).toList();
+        return repository.findAllByDeletedAtIsNull().stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public Optional<Resource> findByNamespaceAndName(String namespace, String name) {
         return repository.findByNamespaceAndNameAndDeletedAtIsNull(namespace, name)
-                .map(this::toDomain);
+                .map(mapper::toDomain);
     }
 
-    private Resource toDomain(ResourceJpaEntity e) {
-        return new Resource(e.getId(), e.getNamespace(), e.getName(),
-                e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
-    }
 }
 
 

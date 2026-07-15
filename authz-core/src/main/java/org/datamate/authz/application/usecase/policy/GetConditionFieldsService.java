@@ -11,6 +11,8 @@ import org.datamate.authz.domain.model.policy.entity.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.datamate.authz.application.dto.policy.mapper.ConditionFieldDtoMapper;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +26,7 @@ public class GetConditionFieldsService implements GetConditionFieldsUseCase {
 
     private final PermissionPersistencePort permissionPort;
     private final ConditionFieldPersistencePort conditionFieldPort;
+    private final ConditionFieldDtoMapper conditionFieldDtoMapper;
 @Override
     public List<ConditionFieldDto> getFields(String permissionCode) {
         Optional<Permission> permission = permissionPort.findByCode(permissionCode);
@@ -33,18 +36,8 @@ public class GetConditionFieldsService implements GetConditionFieldsUseCase {
 
         return conditionFieldPort.findActiveByPermissionId(permission.get().getId())
                 .stream()
-                .map(this::toDto)
+                .map(conditionFieldDtoMapper::toDto)
                 .toList();
-    }
-
-    private ConditionFieldDto toDto(ConditionField field) {
-        return new ConditionFieldDto(
-                field.getFieldName(),
-                field.getFieldType(),
-                field.getDisplayName(),
-                field.getAllowedValues(),
-                field.getOptionsEndpoint()
-        );
     }
 }
 
