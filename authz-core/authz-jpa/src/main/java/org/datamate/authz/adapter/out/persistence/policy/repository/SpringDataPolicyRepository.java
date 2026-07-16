@@ -32,7 +32,7 @@ public interface SpringDataPolicyRepository extends JpaRepository<PolicyJpaEntit
            "WHERE p.permissionId = :permissionId " +
            "AND p.enabled = true " +
            "AND p.deletedAt IS NULL " +
-           "AND p.expressionJson LIKE %:fieldName%")
+           "AND CAST(p.expressionJson AS text) LIKE %:fieldName%")
     List<PolicyJpaEntity> findEnabledReferencingField(
             @Param("permissionId") UUID permissionId,
             @Param("fieldName") String fieldName);

@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS authz_policy (
     subject_type    VARCHAR(10)  NOT NULL CHECK (subject_type IN ('ROLE','USER')),
     subject_id      VARCHAR(255) NOT NULL,   -- role name or user ID string
     effect          VARCHAR(5)   NOT NULL CHECK (effect IN ('ALLOW','DENY')),
-    expression_json TEXT,                    -- condition AST as JSON; NULL = unconditional
+    expression_json JSONB,                   -- condition AST as JSON; NULL = unconditional
     enabled         BOOLEAN      NOT NULL DEFAULT TRUE,
     disabled_reason VARCHAR(500),            -- populated when auto-disabled
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -7,7 +7,9 @@ import lombok.Setter;
 import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -39,7 +41,8 @@ public class PolicyJpaEntity {
     private PolicyEffect effect;
 
     /** Condition AST as JSON text. NULL = unconditional. */
-    @Column(name = "expression_json", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "expression_json", columnDefinition = "jsonb")
     private String expressionJson;
 
     @Column(nullable = false)
