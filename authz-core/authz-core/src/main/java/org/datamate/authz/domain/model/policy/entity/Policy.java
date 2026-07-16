@@ -6,7 +6,6 @@ import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
 import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * The core authorization rule for this application module.
@@ -32,8 +31,8 @@ import java.util.UUID;
  */
 @Getter
 public class Policy {
-    private final UUID id;
-    private final UUID permissionId;
+    private final Long id;
+    private final Long permissionId;
     private final SubjectType subjectType;
 
     /**
@@ -56,7 +55,7 @@ public class Policy {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public Policy(UUID id, UUID permissionId, SubjectType subjectType, String subjectId,
+    public Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
                        String disabledReason, LocalDateTime createdAt,
                        LocalDateTime updatedAt, LocalDateTime deletedAt) {

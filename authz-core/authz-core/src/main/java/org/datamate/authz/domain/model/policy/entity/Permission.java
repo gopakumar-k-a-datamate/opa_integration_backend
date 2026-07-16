@@ -3,7 +3,6 @@ package org.datamate.authz.domain.model.policy.entity;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Represents a specific action that can be performed on an {@link Resource}.
@@ -14,8 +13,8 @@ import java.util.UUID;
  */
 @Getter
 public class Permission {
-    private final UUID id;
-    private final UUID resourceId;
+    private final Long id;
+    private final Long resourceId;
     private final String action;
 
     /** Auto-generated composite code: {namespace}:{resource}:{action}. */
@@ -25,7 +24,7 @@ public class Permission {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public Permission(UUID id, UUID resourceId, String action, String code,
+    public Permission(Long id, Long resourceId, String action, String code,
                            String description, LocalDateTime createdAt,
                            LocalDateTime updatedAt, LocalDateTime deletedAt) {
         this.id = id;

@@ -10,7 +10,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "authz_condition_field",
@@ -21,11 +20,11 @@ import java.util.UUID;
 public class ConditionFieldJpaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "permission_id", nullable = false)
-    private UUID permissionId;
+    private Long permissionId;
 
     @Column(name = "field_name", nullable = false)
     private String fieldName;

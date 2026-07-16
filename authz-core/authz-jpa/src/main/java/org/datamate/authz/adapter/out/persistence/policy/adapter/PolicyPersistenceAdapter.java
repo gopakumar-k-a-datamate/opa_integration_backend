@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -36,7 +35,7 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
     }
 
     @Override
-    public Optional<Policy> findByPermissionIdAndSubject(UUID permissionId,
+    public Optional<Policy> findByPermissionIdAndSubject(Long permissionId,
                                                               SubjectType subjectType,
                                                               String subjectId) {
         return repository
@@ -46,13 +45,13 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
     }
 
     @Override
-    public List<Policy> findEnabledReferencingField(UUID permissionId, String fieldName) {
+    public List<Policy> findEnabledReferencingField(Long permissionId, String fieldName) {
         return repository.findEnabledReferencingField(permissionId, fieldName)
                 .stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public Policy upsert(UUID id, UUID permissionId, SubjectType subjectType, String subjectId,
+    public Policy upsert(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                               PolicyEffect effect, String expressionJson, boolean enabled,
                               String disabledReason) {
         PolicyJpaEntity entity = repository
@@ -66,7 +65,7 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
     }
 
     @Override
-    public void softDelete(UUID id) {
+    public void softDelete(Long id) {
         repository.findById(id).ifPresent(entity -> {
             entity.setDeletedAt(LocalDateTime.now());
             repository.save(entity);
@@ -74,7 +73,7 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
     }
 
     @Override
-    public void autoDisable(UUID id, String reason) {
+    public void autoDisable(Long id, String reason) {
         repository.findById(id).ifPresent(entity -> {
             entity.setEnabled(false);
             entity.setDisabledReason(reason);

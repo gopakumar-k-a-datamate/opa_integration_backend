@@ -7,7 +7,7 @@
 
 -- 1. Protected resources (auto-registered from @PolicyResource)
 CREATE TABLE IF NOT EXISTS authz_resource (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          BIGSERIAL PRIMARY KEY,
     namespace   VARCHAR(255) NOT NULL,
     name        VARCHAR(255) NOT NULL,
     description VARCHAR(500),
@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS authz_resource (
 
 -- 2. Permissions — specific actions on a resource (auto-registered)
 CREATE TABLE IF NOT EXISTS authz_permission (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    resource_id UUID NOT NULL REFERENCES authz_resource(id),
+    id          BIGSERIAL PRIMARY KEY,
+    resource_id BIGINT NOT NULL REFERENCES authz_resource(id),
     action      VARCHAR(100) NOT NULL,
     code        VARCHAR(500) NOT NULL,  -- {namespace}:{resource}:{action}
     description VARCHAR(500),
@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS authz_permission (
 
 -- 3. Condition fields — attributes available in the Condition Builder UI
 CREATE TABLE IF NOT EXISTS authz_condition_field (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    permission_id    UUID NOT NULL REFERENCES authz_permission(id),
+    id               BIGSERIAL PRIMARY KEY,
+    permission_id    BIGINT NOT NULL REFERENCES authz_permission(id),
     field_name       VARCHAR(255) NOT NULL,
     field_type       VARCHAR(20)  NOT NULL CHECK (field_type IN ('NUMBER','STRING','BOOLEAN','DATE')),
     display_name     VARCHAR(255),
@@ -49,8 +49,8 @@ CREATE TABLE IF NOT EXISTS authz_condition_field (
 
 -- 4. Policies — the core authorization rules
 CREATE TABLE IF NOT EXISTS authz_policy (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    permission_id   UUID         NOT NULL REFERENCES authz_permission(id),
+    id              BIGSERIAL PRIMARY KEY,
+    permission_id   BIGINT       NOT NULL REFERENCES authz_permission(id),
     subject_type    VARCHAR(10)  NOT NULL CHECK (subject_type IN ('ROLE','USER')),
     subject_id      VARCHAR(255) NOT NULL,   -- role name or user ID string
     effect          VARCHAR(5)   NOT NULL CHECK (effect IN ('ALLOW','DENY')),
@@ -72,7 +72,8 @@ CREATE INDEX IF NOT EXISTS idx_authz_policy_permission
 
 -- 5. OPA bundle cache — compiled bundle.tar.gz (one row per service database)
 CREATE TABLE IF NOT EXISTS authz_policy_bundle_cache (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          BIGSERIAL PRIMARY KEY,
+    namespace   VARCHAR(255) UNIQUE NOT NULL,
     bundle_data BYTEA       NOT NULL,  -- binary gzipped tar archive
     etag        VARCHAR(64) NOT NULL,  -- MD5 hash for conditional OPA polling
     created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -19,7 +19,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -53,20 +52,31 @@ public class PolicyCompilerService implements PolicyCompilerPort {
         List<Policy> enabledPolicies = policyPort.findAllEnabled();
 
         // Build permissionId → code lookup (single query — no N+1)
-        Map<UUID, String> permCodeLookup = permissionPort.findAllActive()
+        Map<Long, String> permCodeLookup = permissionPort.findAllActive()
                 .stream()
                 .collect(Collectors.toMap(Permission::getId, Permission::getCode));
 
-        String regoContent = regoGenerator.generate(enabledPolicies, permCodeLookup);
+        // Group policies by namespace (extracted from permission code "{namespace}:{resource}:{action}")
+        Map<String, List<Policy>> policiesByNamespace = enabledPolicies.stream()
+                .collect(Collectors.groupingBy(p -> {
+                    String code = permCodeLookup.get(p.getPermissionId());
+                    if (code == null) return "default";
+                    return code.split(":")[0];
+                }));
 
-        byte[] bundleBytes;
-        try {
-            bundleBytes = bundleBuilder.build(regoContent);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to build OPA policy bundle", e);
+        for (Map.Entry<String, List<Policy>> entry : policiesByNamespace.entrySet()) {
+            String namespace = entry.getKey();
+            List<Policy> namespacePolicies = entry.getValue();
+            
+            String regoContent = regoGenerator.generate(namespacePolicies, permCodeLookup);
+            byte[] bundleBytes;
+            try {
+                bundleBytes = bundleBuilder.build(regoContent);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to build OPA policy bundle for namespace " + namespace, e);
+            }
+            bundleCachePort.upsertBundle(namespace, bundleBytes, computeMd5(bundleBytes));
         }
-
-        bundleCachePort.upsertBundle(bundleBytes, computeMd5(bundleBytes));
     }
 
     private String computeMd5(byte[] data) {

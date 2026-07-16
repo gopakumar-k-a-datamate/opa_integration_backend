@@ -3,7 +3,6 @@ package org.datamate.authz.domain.model.policy.entity;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * The compiled OPA bundle for this application module.
@@ -15,13 +14,15 @@ import java.util.UUID;
  */
 @Getter
 public class PolicyBundleCache {
-    private final UUID id;
+    private final Long id;
+    private final String namespace;
     private final byte[] bundleData;
     private final String etag;
     private final LocalDateTime createdAt;
 
-    public PolicyBundleCache(UUID id, byte[] bundleData, String etag, LocalDateTime createdAt) {
+    public PolicyBundleCache(Long id, String namespace, byte[] bundleData, String etag, LocalDateTime createdAt) {
         this.id = id;
+        this.namespace = namespace;
         this.bundleData = bundleData;
         this.etag = etag;
         this.createdAt = createdAt;

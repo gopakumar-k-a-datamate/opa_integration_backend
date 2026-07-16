@@ -8,7 +8,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "authz_permission",
@@ -22,11 +21,11 @@ import java.util.UUID;
 public class PermissionJpaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "resource_id", nullable = false)
-    private UUID resourceId;
+    private Long resourceId;
 
     @Column(nullable = false)
     private String action;

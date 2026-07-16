@@ -3,7 +3,6 @@ package org.datamate.authz.application.dto.policy;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 
-import java.util.UUID;
 
 /**
  * One row in the Admin UI's Role-Permission Grid.
@@ -17,7 +16,7 @@ public record PolicyGridItemDto(
         String action,
         String namespace,
         String resourceName,
-        UUID policyId,
+        Long policyId,
         PolicyEffect effect,
         JsonNode expressionJson,
         boolean enabled,

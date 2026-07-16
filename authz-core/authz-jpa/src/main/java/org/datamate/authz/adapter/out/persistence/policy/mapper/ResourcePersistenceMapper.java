@@ -4,7 +4,6 @@ import org.datamate.authz.adapter.out.persistence.policy.entity.ResourceJpaEntit
 import org.datamate.authz.domain.model.policy.entity.Resource;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
 
 @Component
 public class ResourcePersistenceMapper {
@@ -14,7 +13,7 @@ public class ResourcePersistenceMapper {
                 e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
     }
 
-    public void updateEntity(ResourceJpaEntity entity, UUID id, String namespace, String name, String description) {
+    public void updateEntity(ResourceJpaEntity entity, Long id, String namespace, String name, String description) {
         if (entity.getId() == null) {
             entity.setId(id);
         }

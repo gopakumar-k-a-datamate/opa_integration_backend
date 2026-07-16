@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -38,20 +39,18 @@ import java.util.Optional;
 public class BundleController {
 
     private final GetOpaBundleUseCase getOpaBundleUseCase;
-/**
-     * Serves the compiled OPA bundle.
-     *
-     * <p>If the client sends {@code If-None-Match} matching the current bundle's ETag,
-     * returns {@code 304 Not Modified} with no body (saving bandwidth during OPA polling).
-     * Otherwise returns {@code 200 OK} with the binary bundle content.</p>
-     *
-     * @param ifNoneMatch OPA's current bundle ETag (optional)
+
+    /**
+     * Downloads the compiled OPA policy bundle for a specific namespace.
+     * The OPA sidecar typically polls this endpoint automatically.
      */
-    @GetMapping("/bundle")
+    @Operation(summary = "Download OPA Bundle", description = "Returns the compiled bundle.tar.gz for OPA.")
+    @GetMapping(value = "/{namespace}", produces = "application/gzip")
     public ResponseEntity<byte[]> getBundle(
+            @PathVariable("namespace") String namespace,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
 
-        Optional<PolicyBundleCache> bundleOpt = getOpaBundleUseCase.getBundle();
+        Optional<PolicyBundleCache> bundleOpt = getOpaBundleUseCase.getBundle(namespace);
 
         if (bundleOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();

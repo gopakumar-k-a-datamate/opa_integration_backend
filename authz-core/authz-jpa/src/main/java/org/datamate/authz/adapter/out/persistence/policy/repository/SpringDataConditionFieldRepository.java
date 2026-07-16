@@ -7,20 +7,19 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public interface SpringDataConditionFieldRepository
-        extends JpaRepository<ConditionFieldJpaEntity, UUID> {
+        extends JpaRepository<ConditionFieldJpaEntity, Long> {
 
     /** Active-only fields (for Condition Builder UI). */
     List<ConditionFieldJpaEntity> findByPermissionIdAndStatusAndDeletedAtIsNull(
-            UUID permissionId, FieldStatus status);
+            Long permissionId, FieldStatus status);
 
     /** All fields including DEPRECATED (for diff-sync). */
-    List<ConditionFieldJpaEntity> findByPermissionIdAndDeletedAtIsNull(UUID permissionId);
+    List<ConditionFieldJpaEntity> findByPermissionIdAndDeletedAtIsNull(Long permissionId);
 
     Optional<ConditionFieldJpaEntity> findByPermissionIdAndFieldNameAndDeletedAtIsNull(
-            UUID permissionId, String fieldName);
+            Long permissionId, String fieldName);
 }
 

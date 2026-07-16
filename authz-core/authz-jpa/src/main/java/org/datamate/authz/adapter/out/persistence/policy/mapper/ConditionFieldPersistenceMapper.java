@@ -8,7 +8,6 @@ import org.datamate.authz.domain.model.policy.enumtype.FieldStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -26,7 +25,7 @@ public class ConditionFieldPersistenceMapper {
         );
     }
 
-    public void updateEntity(ConditionFieldJpaEntity entity, UUID id, UUID permissionId, String fieldName,
+    public void updateEntity(ConditionFieldJpaEntity entity, Long id, Long permissionId, String fieldName,
                              FieldType fieldType, String displayName, List<String> allowedValues, String optionsEndpoint) {
         if (entity.getId() == null) {
             entity.setId(id);

@@ -10,7 +10,6 @@ import org.datamate.authz.domain.model.policy.entity.PolicyBundleCache;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -19,21 +18,21 @@ public class PolicyBundleCachePersistenceAdapter implements PolicyBundleCachePer
     private final SpringDataPolicyBundleCacheRepository repository;
     private final PolicyBundleCachePersistenceMapper mapper;
 @Override
-    public Optional<PolicyBundleCache> getBundle() {
-        return repository.findFirstByOrderByCreatedAtDesc().map(mapper::toDomain);
+    public Optional<PolicyBundleCache> getBundle(String namespace) {
+        return repository.findByNamespace(namespace).map(mapper::toDomain);
     }
 
     @Override
-    public PolicyBundleCache upsertBundle(byte[] bundleData, String etag) {
+    public PolicyBundleCache upsertBundle(String namespace, byte[] bundleData, String etag) {
         // Fetch existing or create new if absent (avoiding dangerous deleteAll)
-        PolicyBundleCacheJpaEntity entity = repository.findFirstByOrderByCreatedAtDesc()
+        PolicyBundleCacheJpaEntity entity = repository.findByNamespace(namespace)
                 .orElseGet(() -> {
                     PolicyBundleCacheJpaEntity newEntity = new PolicyBundleCacheJpaEntity();
-                    newEntity.setId(UUID.randomUUID());
+                    newEntity.setId(null);
                     return newEntity;
                 });
                 
-        mapper.updateEntity(entity, bundleData, etag);
+        mapper.updateEntity(entity, namespace, bundleData, etag);
         return mapper.toDomain(repository.save(entity));
     }
 

@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "authz_policy_bundle_cache")
@@ -17,8 +16,11 @@ import java.util.UUID;
 public class PolicyBundleCacheJpaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String namespace;
 
     /** The compiled bundle.tar.gz binary data. */
     @Lob

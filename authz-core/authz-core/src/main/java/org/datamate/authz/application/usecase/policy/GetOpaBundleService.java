@@ -19,12 +19,9 @@ import java.util.Optional;
 public class GetOpaBundleService implements GetOpaBundleUseCase {
 
     private final PolicyBundleCachePersistencePort bundleCachePort;
-@Override
-    public Optional<PolicyBundleCache> getBundle() {
-        return bundleCachePort.getBundle();
+
+    @Override
+    public Optional<PolicyBundleCache> getBundle(String namespace) {
+        return bundleCachePort.getBundle(namespace);
     }
 }
-
-
-
-

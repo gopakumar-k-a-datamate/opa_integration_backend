@@ -4,7 +4,6 @@ import org.datamate.authz.adapter.out.persistence.policy.entity.PermissionJpaEnt
 import org.datamate.authz.domain.model.policy.entity.Permission;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
 
 @Component
 public class PermissionPersistenceMapper {
@@ -14,7 +13,7 @@ public class PermissionPersistenceMapper {
                 e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
     }
 
-    public void updateEntity(PermissionJpaEntity entity, UUID id, UUID resourceId, String action, String code, String description) {
+    public void updateEntity(PermissionJpaEntity entity, Long id, Long resourceId, String action, String code, String description) {
         if (entity.getId() == null) {
             entity.setId(id);
         }

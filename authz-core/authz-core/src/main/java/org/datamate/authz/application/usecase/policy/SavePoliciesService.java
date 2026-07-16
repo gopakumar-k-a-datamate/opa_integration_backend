@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -51,7 +50,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
 
         // Load existing active policies for this subject, keyed by permissionId
         List<Policy> existing = policyPort.findBySubject(subjectType, subjectId);
-        Map<UUID, Policy> existingByPermissionId = existing.stream()
+        Map<Long, Policy> existingByPermissionId = existing.stream()
                 .collect(Collectors.toMap(Policy::getPermissionId, p -> p));
 
         // Track which permissionIds are explicitly in the payload
@@ -72,7 +71,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
                 }
             } else {
                 String expressionJson = serializeJson(item);
-                UUID policyId = (existingPolicy != null) ? existingPolicy.getId() : UUID.randomUUID();
+                Long policyId = (existingPolicy != null) ? existingPolicy.getId() : null;
                 policyPort.upsert(
                         policyId,
                         permission.getId(),
@@ -87,11 +86,11 @@ public class SavePoliciesService implements SavePoliciesUseCase {
         }
 
         // Cache all permissions to prevent N+1 queries during resolution
-        Map<UUID, String> permissionCodeById = permissionPort.findAllActive().stream()
+        Map<Long, String> permissionCodeById = permissionPort.findAllActive().stream()
                 .collect(Collectors.toMap(Permission::getId, Permission::getCode));
 
         // Soft-delete existing policies whose permissionCode is missing from payload
-        for (Map.Entry<UUID, Policy> entry : existingByPermissionId.entrySet()) {
+        for (Map.Entry<Long, Policy> entry : existingByPermissionId.entrySet()) {
             String code = permissionCodeById.get(entry.getKey());
             boolean notInPayload = code == null || !handledCodes.contains(code);
             if (notInPayload) {

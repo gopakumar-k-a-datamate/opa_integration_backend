@@ -9,15 +9,15 @@ public interface PolicyBundleCachePersistencePort {
 
     /**
      * Returns the current compiled bundle.
-     * There is exactly one row per service database.
+     * There is exactly one row per namespace.
      */
-    Optional<PolicyBundleCache> getBundle();
+    Optional<PolicyBundleCache> getBundle(String namespace);
 
     /**
      * Insert or update the single bundle row.
      * Generates a new ID if no row exists; updates in-place otherwise.
      */
-    PolicyBundleCache upsertBundle(byte[] bundleData, String etag);
+    PolicyBundleCache upsertBundle(String namespace, byte[] bundleData, String etag);
 }
 
 

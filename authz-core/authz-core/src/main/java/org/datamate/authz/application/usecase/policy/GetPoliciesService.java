@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -39,7 +38,7 @@ public class GetPoliciesService implements GetPoliciesUseCase {
 @Override
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId) {
         // Build resource lookup map
-        Map<UUID, Resource> resourcesById = resourcePort.findAllActive()
+        Map<Long, Resource> resourcesById = resourcePort.findAllActive()
                 .stream()
                 .collect(Collectors.toMap(Resource::getId, r -> r));
 
@@ -48,7 +47,7 @@ public class GetPoliciesService implements GetPoliciesUseCase {
         List<Policy> policies = policyPort.findBySubject(subjectType, subjectId);
 
         // Index policies by permissionId for O(1) lookup
-        Map<UUID, Policy> policyByPermissionId = policies.stream()
+        Map<Long, Policy> policyByPermissionId = policies.stream()
                 .collect(Collectors.toMap(Policy::getPermissionId, p -> p));
 
         List<PolicyGridItemDto> result = new ArrayList<>();

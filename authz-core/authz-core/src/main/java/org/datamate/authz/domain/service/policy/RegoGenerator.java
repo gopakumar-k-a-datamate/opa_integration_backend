@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Domain service that translates enabled {@link Policy} domain objects into Rego policy text.
@@ -61,7 +60,7 @@ public class RegoGenerator {
      * @param permCodeLookup    map of permissionId → permissionCode (e.g. {@code "finance:journal:create"})
      * @return full Rego policy as a string
      */
-    public String generate(List<Policy> policies, Map<UUID, String> permCodeLookup) {
+    public String generate(List<Policy> policies, Map<Long, String> permCodeLookup) {
         StringBuilder rego = new StringBuilder();
 
         rego.append("package app.authz\n\n");

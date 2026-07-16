@@ -6,18 +6,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface SpringDataPermissionRepository extends JpaRepository<PermissionJpaEntity, UUID> {
+public interface SpringDataPermissionRepository extends JpaRepository<PermissionJpaEntity, Long> {
 
-    List<PermissionJpaEntity> findByResourceIdAndDeletedAtIsNull(UUID resourceId);
+    List<PermissionJpaEntity> findByResourceIdAndDeletedAtIsNull(Long resourceId);
 
     Optional<PermissionJpaEntity> findByCodeAndDeletedAtIsNull(String code);
 
     List<PermissionJpaEntity> findAllByDeletedAtIsNull();
 
     Optional<PermissionJpaEntity> findByResourceIdAndActionAndDeletedAtIsNull(
-            UUID resourceId, String action);
+            Long resourceId, String action);
 }
 

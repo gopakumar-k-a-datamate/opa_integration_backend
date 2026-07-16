@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -20,7 +19,7 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
     private final SpringDataResourceRepository repository;
     private final ResourcePersistenceMapper mapper;
 @Override
-    public Resource upsert(UUID id, String namespace, String name, String description) {
+    public Resource upsert(Long id, String namespace, String name, String description) {
         ResourceJpaEntity entity = repository
                 .findByNamespaceAndNameAndDeletedAtIsNull(namespace, name)
                 .orElseGet(ResourceJpaEntity::new);

@@ -7,7 +7,6 @@ import org.datamate.authz.domain.model.policy.enumtype.FieldStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * An attribute of an {@link Permission} that admins can use to build policy conditions.
@@ -30,8 +29,8 @@ import java.util.UUID;
  */
 @Getter
 public class ConditionField {
-    private final UUID id;
-    private final UUID permissionId;
+    private final Long id;
+    private final Long permissionId;
     private final String fieldName;
     private final FieldType fieldType;
     private final String displayName;
@@ -42,7 +41,7 @@ public class ConditionField {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public ConditionField(UUID id, UUID permissionId, String fieldName, FieldType fieldType,
+    public ConditionField(Long id, Long permissionId, String fieldName, FieldType fieldType,
                                String displayName, List<String> allowedValues,
                                String optionsEndpoint, FieldStatus status,
                                LocalDateTime createdAt, LocalDateTime updatedAt,

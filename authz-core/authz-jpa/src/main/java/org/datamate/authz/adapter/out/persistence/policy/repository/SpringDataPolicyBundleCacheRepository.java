@@ -5,13 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public interface SpringDataPolicyBundleCacheRepository
-        extends JpaRepository<PolicyBundleCacheJpaEntity, UUID> {
+        extends JpaRepository<PolicyBundleCacheJpaEntity, Long> {
 
-    /** Returns the single bundle row. There is at most one row per service database. */
-    Optional<PolicyBundleCacheJpaEntity> findFirstByOrderByCreatedAtDesc();
+    /** Returns the single bundle row for a given namespace. */
+    Optional<PolicyBundleCacheJpaEntity> findByNamespace(String namespace);
 }
 

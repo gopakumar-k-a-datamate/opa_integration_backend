@@ -6,7 +6,6 @@ import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
 
 @Component
 public class PolicyPersistenceMapper {
@@ -19,7 +18,7 @@ public class PolicyPersistenceMapper {
         );
     }
 
-    public void updateEntity(PolicyJpaEntity entity, UUID id, UUID permissionId, SubjectType subjectType, String subjectId,
+    public void updateEntity(PolicyJpaEntity entity, Long id, Long permissionId, SubjectType subjectType, String subjectId,
                              PolicyEffect effect, String expressionJson, boolean enabled, String disabledReason) {
         if (entity.getId() == null) {
             entity.setId(id);

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -20,7 +19,7 @@ public class PermissionPersistenceAdapter implements PermissionPersistencePort {
     private final SpringDataPermissionRepository repository;
     private final PermissionPersistenceMapper mapper;
 @Override
-    public Permission upsert(UUID id, UUID resourceId, String action, String code,
+    public Permission upsert(Long id, Long resourceId, String action, String code,
                                   String description) {
         PermissionJpaEntity entity = repository
                 .findByResourceIdAndActionAndDeletedAtIsNull(resourceId, action)
@@ -32,7 +31,7 @@ public class PermissionPersistenceAdapter implements PermissionPersistencePort {
     }
 
     @Override
-    public List<Permission> findByResourceId(UUID resourceId) {
+    public List<Permission> findByResourceId(Long resourceId) {
         return repository.findByResourceIdAndDeletedAtIsNull(resourceId)
                 .stream().map(mapper::toDomain).toList();
     }

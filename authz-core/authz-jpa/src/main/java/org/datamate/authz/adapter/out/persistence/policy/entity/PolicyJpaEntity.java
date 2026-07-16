@@ -12,7 +12,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "authz_policy")
@@ -22,11 +21,11 @@ import java.util.UUID;
 public class PolicyJpaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "permission_id", nullable = false)
-    private UUID permissionId;
+    private Long permissionId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false)

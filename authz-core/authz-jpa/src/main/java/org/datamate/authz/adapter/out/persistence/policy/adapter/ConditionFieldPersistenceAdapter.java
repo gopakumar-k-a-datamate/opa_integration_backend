@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Component
@@ -27,7 +26,7 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
     private final ConditionFieldPersistenceMapper mapper;
     private final JsonMapper jsonMapper;
 @Override
-    public ConditionField upsert(UUID id, UUID permissionId, String fieldName,
+    public ConditionField upsert(Long id, Long permissionId, String fieldName,
                                       FieldType fieldType, String displayName,
                                       List<String> allowedValues, String optionsEndpoint) {
         ConditionFieldJpaEntity entity = repository
@@ -40,20 +39,20 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
     }
 
     @Override
-    public List<ConditionField> findActiveByPermissionId(UUID permissionId) {
+    public List<ConditionField> findActiveByPermissionId(Long permissionId) {
         return repository
                 .findByPermissionIdAndStatusAndDeletedAtIsNull(permissionId, FieldStatus.ACTIVE)
                 .stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public List<ConditionField> findAllByPermissionId(UUID permissionId) {
+    public List<ConditionField> findAllByPermissionId(Long permissionId) {
         return repository.findByPermissionIdAndDeletedAtIsNull(permissionId)
                 .stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public Optional<ConditionField> findByPermissionIdAndFieldName(UUID permissionId,
+    public Optional<ConditionField> findByPermissionIdAndFieldName(Long permissionId,
                                                                         String fieldName) {
         return repository
                 .findByPermissionIdAndFieldNameAndDeletedAtIsNull(permissionId, fieldName)
@@ -61,7 +60,7 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
     }
 
     @Override
-    public void markDeprecated(UUID id) {
+    public void markDeprecated(Long id) {
         repository.findById(id).ifPresent(entity -> {
             entity.setStatus(FieldStatus.DEPRECATED);
             repository.save(entity);
@@ -69,7 +68,7 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
     }
 
     @Override
-    public void softDelete(UUID id) {
+    public void softDelete(Long id) {
         repository.findById(id).ifPresent(entity -> {
             entity.setDeletedAt(LocalDateTime.now());
             repository.save(entity);

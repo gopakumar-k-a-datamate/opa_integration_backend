@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -88,11 +87,11 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
         String description = annotation.description();
 
         Resource resource = resourcePort.upsert(
-                UUID.randomUUID(), namespace, resourceName, description);
+                null, namespace, resourceName, description);
 
         String code = namespace + ":" + resourceName + ":" + action;
         Permission permission = permissionPort.upsert(
-                UUID.randomUUID(), resource.getId(), action, code, description);
+                null, resource.getId(), action, code, description);
 
         Set<String> incomingFieldNames = collectIncomingFields(clazz);
         upsertFields(clazz, permission.getId());
@@ -114,7 +113,7 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
         return fields;
     }
 
-    private void upsertFields(Class<?> clazz, UUID permissionId) {
+    private void upsertFields(Class<?> clazz, Long permissionId) {
         if (clazz.isRecord()) {
             for (RecordComponent rc : clazz.getRecordComponents()) {
                 PolicyField pf = rc.getAnnotation(PolicyField.class);
@@ -128,18 +127,18 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
         }
     }
 
-    private void doUpsertField(UUID permissionId, String fieldName, PolicyField pf) {
+    private void doUpsertField(Long permissionId, String fieldName, PolicyField pf) {
         FieldType fieldType = pf.type();
         String displayName = pf.displayName();
         List<String> allowedValues = pf.allowedValues().length > 0
                 ? Arrays.asList(pf.allowedValues()) : null;
         String optionsEndpoint = pf.optionsEndpoint().isBlank() ? null : pf.optionsEndpoint();
 
-        conditionFieldPort.upsert(UUID.randomUUID(), permissionId, fieldName,
+        conditionFieldPort.upsert(null, permissionId, fieldName,
                 fieldType, displayName, allowedValues, optionsEndpoint);
     }
 
-    private void diffSyncRemovedFields(UUID permissionId, Set<String> incomingFieldNames) {
+    private void diffSyncRemovedFields(Long permissionId, Set<String> incomingFieldNames) {
         List<ConditionField> allDbFields = conditionFieldPort.findAllByPermissionId(permissionId);
 
         for (ConditionField dbField : allDbFields) {

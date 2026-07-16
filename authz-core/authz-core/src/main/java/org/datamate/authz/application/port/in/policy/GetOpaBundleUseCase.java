@@ -9,7 +9,5 @@ import java.util.Optional;
  * Returns {@link Optional#empty()} if no bundle has been compiled yet.
  */
 public interface GetOpaBundleUseCase {
-    Optional<PolicyBundleCache> getBundle();
+    Optional<PolicyBundleCache> getBundle(String namespace);
 }
-
-

@@ -9,10 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface SpringDataPolicyRepository extends JpaRepository<PolicyJpaEntity, UUID> {
+public interface SpringDataPolicyRepository extends JpaRepository<PolicyJpaEntity, Long> {
 
     /** All enabled non-deleted policies — for the compiler. */
     List<PolicyJpaEntity> findAllByEnabledTrueAndDeletedAtIsNull();
@@ -22,7 +21,7 @@ public interface SpringDataPolicyRepository extends JpaRepository<PolicyJpaEntit
             SubjectType subjectType, String subjectId);
 
     Optional<PolicyJpaEntity> findByPermissionIdAndSubjectTypeAndSubjectIdAndDeletedAtIsNull(
-            UUID permissionId, SubjectType subjectType, String subjectId);
+            Long permissionId, SubjectType subjectType, String subjectId);
 
     /**
      * Finds enabled policies that reference a field name inside their expression_json.
@@ -34,7 +33,7 @@ public interface SpringDataPolicyRepository extends JpaRepository<PolicyJpaEntit
            "AND p.deletedAt IS NULL " +
            "AND CAST(p.expressionJson AS text) LIKE %:fieldName%")
     List<PolicyJpaEntity> findEnabledReferencingField(
-            @Param("permissionId") UUID permissionId,
+            @Param("permissionId") Long permissionId,
             @Param("fieldName") String fieldName);
 }
 
