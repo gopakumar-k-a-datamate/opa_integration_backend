@@ -42,15 +42,29 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     private final PermissionPersistencePort permissionPort;
     private final PolicyCompilerPort compilerPort;
     private final ObjectMapper objectMapper;
-@Override
+    @Override
     @Transactional
     public void savePolicies(SavePoliciesRequest request) {
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();
+        String targetNamespace = request.namespace();
 
-        // Load existing active policies for this subject, keyed by permissionId
-        List<Policy> existing = policyPort.findBySubject(subjectType, subjectId);
-        Map<Long, Policy> existingByPermissionId = existing.stream()
+        // Load existing active policies for this subject
+        List<Policy> allExisting = policyPort.findBySubject(subjectType, subjectId);
+
+        // Cache all permissions to prevent N+1 queries during resolution
+        Map<Long, String> permissionCodeById = permissionPort.findAllActive().stream()
+                .collect(Collectors.toMap(Permission::getId, Permission::getCode));
+
+        // Filter existing policies to ONLY those in the target namespace
+        List<Policy> existingInNamespace = allExisting.stream()
+                .filter(p -> {
+                    String code = permissionCodeById.get(p.getPermissionId());
+                    return code != null && code.startsWith(targetNamespace + ":");
+                })
+                .toList();
+
+        Map<Long, Policy> existingByPermissionId = existingInNamespace.stream()
                 .collect(Collectors.toMap(Policy::getPermissionId, p -> p));
 
         // Track which permissionIds are explicitly in the payload
@@ -85,10 +99,6 @@ public class SavePoliciesService implements SavePoliciesUseCase {
             }
         }
 
-        // Cache all permissions to prevent N+1 queries during resolution
-        Map<Long, String> permissionCodeById = permissionPort.findAllActive().stream()
-                .collect(Collectors.toMap(Permission::getId, Permission::getCode));
-
         // Soft-delete existing policies whose permissionCode is missing from payload
         for (Map.Entry<Long, Policy> entry : existingByPermissionId.entrySet()) {
             String code = permissionCodeById.get(entry.getKey());
@@ -99,7 +109,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
         }
 
         // Regenerate the OPA bundle via the application port (DIP)
-        compilerPort.recompile();
+        compilerPort.recompile(targetNamespace);
     }
 
     private String serializeJson(PolicyItemDto item) {

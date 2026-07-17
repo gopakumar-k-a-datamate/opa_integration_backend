@@ -14,10 +14,10 @@ package org.datamate.authz.application.port.out.policy;
 public interface PolicyCompilerPort {
 
     /**
-     * Recompiles the OPA bundle from the current state of {@code authz_policy}.
+     * Recompiles the OPA bundle from the current state of {@code authz_policy} for a specific namespace.
      * Implementations must be thread-safe.
      */
-    void recompile();
+    void recompile(String namespace);
 }
 
 

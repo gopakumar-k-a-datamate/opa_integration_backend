@@ -24,7 +24,7 @@ public class Permission {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public Permission(Long id, Long resourceId, String action, String code,
+    private Permission(Long id, Long resourceId, String action, String code,
                            String description, LocalDateTime createdAt,
                            LocalDateTime updatedAt, LocalDateTime deletedAt) {
         this.id = id;
@@ -35,6 +35,17 @@ public class Permission {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+    }
+
+    public static Permission create(Long resourceId, String action, String namespace, String resourceName, String description) {
+        String code = namespace + ":" + resourceName + ":" + action;
+        return new Permission(null, resourceId, action, code, description, LocalDateTime.now(), null, null);
+    }
+
+    public static Permission reconstitute(Long id, Long resourceId, String action, String code,
+                                          String description, LocalDateTime createdAt,
+                                          LocalDateTime updatedAt, LocalDateTime deletedAt) {
+        return new Permission(id, resourceId, action, code, description, createdAt, updatedAt, deletedAt);
     }
 
     public boolean isActive() {

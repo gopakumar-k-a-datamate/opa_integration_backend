@@ -16,16 +16,33 @@ import java.time.LocalDateTime;
 public class PolicyBundleCache {
     private final Long id;
     private final String namespace;
-    private final byte[] bundleData;
-    private final String etag;
+    private byte[] bundleData;
+    private String etag;
     private final LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public PolicyBundleCache(Long id, String namespace, byte[] bundleData, String etag, LocalDateTime createdAt) {
+    private PolicyBundleCache(Long id, String namespace, byte[] bundleData, String etag, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.namespace = namespace;
         this.bundleData = bundleData;
         this.etag = etag;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static PolicyBundleCache create(String namespace, byte[] bundleData, String etag) {
+        LocalDateTime now = LocalDateTime.now();
+        return new PolicyBundleCache(null, namespace, bundleData, etag, now, now);
+    }
+
+    public void updateBundle(byte[] newBundleData, String newEtag) {
+        this.bundleData = newBundleData;
+        this.etag = newEtag;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static PolicyBundleCache reconstitute(Long id, String namespace, byte[] bundleData, String etag, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return new PolicyBundleCache(id, namespace, bundleData, etag, createdAt, updatedAt);
     }
 }
 

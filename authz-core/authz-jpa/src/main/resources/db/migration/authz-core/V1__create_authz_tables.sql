@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS authz_condition_field (
     field_name       VARCHAR(255) NOT NULL,
     field_type       VARCHAR(20)  NOT NULL CHECK (field_type IN ('NUMBER','STRING','BOOLEAN','DATE')),
     display_name     VARCHAR(255),
-    allowed_values   TEXT,          -- JSON array, e.g. ["EXPENSE","INCOME"]
+    allowed_values   JSONB,         -- JSON array, e.g. ["EXPENSE","INCOME"]
     options_endpoint VARCHAR(500),  -- dynamic dropdown endpoint
     status           VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DEPRECATED')),
     created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -76,5 +76,6 @@ CREATE TABLE IF NOT EXISTS authz_policy_bundle_cache (
     namespace   VARCHAR(255) UNIQUE NOT NULL,
     bundle_data BYTEA       NOT NULL,  -- binary gzipped tar archive
     etag        VARCHAR(64) NOT NULL,  -- MD5 hash for conditional OPA polling
-    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

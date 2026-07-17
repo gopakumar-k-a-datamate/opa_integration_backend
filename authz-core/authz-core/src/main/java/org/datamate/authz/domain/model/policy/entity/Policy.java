@@ -55,7 +55,7 @@ public class Policy {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
+    private Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
                        String disabledReason, LocalDateTime createdAt,
                        LocalDateTime updatedAt, LocalDateTime deletedAt) {
@@ -70,6 +70,20 @@ public class Policy {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+    }
+
+    public static Policy create(Long permissionId, SubjectType subjectType, String subjectId,
+                                PolicyEffect effect, String expressionJson) {
+        return new Policy(null, permissionId, subjectType, subjectId, effect, 
+                          expressionJson, true, null, LocalDateTime.now(), null, null);
+    }
+
+    public static Policy reconstitute(Long id, Long permissionId, SubjectType subjectType, String subjectId,
+                                      PolicyEffect effect, String expressionJson, boolean enabled,
+                                      String disabledReason, LocalDateTime createdAt,
+                                      LocalDateTime updatedAt, LocalDateTime deletedAt) {
+        return new Policy(id, permissionId, subjectType, subjectId, effect, expressionJson, 
+                          enabled, disabledReason, createdAt, updatedAt, deletedAt);
     }
 
     // ── Domain Behavior ────────────────────────────────────────────────────────

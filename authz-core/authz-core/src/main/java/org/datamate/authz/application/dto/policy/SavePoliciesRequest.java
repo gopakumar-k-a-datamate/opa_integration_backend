@@ -19,6 +19,7 @@ import java.util.List;
 public record SavePoliciesRequest(
         SubjectType subjectType,
         String subjectId,
+        String namespace,
         List<PolicyItemDto> policies
 ) {}
 

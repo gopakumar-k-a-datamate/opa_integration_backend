@@ -49,13 +49,14 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
 
     private volatile boolean alreadyRan = false;
 
-@Override
+    @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (alreadyRan) return;
         alreadyRan = true;
 
         Set<BeanDefinition> candidates = scanForPolicyResources();
+        Set<String> affectedNamespaces = new HashSet<>();
 
         for (BeanDefinition bd : candidates) {
             try {
@@ -64,13 +65,16 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
                 if (annotation == null) continue;
 
                 processAnnotation(clazz, annotation);
+                affectedNamespaces.add(annotation.namespace());
             } catch (ClassNotFoundException e) {
                 // Skip unloadable classes
             }
         }
 
         // Compile the bundle after all registrations via application port
-        compilerPort.recompile();
+        for (String namespace : affectedNamespaces) {
+            compilerPort.recompile(namespace);
+        }
     }
 
     private Set<BeanDefinition> scanForPolicyResources() {

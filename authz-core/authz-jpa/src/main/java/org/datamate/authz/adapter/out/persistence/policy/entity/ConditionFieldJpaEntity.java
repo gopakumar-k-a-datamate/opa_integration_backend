@@ -7,7 +7,9 @@ import lombok.Setter;
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 import org.datamate.authz.domain.model.policy.enumtype.FieldStatus;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -37,7 +39,8 @@ public class ConditionFieldJpaEntity {
     private String displayName;
 
     /** JSON array string, e.g. {@code ["CASH","HDFC","SBI"]}. */
-    @Column(name = "allowed_values", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "allowed_values", columnDefinition = "jsonb")
     private String allowedValues;
 
     @Column(name = "options_endpoint")

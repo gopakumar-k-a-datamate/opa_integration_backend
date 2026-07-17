@@ -10,7 +10,7 @@ import java.util.List;
  * as consumed by the Admin UI's Role-Permission Grid.
  */
 public interface GetPoliciesUseCase {
-    List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId);
+    List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace);
 }
 
 

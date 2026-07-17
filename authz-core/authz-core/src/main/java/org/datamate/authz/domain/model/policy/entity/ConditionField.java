@@ -41,7 +41,7 @@ public class ConditionField {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public ConditionField(Long id, Long permissionId, String fieldName, FieldType fieldType,
+    private ConditionField(Long id, Long permissionId, String fieldName, FieldType fieldType,
                                String displayName, List<String> allowedValues,
                                String optionsEndpoint, FieldStatus status,
                                LocalDateTime createdAt, LocalDateTime updatedAt,
@@ -57,6 +57,24 @@ public class ConditionField {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+    }
+
+    public static ConditionField create(Long permissionId, String fieldName, FieldType fieldType,
+                                        String displayName, List<String> allowedValues,
+                                        String optionsEndpoint) {
+        return new ConditionField(null, permissionId, fieldName, fieldType, displayName, 
+                                  allowedValues, optionsEndpoint, FieldStatus.ACTIVE, 
+                                  LocalDateTime.now(), null, null);
+    }
+
+    public static ConditionField reconstitute(Long id, Long permissionId, String fieldName, FieldType fieldType,
+                                              String displayName, List<String> allowedValues,
+                                              String optionsEndpoint, FieldStatus status,
+                                              LocalDateTime createdAt, LocalDateTime updatedAt,
+                                              LocalDateTime deletedAt) {
+        return new ConditionField(id, permissionId, fieldName, fieldType, displayName, 
+                                  allowedValues, optionsEndpoint, status, 
+                                  createdAt, updatedAt, deletedAt);
     }
 
     // ── Domain Behavior ────────────────────────────────────────────────────────

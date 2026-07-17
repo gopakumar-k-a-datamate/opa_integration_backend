@@ -40,8 +40,9 @@ public class PolicyController {
     @GetMapping
     public ResponseEntity<List<PolicyGridItemDto>> getPolicies(
             @RequestParam SubjectType subjectType,
-            @RequestParam String subjectId) {
-        return ResponseEntity.ok(getPoliciesUseCase.getPolicies(subjectType, subjectId));
+            @RequestParam String subjectId,
+            @RequestParam String namespace) {
+        return ResponseEntity.ok(getPoliciesUseCase.getPolicies(subjectType, subjectId, namespace));
     }
 
     /**

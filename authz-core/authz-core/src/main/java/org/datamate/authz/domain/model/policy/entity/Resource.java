@@ -20,7 +20,7 @@ public class Resource {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
-    public Resource(Long id, String namespace, String name, String description,
+    private Resource(Long id, String namespace, String name, String description,
                          LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
         this.id = id;
         this.namespace = namespace;
@@ -29,6 +29,15 @@ public class Resource {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+    }
+
+    public static Resource create(String namespace, String name, String description) {
+        return new Resource(null, namespace, name, description, LocalDateTime.now(), null, null);
+    }
+
+    public static Resource reconstitute(Long id, String namespace, String name, String description,
+                                        LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
+        return new Resource(id, namespace, name, description, createdAt, updatedAt, deletedAt);
     }
 
     public boolean isActive() {

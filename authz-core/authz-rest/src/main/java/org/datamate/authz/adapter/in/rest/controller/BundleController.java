@@ -45,7 +45,7 @@ public class BundleController {
      * The OPA sidecar typically polls this endpoint automatically.
      */
     @Operation(summary = "Download OPA Bundle", description = "Returns the compiled bundle.tar.gz for OPA.")
-    @GetMapping(value = "/{namespace}", produces = "application/gzip")
+    @GetMapping(value = "/bundle/{namespace}", produces = "application/gzip")
     public ResponseEntity<byte[]> getBundle(
             @PathVariable("namespace") String namespace,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {

@@ -47,38 +47,33 @@ public class PolicyCompilerService implements PolicyCompilerPort {
     private final PolicyBundleCachePersistencePort bundleCachePort;
 
     private final TarGzBundleBuilder bundleBuilder;
-@Override
+    @Override
     @Transactional
-    public synchronized void recompile() {
-        List<Policy> enabledPolicies = policyPort.findAllEnabled();
+    public synchronized void recompile(String targetNamespace) {
+        List<Policy> allEnabledPolicies = policyPort.findAllEnabled();
 
         // Build permissionId → code lookup (single query — no N+1)
         Map<Long, String> permCodeLookup = permissionPort.findAllActive()
                 .stream()
                 .collect(Collectors.toMap(Permission::getId, Permission::getCode));
 
-        // Group policies by namespace (extracted from permission code "{namespace}:{resource}:{action}")
-        Map<String, List<Policy>> policiesByNamespace = enabledPolicies.stream()
-                .collect(Collectors.groupingBy(p -> {
+        // Filter policies for the specific namespace
+        List<Policy> namespacePolicies = allEnabledPolicies.stream()
+                .filter(p -> {
                     String code = permCodeLookup.get(p.getPermissionId());
-                    if (code == null) return "default";
-                    return code.split(":")[0];
-                }));
+                    return code != null && code.startsWith(targetNamespace + ":");
+                })
+                .toList();
 
-        for (Map.Entry<String, List<Policy>> entry : policiesByNamespace.entrySet()) {
-            String namespace = entry.getKey();
-            List<Policy> namespacePolicies = entry.getValue();
-            
-            RegoGenerator generator = new RegoGenerator();
-            String regoContent = generator.generate(namespace, namespacePolicies);
-            byte[] bundleBytes;
-            try {
-                bundleBytes = bundleBuilder.build(regoContent);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to build OPA policy bundle for namespace " + namespace, e);
-            }
-            bundleCachePort.upsertBundle(namespace, bundleBytes, computeMd5(bundleBytes));
+        RegoGenerator generator = new RegoGenerator();
+        String regoContent = generator.generate(targetNamespace, namespacePolicies);
+        byte[] bundleBytes;
+        try {
+            bundleBytes = bundleBuilder.build(regoContent);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
         }
+        bundleCachePort.upsertBundle(targetNamespace, bundleBytes, computeMd5(bundleBytes));
     }
 
     private String computeMd5(byte[] data) {

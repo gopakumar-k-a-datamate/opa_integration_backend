@@ -35,15 +35,18 @@ public class GetPoliciesService implements GetPoliciesUseCase {
     private final ResourcePersistencePort resourcePort;
     private final PolicyPersistencePort policyPort;
     private final PolicyDtoMapper policyDtoMapper;
-@Override
-    public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId) {
-        // Build resource lookup map
+    @Override
+    public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace) {
+        // Build resource lookup map filtered by namespace
         Map<Long, Resource> resourcesById = resourcePort.findAllActive()
                 .stream()
+                .filter(r -> r.getNamespace().equals(namespace))
                 .collect(Collectors.toMap(Resource::getId, r -> r));
 
         // Fetch all permissions and existing policies for this subject
-        List<Permission> permissions = permissionPort.findAllActive();
+        List<Permission> permissions = permissionPort.findAllActive().stream()
+                .filter(p -> resourcesById.containsKey(p.getResourceId()))
+                .toList();
         List<Policy> policies = policyPort.findBySubject(subjectType, subjectId);
 
         // Index policies by permissionId for O(1) lookup
