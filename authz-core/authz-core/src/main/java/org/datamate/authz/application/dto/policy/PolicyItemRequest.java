@@ -12,7 +12,7 @@ import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
  * @param enabled         Whether the policy should be active
  * @param isDeleted       If {@code true}, the matching policy will be soft-deleted
  */
-public record PolicyItemDto(
+public record PolicyItemRequest(
         String permissionCode,
         PolicyEffect effect,
         JsonNode expressionJson,

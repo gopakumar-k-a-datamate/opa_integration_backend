@@ -31,7 +31,7 @@ public class PolicyController {
 
     private final GetPoliciesUseCase getPoliciesUseCase;
     private final SavePoliciesUseCase savePoliciesUseCase;
-/**
+    /**
      * Fetches the complete permission matrix for a subject (Role or User).
      *
      * @param subjectType {@code ROLE} or {@code USER}

@@ -17,7 +17,8 @@ public class PolicyBundleCachePersistenceAdapter implements PolicyBundleCachePer
 
     private final SpringDataPolicyBundleCacheRepository repository;
     private final PolicyBundleCachePersistenceMapper mapper;
-@Override
+
+    @Override
     public Optional<PolicyBundleCache> getBundle(String namespace) {
         return repository.findByNamespace(namespace).map(mapper::toDomain);
     }

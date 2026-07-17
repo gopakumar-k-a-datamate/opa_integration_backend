@@ -16,9 +16,6 @@ public interface PolicyPersistencePort {
     /** Active policies for a specific subject — used by the Admin UI grid. */
     List<Policy> findBySubject(SubjectType subjectType, String subjectId);
 
-    Optional<Policy> findByPermissionIdAndSubject(Long permissionId, SubjectType subjectType,
-                                                       String subjectId);
-
     /** Active policies that reference a given field name inside their expression_json. */
     List<Policy> findEnabledReferencingField(Long permissionId, String fieldName);
 

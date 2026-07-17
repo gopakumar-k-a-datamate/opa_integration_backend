@@ -3,7 +3,7 @@ package org.datamate.authz.application.usecase.policy;
 import lombok.RequiredArgsConstructor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.authz.application.dto.policy.PolicyItemDto;
+import org.datamate.authz.application.dto.policy.PolicyItemRequest;
 import org.datamate.authz.application.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.application.port.in.policy.SavePoliciesUseCase;
 import org.datamate.authz.application.port.out.policy.PermissionPersistencePort;
@@ -42,6 +42,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     private final PermissionPersistencePort permissionPort;
     private final PolicyCompilerPort compilerPort;
     private final ObjectMapper objectMapper;
+
     @Override
     @Transactional
     public void savePolicies(SavePoliciesRequest request) {
@@ -69,10 +70,10 @@ public class SavePoliciesService implements SavePoliciesUseCase {
 
         // Track which permissionIds are explicitly in the payload
         Set<String> handledCodes = request.policies().stream()
-                .map(PolicyItemDto::permissionCode)
+                .map(PolicyItemRequest::permissionCode)
                 .collect(Collectors.toSet());
 
-        for (PolicyItemDto item : request.policies()) {
+        for (PolicyItemRequest item : request.policies()) {
             Optional<Permission> permissionOpt = permissionPort.findByCode(item.permissionCode());
             if (permissionOpt.isEmpty()) continue; // unknown permission code — skip
 
@@ -112,7 +113,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
         compilerPort.recompile(targetNamespace);
     }
 
-    private String serializeJson(PolicyItemDto item) {
+    private String serializeJson(PolicyItemRequest item) {
         if (item.expressionJson() == null) return null;
         try {
             return objectMapper.writeValueAsString(item.expressionJson());

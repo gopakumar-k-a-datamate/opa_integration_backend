@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class PolicyBundleCachePersistenceMapper {
     public PolicyBundleCache toDomain(PolicyBundleCacheJpaEntity e) {
         if (e == null) return null;
-        return new PolicyBundleCache(e.getId(), e.getNamespace(), e.getBundleData(), e.getEtag(), e.getCreatedAt());
+        return PolicyBundleCache.reconstitute(e.getId(), e.getNamespace(), e.getBundleData(), e.getEtag(), e.getCreatedAt(), e.getUpdatedAt());
     }
 
     public void updateEntity(PolicyBundleCacheJpaEntity entity, String namespace, byte[] bundleData, String etag) {

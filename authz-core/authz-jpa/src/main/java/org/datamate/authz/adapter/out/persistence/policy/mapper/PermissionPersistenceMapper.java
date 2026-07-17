@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class PermissionPersistenceMapper {
     public Permission toDomain(PermissionJpaEntity e) {
         if (e == null) return null;
-        return new Permission(e.getId(), e.getResourceId(), e.getAction(), e.getCode(),
+        return Permission.reconstitute(e.getId(), e.getResourceId(), e.getAction(), e.getCode(),
                 e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
     }
 

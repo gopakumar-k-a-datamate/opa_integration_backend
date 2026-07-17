@@ -13,7 +13,6 @@ public interface ResourcePersistencePort {
 
     List<Resource> findAllActive();
 
-    Optional<Resource> findByNamespaceAndName(String namespace, String name);
 }
 
 

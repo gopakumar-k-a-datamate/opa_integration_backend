@@ -2,16 +2,14 @@ package org.datamate.authz.adapter.in.rest.controller;
 
 import lombok.RequiredArgsConstructor;
 
+import org.datamate.authz.application.dto.policy.BundleResult;
 import org.datamate.authz.application.port.in.policy.GetOpaBundleUseCase;
-import org.datamate.authz.domain.model.policy.entity.PolicyBundleCache;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 /**
  * OPA Runtime — Bundle Serving API.
@@ -50,28 +48,24 @@ public class BundleController {
             @PathVariable("namespace") String namespace,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
 
-        Optional<PolicyBundleCache> bundleOpt = getOpaBundleUseCase.getBundle(namespace);
+        BundleResult result = getOpaBundleUseCase.getBundle(namespace, ifNoneMatch);
 
-        if (bundleOpt.isEmpty()) {
+        if (result.isEmpty()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
-        PolicyBundleCache bundle = bundleOpt.get();
-        String currentEtag = "\"" + bundle.getEtag() + "\"";
-
-        // Conditional GET — 304 Not Modified if ETag matches
-        if (currentEtag.equals(ifNoneMatch)) {
+        if (result.notModified()) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .header(HttpHeaders.ETAG, currentEtag)
+                    .header(HttpHeaders.ETAG, result.etag())
                     .build();
         }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, currentEtag)
+                .header(HttpHeaders.ETAG, result.etag())
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"bundle.tar.gz\"")
                 .contentType(MediaType.parseMediaType("application/gzip"))
-                .contentLength(bundle.getBundleData().length)
-                .body(bundle.getBundleData());
+                .contentLength(result.data().length)
+                .body(result.data());
     }
 }
 

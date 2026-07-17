@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class PolicyPersistenceMapper {
     public Policy toDomain(PolicyJpaEntity e) {
         if (e == null) return null;
-        return new Policy(
+        return Policy.reconstitute(
                 e.getId(), e.getPermissionId(), e.getSubjectType(), e.getSubjectId(),
                 e.getEffect(), e.getExpressionJson(), e.isEnabled(), e.getDisabledReason(),
                 e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt()

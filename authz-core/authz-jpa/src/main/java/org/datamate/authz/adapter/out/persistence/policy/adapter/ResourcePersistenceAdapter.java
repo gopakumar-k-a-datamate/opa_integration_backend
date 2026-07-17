@@ -34,12 +34,6 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
         return repository.findAllByDeletedAtIsNull().stream().map(mapper::toDomain).toList();
     }
 
-    @Override
-    public Optional<Resource> findByNamespaceAndName(String namespace, String name) {
-        return repository.findByNamespaceAndNameAndDeletedAtIsNull(namespace, name)
-                .map(mapper::toDomain);
-    }
-
 }
 
 

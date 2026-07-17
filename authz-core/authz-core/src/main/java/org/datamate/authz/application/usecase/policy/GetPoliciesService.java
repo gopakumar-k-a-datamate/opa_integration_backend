@@ -35,6 +35,7 @@ public class GetPoliciesService implements GetPoliciesUseCase {
     private final ResourcePersistencePort resourcePort;
     private final PolicyPersistencePort policyPort;
     private final PolicyDtoMapper policyDtoMapper;
+
     @Override
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace) {
         // Build resource lookup map filtered by namespace

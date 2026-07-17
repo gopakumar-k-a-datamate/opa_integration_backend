@@ -18,7 +18,8 @@ public class PermissionPersistenceAdapter implements PermissionPersistencePort {
 
     private final SpringDataPermissionRepository repository;
     private final PermissionPersistenceMapper mapper;
-@Override
+
+    @Override
     public Permission upsert(Long id, Long resourceId, String action, String code,
                                   String description) {
         PermissionJpaEntity entity = repository
@@ -28,12 +29,6 @@ public class PermissionPersistenceAdapter implements PermissionPersistencePort {
         mapper.updateEntity(entity, id, resourceId, action, code, description);
 
         return mapper.toDomain(repository.save(entity));
-    }
-
-    @Override
-    public List<Permission> findByResourceId(Long resourceId) {
-        return repository.findByResourceIdAndDeletedAtIsNull(resourceId)
-                .stream().map(mapper::toDomain).toList();
     }
 
     @Override

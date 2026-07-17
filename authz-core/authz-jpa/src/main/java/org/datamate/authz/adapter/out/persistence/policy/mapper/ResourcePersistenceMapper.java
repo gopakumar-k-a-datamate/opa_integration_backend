@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class ResourcePersistenceMapper {
     public Resource toDomain(ResourceJpaEntity e) {
         if (e == null) return null;
-        return new Resource(e.getId(), e.getNamespace(), e.getName(),
+        return Resource.reconstitute(e.getId(), e.getNamespace(), e.getName(),
                 e.getDescription(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
     }
 

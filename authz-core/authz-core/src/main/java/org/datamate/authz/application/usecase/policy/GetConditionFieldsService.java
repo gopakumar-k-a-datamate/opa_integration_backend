@@ -27,7 +27,8 @@ public class GetConditionFieldsService implements GetConditionFieldsUseCase {
     private final PermissionPersistencePort permissionPort;
     private final ConditionFieldPersistencePort conditionFieldPort;
     private final ConditionFieldDtoMapper conditionFieldDtoMapper;
-@Override
+
+    @Override
     public List<ConditionFieldDto> getFields(String permissionCode) {
         Optional<Permission> permission = permissionPort.findByCode(permissionCode);
         if (permission.isEmpty()) {

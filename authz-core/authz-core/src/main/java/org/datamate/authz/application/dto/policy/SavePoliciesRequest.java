@@ -20,7 +20,7 @@ public record SavePoliciesRequest(
         SubjectType subjectType,
         String subjectId,
         String namespace,
-        List<PolicyItemDto> policies
+        List<PolicyItemRequest> policies
 ) {}
 
 

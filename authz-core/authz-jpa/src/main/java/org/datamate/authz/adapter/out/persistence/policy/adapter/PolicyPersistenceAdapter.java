@@ -21,7 +21,8 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
 
     private final SpringDataPolicyRepository repository;
     private final PolicyPersistenceMapper mapper;
-@Override
+
+    @Override
     public List<Policy> findAllEnabled() {
         return repository.findAllByEnabledTrueAndDeletedAtIsNull()
                 .stream().map(mapper::toDomain).toList();
@@ -32,16 +33,6 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
         return repository
                 .findBySubjectTypeAndSubjectIdAndDeletedAtIsNull(subjectType, subjectId)
                 .stream().map(mapper::toDomain).toList();
-    }
-
-    @Override
-    public Optional<Policy> findByPermissionIdAndSubject(Long permissionId,
-                                                              SubjectType subjectType,
-                                                              String subjectId) {
-        return repository
-                .findByPermissionIdAndSubjectTypeAndSubjectIdAndDeletedAtIsNull(
-                        permissionId, subjectType, subjectId)
-                .map(mapper::toDomain);
     }
 
     @Override

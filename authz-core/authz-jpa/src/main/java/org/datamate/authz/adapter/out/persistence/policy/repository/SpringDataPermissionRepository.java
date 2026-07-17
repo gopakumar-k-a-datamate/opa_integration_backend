@@ -10,8 +10,6 @@ import java.util.Optional;
 @Repository
 public interface SpringDataPermissionRepository extends JpaRepository<PermissionJpaEntity, Long> {
 
-    List<PermissionJpaEntity> findByResourceIdAndDeletedAtIsNull(Long resourceId);
-
     Optional<PermissionJpaEntity> findByCodeAndDeletedAtIsNull(String code);
 
     List<PermissionJpaEntity> findAllByDeletedAtIsNull();

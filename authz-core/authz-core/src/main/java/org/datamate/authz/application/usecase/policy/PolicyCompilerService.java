@@ -47,6 +47,7 @@ public class PolicyCompilerService implements PolicyCompilerPort {
     private final PolicyBundleCachePersistencePort bundleCachePort;
 
     private final TarGzBundleBuilder bundleBuilder;
+
     @Override
     @Transactional
     public synchronized void recompile(String targetNamespace) {

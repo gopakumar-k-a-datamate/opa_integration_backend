@@ -17,7 +17,7 @@ public class ConditionFieldPersistenceMapper {
 
     public ConditionField toDomain(ConditionFieldJpaEntity e) {
         if (e == null) return null;
-        return new ConditionField(
+        return ConditionField.reconstitute(
                 e.getId(), e.getPermissionId(), e.getFieldName(), e.getFieldType(),
                 e.getDisplayName(), jsonMapper.deserializeList(e.getAllowedValues()),
                 e.getOptionsEndpoint(), e.getStatus(),
