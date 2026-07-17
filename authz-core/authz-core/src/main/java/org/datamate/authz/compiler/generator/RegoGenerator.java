@@ -4,25 +4,49 @@ import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
+import org.datamate.authz.domain.model.policy.entity.Policy;
+import org.datamate.authz.compiler.AstBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
 
 public class RegoGenerator {
 
-    public String generate(AstNode root) {
-        if (root == null) return "";
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final AstBuilder astBuilder = new AstBuilder();
+
+    public String generate(String namespace, List<Policy> policies) {
         StringBuilder sb = new StringBuilder();
-        
-        if (root instanceof GroupNode && ((GroupNode) root).getOperator() == LogicalOperator.OR) {
-            // OR means generate multiple Rego rules.
-            for (AstNode child : ((GroupNode) root).getChildren()) {
-                generateRule(child, sb);
+        sb.append("package app.authz.").append(namespace).append("\n\n");
+        sb.append("default allow := false\n");
+        sb.append("default deny_rule := false\n\n");
+
+        for (Policy policy : policies) {
+            String json = policy.getExpressionJson();
+            if (json == null || json.trim().isEmpty()) {
+                continue;
             }
-        } else {
-            // It's an AND group or a single condition
-            generateRule(root, sb);
+            try {
+                JsonNode rootNode = objectMapper.readTree(json);
+                AstNode astRoot = astBuilder.build(rootNode);
+
+                sb.append("# Policy ID: ").append(policy.getId()).append("\n");
+                
+                if (astRoot instanceof GroupNode && ((GroupNode) astRoot).getOperator() == LogicalOperator.OR) {
+                    for (AstNode child : ((GroupNode) astRoot).getChildren()) {
+                        generateRule(child, sb);
+                    }
+                } else {
+                    generateRule(astRoot, sb);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to compile AST for Policy " + policy.getId(), e);
+            }
         }
-        
-        return sb.toString().trim();
+
+        sb.append("allow if {\n    allow_rule\n    not deny_rule\n}\n");
+        return sb.toString();
     }
     
     private void generateRule(AstNode node, StringBuilder sb) {

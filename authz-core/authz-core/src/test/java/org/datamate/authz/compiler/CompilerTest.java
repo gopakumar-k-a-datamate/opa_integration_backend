@@ -1,18 +1,20 @@
 package org.datamate.authz.compiler;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.generator.RegoGenerator;
+import org.datamate.authz.domain.model.policy.entity.Policy;
+import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
+import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CompilerTest {
 
     @Test
-    public void testJsonToRegoCompilation() throws Exception {
+    public void testJsonToRegoCompilation() {
         // The JSON structure exactly as it would come from the database
         String json = """
         {
@@ -52,21 +54,25 @@ public class CompilerTest {
         }
         """;
 
-        // Step 1: Parse the raw string into a Jackson JsonNode
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(json);
+        // Step 1: Create a dummy Policy entity holding the JSON
+        Policy policy = new Policy(
+                1L, 100L, SubjectType.ROLE, "ACCOUNTANT",
+                PolicyEffect.ALLOW, json, true, null,
+                LocalDateTime.now(), LocalDateTime.now(), null
+        );
 
-        // Step 2: Pass the JsonNode to the AstBuilder to get the AST
-        AstBuilder builder = new AstBuilder();
-        AstNode ast = builder.build(rootNode);
-        assertNotNull(ast, "AST should not be null after building");
-
-        // Step 3: Pass the AST to the RegoGenerator to get the Rego string
+        // Step 2: Pass the namespace and policies to the updated RegoGenerator
         RegoGenerator generator = new RegoGenerator();
-        String actualRego = generator.generate(ast);
+        String actualRego = generator.generate("finance", List.of(policy));
 
-        // Step 4: Verify the generated Rego matches what we expect
+        // Step 3: Verify the full generated Rego package matches what we expect
         String expectedRego = """
+        package app.authz.finance
+        
+        default allow := false
+        default deny_rule := false
+        
+        # Policy ID: 1
         allow_rule if {
             input.resource.amount <= 10000
             input.resource.bank != "CASH"
@@ -76,9 +82,14 @@ public class CompilerTest {
             input.resource.bank != "CASH"
             input.resource.type == "EXPENSE"
         }
+        
+        allow if {
+            allow_rule
+            not deny_rule
+        }
         """.trim();
 
-        assertEquals(expectedRego, actualRego);
+        assertEquals(expectedRego, actualRego.trim());
         System.out.println("Generated Rego:\\n" + actualRego);
     }
 }

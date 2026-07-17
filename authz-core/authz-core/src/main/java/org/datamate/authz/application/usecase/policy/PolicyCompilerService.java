@@ -8,7 +8,8 @@ import org.datamate.authz.application.port.out.policy.PolicyBundleCachePersisten
 import org.datamate.authz.application.port.out.policy.PolicyCompilerPort;
 import org.datamate.authz.domain.model.policy.entity.Permission;
 import org.datamate.authz.domain.model.policy.entity.Policy;
-import org.datamate.authz.domain.service.policy.RegoGenerator;
+
+import org.datamate.authz.compiler.generator.RegoGenerator;
 import org.datamate.authz.domain.service.policy.TarGzBundleBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * <ol>
  *   <li>Load all enabled, non-deleted policies from {@code authz_policy}.</li>
  *   <li>Build a {@code permissionId → code} lookup map (one query, not N).</li>
- *   <li>Generate Rego via {@link RegoGenerator} (domain service — pure computation).</li>
+ *   <li>Parse JSON AST and generate Rego via {@link AstBuilder} and {@link RegoGenerator}.</li>
  *   <li>Package as {@code bundle.tar.gz} via {@link TarGzBundleBuilder} (domain service).</li>
  *   <li>Compute MD5 ETag and upsert into {@code authz_policy_bundle_cache}.</li>
  * </ol>
@@ -44,7 +45,7 @@ public class PolicyCompilerService implements PolicyCompilerPort {
     private final PolicyPersistencePort policyPort;
     private final PermissionPersistencePort permissionPort;
     private final PolicyBundleCachePersistencePort bundleCachePort;
-    private final RegoGenerator regoGenerator;
+
     private final TarGzBundleBuilder bundleBuilder;
 @Override
     @Transactional
@@ -68,7 +69,8 @@ public class PolicyCompilerService implements PolicyCompilerPort {
             String namespace = entry.getKey();
             List<Policy> namespacePolicies = entry.getValue();
             
-            String regoContent = regoGenerator.generate(namespacePolicies, permCodeLookup);
+            RegoGenerator generator = new RegoGenerator();
+            String regoContent = generator.generate(namespace, namespacePolicies);
             byte[] bundleBytes;
             try {
                 bundleBytes = bundleBuilder.build(regoContent);
