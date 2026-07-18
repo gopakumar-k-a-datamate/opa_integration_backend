@@ -25,7 +25,8 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
     private final SpringDataConditionFieldRepository repository;
     private final ConditionFieldPersistenceMapper mapper;
     private final JsonMapper jsonMapper;
-@Override
+
+    @Override
     public ConditionField upsert(Long id, Long permissionId, String fieldName,
                                       FieldType fieldType, String displayName,
                                       List<String> allowedValues, String optionsEndpoint) {

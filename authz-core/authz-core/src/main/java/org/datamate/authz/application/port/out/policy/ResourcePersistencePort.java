@@ -11,6 +11,8 @@ public interface ResourcePersistencePort {
     /** Insert or update a resource identified by {@code (namespace, name)}. */
     Resource upsert(Long id, String namespace, String name, String description);
 
+    Optional<Resource> findByNamespaceAndName(String namespace, String name);
+
     List<Resource> findAllActive();
 
 }

@@ -27,8 +27,8 @@ import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Inbound adapter that listens to Spring startup events to auto-register
@@ -64,8 +64,9 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
                 PolicyResource annotation = clazz.getAnnotation(PolicyResource.class);
                 if (annotation == null) continue;
 
-                processAnnotation(clazz, annotation);
-                affectedNamespaces.add(annotation.namespace());
+                if (processAnnotation(clazz, annotation)) {
+                    affectedNamespaces.add(annotation.namespace());
+                }
             } catch (ClassNotFoundException e) {
                 // Skip unloadable classes
             }
@@ -84,23 +85,40 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
         return scanner.findCandidateComponents(BASE_PACKAGE);
     }
 
-    private void processAnnotation(Class<?> clazz, PolicyResource annotation) {
+    private boolean processAnnotation(Class<?> clazz, PolicyResource annotation) {
+        boolean hasChanged = false;
         String namespace = annotation.namespace();
         String resourceName = annotation.name();
         String action = annotation.action();
         String description = annotation.description();
 
+        Optional<Resource> existingResource = resourcePort.findByNamespaceAndName(namespace, resourceName);
+        if (existingResource.isEmpty() || !existingResource.get().getDescription().equals(description)) {
+            hasChanged = true;
+        }
         Resource resource = resourcePort.upsert(
                 null, namespace, resourceName, description);
 
         String code = namespace + ":" + resourceName + ":" + action;
+        Optional<Permission> existingPermission = permissionPort.findByCode(code);
+        if (existingPermission.isEmpty() || !existingPermission.get().getDescription().equals(description)) {
+            hasChanged = true;
+        }
         Permission permission = permissionPort.upsert(
                 null, resource.getId(), action, code, description);
 
+        List<ConditionField> existingFields = conditionFieldPort.findAllByPermissionId(permission.getId());
         Set<String> incomingFieldNames = collectIncomingFields(clazz);
-        upsertFields(clazz, permission.getId());
+        
+        if (upsertFields(clazz, permission.getId(), existingFields)) {
+            hasChanged = true;
+        }
 
-        diffSyncRemovedFields(permission.getId(), incomingFieldNames);
+        if (diffSyncRemovedFields(permission.getId(), incomingFieldNames, existingFields)) {
+            hasChanged = true;
+        }
+        
+        return hasChanged;
     }
 
     private Set<String> collectIncomingFields(Class<?> clazz) {
@@ -117,37 +135,51 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
         return fields;
     }
 
-    private void upsertFields(Class<?> clazz, Long permissionId) {
+    private boolean upsertFields(Class<?> clazz, Long permissionId, List<ConditionField> existingFields) {
+        boolean hasChanged = false;
         if (clazz.isRecord()) {
             for (RecordComponent rc : clazz.getRecordComponents()) {
                 PolicyField pf = rc.getAnnotation(PolicyField.class);
-                if (pf != null) doUpsertField(permissionId, rc.getName(), pf);
+                if (pf != null && doUpsertField(permissionId, rc.getName(), pf, existingFields)) {
+                    hasChanged = true;
+                }
             }
         } else {
             for (Field f : clazz.getDeclaredFields()) {
                 PolicyField pf = f.getAnnotation(PolicyField.class);
-                if (pf != null) doUpsertField(permissionId, f.getName(), pf);
+                if (pf != null && doUpsertField(permissionId, f.getName(), pf, existingFields)) {
+                    hasChanged = true;
+                }
             }
         }
+        return hasChanged;
     }
 
-    private void doUpsertField(Long permissionId, String fieldName, PolicyField pf) {
+    private boolean doUpsertField(Long permissionId, String fieldName, PolicyField pf, List<ConditionField> existingFields) {
         FieldType fieldType = pf.type();
         String displayName = pf.displayName();
         List<String> allowedValues = pf.allowedValues().length > 0
                 ? Arrays.asList(pf.allowedValues()) : null;
         String optionsEndpoint = pf.optionsEndpoint().isBlank() ? null : pf.optionsEndpoint();
 
+        boolean changed = existingFields.stream()
+                .noneMatch(f -> f.getFieldName().equals(fieldName) 
+                             && f.getFieldType() == fieldType 
+                             && f.getDisplayName().equals(displayName));
+
         conditionFieldPort.upsert(null, permissionId, fieldName,
                 fieldType, displayName, allowedValues, optionsEndpoint);
+                
+        return changed;
     }
 
-    private void diffSyncRemovedFields(Long permissionId, Set<String> incomingFieldNames) {
-        List<ConditionField> allDbFields = conditionFieldPort.findAllByPermissionId(permissionId);
-
-        for (ConditionField dbField : allDbFields) {
+    private boolean diffSyncRemovedFields(Long permissionId, Set<String> incomingFieldNames, List<ConditionField> existingFields) {
+        boolean hasChanged = false;
+        for (ConditionField dbField : existingFields) {
             if (incomingFieldNames.contains(dbField.getFieldName())) continue;
+            if (dbField.isDeprecated()) continue; // Already processed in a previous boot!
 
+            hasChanged = true;
             List<Policy> affectedPolicies = policyPort.findEnabledReferencingField(
                     permissionId, dbField.getFieldName());
 
@@ -161,6 +193,7 @@ public class StartupScanner implements ApplicationListener<ContextRefreshedEvent
                 conditionFieldPort.softDelete(dbField.getId());
             }
         }
+        return hasChanged;
     }
 }
 

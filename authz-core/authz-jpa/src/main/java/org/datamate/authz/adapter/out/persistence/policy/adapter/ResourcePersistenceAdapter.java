@@ -18,7 +18,8 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
 
     private final SpringDataResourceRepository repository;
     private final ResourcePersistenceMapper mapper;
-@Override
+
+    @Override
     public Resource upsert(Long id, String namespace, String name, String description) {
         ResourceJpaEntity entity = repository
                 .findByNamespaceAndNameAndDeletedAtIsNull(namespace, name)
@@ -34,6 +35,10 @@ public class ResourcePersistenceAdapter implements ResourcePersistencePort {
         return repository.findAllByDeletedAtIsNull().stream().map(mapper::toDomain).toList();
     }
 
+    @Override
+    public Optional<Resource> findByNamespaceAndName(String namespace, String name) {
+        return repository.findByNamespaceAndNameAndDeletedAtIsNull(namespace, name).map(mapper::toDomain);
+    }
 }
 
 
