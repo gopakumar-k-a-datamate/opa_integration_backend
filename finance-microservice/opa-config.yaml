@@ -1,0 +1,13 @@
+services:
+  finance_api:
+    url: http://host.docker.internal:8081
+
+bundles:
+  finance_bundle:
+    service: finance_api
+    resource: /internal/authz/bundle/finance
+    polling:
+      min_delay_seconds: 10
+      max_delay_seconds: 20
+
+default_authorization_decision: /app/authz/finance/allow

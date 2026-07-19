@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  clinic-db:
+    image: postgres:15-alpine
+    container_name: clinic_postgres
+    environment:
+      POSTGRES_USER: clinic_user
+      POSTGRES_PASSWORD: clinic_password
+      POSTGRES_DB: clinic_db
+    ports:
+      - "5434:5432"
+
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: clinic_opa
+    command:
+      - "run"
+      - "--server"
+      - "--config-file=/config/opa-config.yaml"
+    volumes:
+      - ./opa-config.yaml:/config/opa-config.yaml:ro
+    ports:
+      - "8182:8181"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

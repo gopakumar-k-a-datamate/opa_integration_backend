@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: finance-microservice
+  datasource:
+    url: jdbc:postgresql://localhost:5433/finance_db
+    username: finance_user
+    password: finance_password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -23,7 +24,6 @@ public class PolicyBundleCacheJpaEntity {
     private String namespace;
 
     /** The compiled bundle.tar.gz binary data. */
-    @Lob
     @Column(name = "bundle_data", nullable = false)
     private byte[] bundleData;
 
@@ -35,7 +35,7 @@ public class PolicyBundleCacheJpaEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @org.hibernate.annotations.UpdateTimestamp
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

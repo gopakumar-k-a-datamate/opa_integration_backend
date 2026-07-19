@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.datamate.authz.shared.exception.InvalidPayloadException;
 
 /**
  * Full-state sync for all policies belonging to a subject within this module.
@@ -46,6 +47,10 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     @Override
     @Transactional
     public void savePolicies(SavePoliciesRequest request) {
+        if (request == null || request.policies() == null) {
+            throw new InvalidPayloadException("The 'policies' array in the request body cannot be null.");
+        }
+
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();
         String targetNamespace = request.namespace();
@@ -54,8 +59,11 @@ public class SavePoliciesService implements SavePoliciesUseCase {
         List<Policy> allExisting = policyPort.findBySubject(subjectType, subjectId);
 
         // Cache all permissions to prevent N+1 queries during resolution
-        Map<Long, String> permissionCodeById = permissionPort.findAllActive().stream()
+        List<Permission> allPermissions = permissionPort.findAllActive();
+        Map<Long, String> permissionCodeById = allPermissions.stream()
                 .collect(Collectors.toMap(Permission::getId, Permission::getCode));
+        Map<String, Permission> permissionByCode = allPermissions.stream()
+                .collect(Collectors.toMap(Permission::getCode, p -> p));
 
         // Filter existing policies to ONLY those in the target namespace
         List<Policy> existingInNamespace = allExisting.stream()
@@ -74,10 +82,8 @@ public class SavePoliciesService implements SavePoliciesUseCase {
                 .collect(Collectors.toSet());
 
         for (PolicyItemRequest item : request.policies()) {
-            Optional<Permission> permissionOpt = permissionPort.findByCode(item.permissionCode());
-            if (permissionOpt.isEmpty()) continue; // unknown permission code — skip
-
-            Permission permission = permissionOpt.get();
+            Permission permission = permissionByCode.get(item.permissionCode());
+            if (permission == null) continue; // unknown permission code — skip
             Policy existingPolicy = existingByPermissionId.get(permission.getId());
 
             if (item.isDeleted()) {
