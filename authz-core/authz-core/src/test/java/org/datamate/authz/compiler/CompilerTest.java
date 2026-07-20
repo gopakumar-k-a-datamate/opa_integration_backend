@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CompilerTest {
@@ -63,7 +65,8 @@ public class CompilerTest {
 
         // Step 2: Pass the namespace and policies to the updated RegoGenerator
         RegoGenerator generator = new RegoGenerator();
-        String actualRego = generator.generate("finance", List.of(policy));
+        Map<Long, String> permCodeLookup = Map.of(100L, "finance:journal:create");
+        String actualRego = generator.generate("finance", List.of(policy), permCodeLookup);
 
         // Step 3: Verify the full generated Rego package matches what we expect
         String expectedRego = """
@@ -74,11 +77,15 @@ public class CompilerTest {
         
         # Policy ID: 1
         allow_rule if {
+            "ACCOUNTANT" in input.user.roles
+            input.permission == "finance:journal:create"
             input.resource.amount <= 10000
             input.resource.bank != "CASH"
         }
         
         allow_rule if {
+            "ACCOUNTANT" in input.user.roles
+            input.permission == "finance:journal:create"
             input.resource.bank != "CASH"
             input.resource.type == "EXPENSE"
         }

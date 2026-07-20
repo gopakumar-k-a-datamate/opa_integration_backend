@@ -10,21 +10,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 
 public class RegoGenerator {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AstBuilder astBuilder = new AstBuilder();
 
-    public String generate(String namespace, List<Policy> policies) {
+    public String generate(String namespace, List<Policy> policies, Map<Long, String> permCodeLookup) {
         StringBuilder sb = new StringBuilder();
         sb.append("package app.authz.").append(namespace).append("\n\n");
         sb.append("default allow := false\n");
         sb.append("default deny_rule := false\n\n");
 
         for (Policy policy : policies) {
+            String permissionCode = permCodeLookup.get(policy.getPermissionId());
+            if (permissionCode == null) continue;
+
             String json = policy.getExpressionJson();
             if (json == null || json.trim().isEmpty()) {
+                sb.append("# Policy ID: ").append(policy.getId()).append(" (Unconditional)\n");
+                generateRuleHeader(policy, permissionCode, sb);
+                sb.append("}\n\n");
                 continue;
             }
             try {
@@ -35,10 +42,10 @@ public class RegoGenerator {
                 
                 if (astRoot instanceof GroupNode && ((GroupNode) astRoot).getOperator() == LogicalOperator.OR) {
                     for (AstNode child : ((GroupNode) astRoot).getChildren()) {
-                        generateRule(child, sb);
+                        generateRule(policy, permissionCode, child, sb);
                     }
                 } else {
-                    generateRule(astRoot, sb);
+                    generateRule(policy, permissionCode, astRoot, sb);
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Failed to compile AST for Policy " + policy.getId(), e);
@@ -49,10 +56,31 @@ public class RegoGenerator {
         return sb.toString();
     }
     
-    private void generateRule(AstNode node, StringBuilder sb) {
-        sb.append("allow_rule if {\n");
+    private void generateRule(Policy policy, String permissionCode, AstNode node, StringBuilder sb) {
+        generateRuleHeader(policy, permissionCode, sb);
         visitNode(node, sb);
         sb.append("}\n\n");
+    }
+    
+    private void generateRuleHeader(Policy policy, String permissionCode, StringBuilder sb) {
+        if (policy.isDeny()) {
+            sb.append("deny_rule if {\n");
+        } else {
+            sb.append("allow_rule if {\n");
+        }
+        
+        if (policy.isRolePolicy()) {
+            sb.append("    \"").append(policy.getSubjectId()).append("\" in input.user.roles\n");
+        } else if (policy.isUserPolicy()) {
+            // Attempt to output as unquoted number if it is purely numeric, else quoted string
+            try {
+                long numericId = Long.parseLong(policy.getSubjectId());
+                sb.append("    input.user.id == ").append(numericId).append("\n");
+            } catch (NumberFormatException e) {
+                sb.append("    input.user.id == \"").append(policy.getSubjectId()).append("\"\n");
+            }
+        }
+        sb.append("    input.permission == \"").append(permissionCode).append("\"\n");
     }
     
     private void visitNode(AstNode node, StringBuilder sb) {

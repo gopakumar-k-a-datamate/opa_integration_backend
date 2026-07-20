@@ -67,7 +67,7 @@ public class PolicyCompilerService implements PolicyCompilerPort {
                 .toList();
 
         RegoGenerator generator = new RegoGenerator();
-        String regoContent = generator.generate(targetNamespace, namespacePolicies);
+        String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
         byte[] bundleBytes;
         try {
             bundleBytes = bundleBuilder.build(regoContent);
