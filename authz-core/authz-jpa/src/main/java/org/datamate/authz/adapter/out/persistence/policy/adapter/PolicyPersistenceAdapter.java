@@ -56,9 +56,10 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
     }
 
     @Override
-    public void softDelete(Long id) {
+    public void softDelete(Long id, String reason) {
         repository.findById(id).ifPresent(entity -> {
             entity.setDeletedAt(LocalDateTime.now());
+            entity.setDeletedReason(reason);
             repository.save(entity);
         });
     }

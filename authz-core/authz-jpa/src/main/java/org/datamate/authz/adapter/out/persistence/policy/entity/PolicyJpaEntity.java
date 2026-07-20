@@ -60,6 +60,9 @@ public class PolicyJpaEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "deleted_reason")
+    private String deletedReason;
 }
 
 

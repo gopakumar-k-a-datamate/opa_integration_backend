@@ -24,8 +24,8 @@ public interface PolicyPersistencePort {
                        PolicyEffect effect, String expressionJson, boolean enabled,
                        String disabledReason);
 
-    /** Soft-delete a policy (sets deleted_at). */
-    void softDelete(Long id);
+    /** Soft-delete a policy (sets deleted_at and deleted_reason). */
+    void softDelete(Long id, String reason);
 
     /** Set enabled=false and record the reason — used during field deprecation. */
     void autoDisable(Long id, String reason);

@@ -20,7 +20,8 @@ public record PolicyGridItemDto(
         PolicyEffect effect,
         JsonNode expressionJson,
         boolean enabled,
-        String disabledReason
+        String disabledReason,
+        String deletedReason
 ) {}
 
 

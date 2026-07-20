@@ -14,7 +14,7 @@ public class PolicyPersistenceMapper {
         return Policy.reconstitute(
                 e.getId(), e.getPermissionId(), e.getSubjectType(), e.getSubjectId(),
                 e.getEffect(), e.getExpressionJson(), e.isEnabled(), e.getDisabledReason(),
-                e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt()
+                e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt(), e.getDeletedReason()
         );
     }
 

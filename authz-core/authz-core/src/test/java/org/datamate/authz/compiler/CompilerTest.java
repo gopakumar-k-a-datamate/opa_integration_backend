@@ -60,7 +60,7 @@ public class CompilerTest {
         Policy policy = Policy.reconstitute(
                 1L, 100L, SubjectType.ROLE, "ACCOUNTANT",
                 PolicyEffect.ALLOW, json, true, null,
-                LocalDateTime.now(), LocalDateTime.now(), null
+                LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
         // Step 2: Pass the namespace and policies to the updated RegoGenerator

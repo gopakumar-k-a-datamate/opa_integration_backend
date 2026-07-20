@@ -11,13 +11,17 @@ import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
  * @param expressionJson  Condition AST as JSON, or {@code null} for unconditional
  * @param enabled         Whether the policy should be active
  * @param isDeleted       If {@code true}, the matching policy will be soft-deleted
+ * @param deletedReason   Reason for deletion
+ * @param disabledReason  Reason for disabling
  */
 public record PolicyItemRequest(
         String permissionCode,
         PolicyEffect effect,
         JsonNode expressionJson,
         boolean enabled,
-        boolean isDeleted
+        boolean isDeleted,
+        String deletedReason,
+        String disabledReason
 ) {}
 
 

@@ -88,7 +88,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
 
             if (item.isDeleted()) {
                 if (existingPolicy != null) {
-                    policyPort.softDelete(existingPolicy.getId());
+                    policyPort.softDelete(existingPolicy.getId(), item.deletedReason());
                 }
             } else {
                 String expressionJson = serializeJson(item);
@@ -101,7 +101,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
                         item.effect(),
                         expressionJson,
                         item.enabled(),
-                        null
+                        item.disabledReason()
                 );
             }
         }
@@ -111,7 +111,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
             String code = permissionCodeById.get(entry.getKey());
             boolean notInPayload = code == null || !handledCodes.contains(code);
             if (notInPayload) {
-                policyPort.softDelete(entry.getValue().getId());
+                policyPort.softDelete(entry.getValue().getId(), "Removed policy in state sync.");
             }
         }
 

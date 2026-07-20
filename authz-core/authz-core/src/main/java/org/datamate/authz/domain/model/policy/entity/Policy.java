@@ -55,10 +55,13 @@ public class Policy {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
 
+    /** Reason this policy was permanently soft-deleted, or {@code null} if active. */
+    private final String deletedReason;
+
     private Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
                        String disabledReason, LocalDateTime createdAt,
-                       LocalDateTime updatedAt, LocalDateTime deletedAt) {
+                       LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
         this.id = id;
         this.permissionId = permissionId;
         this.subjectType = subjectType;
@@ -70,20 +73,21 @@ public class Policy {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+        this.deletedReason = deletedReason;
     }
 
     public static Policy create(Long permissionId, SubjectType subjectType, String subjectId,
                                 PolicyEffect effect, String expressionJson) {
         return new Policy(null, permissionId, subjectType, subjectId, effect, 
-                          expressionJson, true, null, LocalDateTime.now(), null, null);
+                          expressionJson, true, null, LocalDateTime.now(), null, null, null);
     }
 
     public static Policy reconstitute(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                                       PolicyEffect effect, String expressionJson, boolean enabled,
                                       String disabledReason, LocalDateTime createdAt,
-                                      LocalDateTime updatedAt, LocalDateTime deletedAt) {
+                                      LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
         return new Policy(id, permissionId, subjectType, subjectId, effect, expressionJson, 
-                          enabled, disabledReason, createdAt, updatedAt, deletedAt);
+                          enabled, disabledReason, createdAt, updatedAt, deletedAt, deletedReason);
     }
 
     // ── Domain Behavior ────────────────────────────────────────────────────────
