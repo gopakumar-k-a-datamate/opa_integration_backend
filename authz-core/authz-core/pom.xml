@@ -31,11 +31,7 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
-        </dependency>
+
         <dependency>
             <groupId>com.datamate.bedrock.framework.common.exception</groupId>
             <artifactId>bedrock-exception-starter</artifactId>

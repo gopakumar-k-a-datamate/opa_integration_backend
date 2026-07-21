@@ -49,28 +49,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>org.datamate.authz.shared.manifest.AuthzManifestGenerator</mainClass>
-                            <arguments>
-                                <argument>org.datamate</argument>
-                                <argument>${project.build.outputDirectory}/authz-manifest.json</argument>
-                            </arguments>
-                            <includePluginDependencies>true</includePluginDependencies>
-                            <includeProjectDependencies>true</includeProjectDependencies>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 </project>

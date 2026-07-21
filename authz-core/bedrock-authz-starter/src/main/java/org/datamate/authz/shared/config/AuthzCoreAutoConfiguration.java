@@ -1,5 +1,7 @@
 package org.datamate.authz.shared.config;
 
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,14 +18,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  *   <li>Enables JPA repositories under {@code org.datamate.authz}</li>
  *   <li>Scans JPA entities under {@code org.datamate.authz.adapter.out.persistence.entity}</li>
  * </ul>
- *
- * <p><b>Flyway:</b> The host application must include the authz-core migration location
- * in its {@code application.properties}:</p>
- * <pre>{@code
- * spring.flyway.locations=classpath:db/migration,classpath:db/migration/authz-core
- * }</pre>
+ * </ul>
  */
-@AutoConfiguration
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Bean;
+import org.flywaydb.core.Flyway;
+import javax.sql.DataSource;
+
+@AutoConfiguration(before = FlywayAutoConfiguration.class)
 @ComponentScan(basePackages = {
         "org.datamate.authz.adapter",
         "org.datamate.authz.application",
@@ -33,6 +36,30 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackages = "org.datamate.authz.adapter.out.persistence.policy.entity")
 @EnableTransactionManagement
 public class AuthzCoreAutoConfiguration {
+
+    @Bean
+    public BeanPostProcessor authzFlywayMigrator(ObjectProvider<DataSource> dataSourceProvider) {
+        return new BeanPostProcessor() {
+            private boolean migrated = false;
+
+            @Override
+            public Object postProcessBeforeInitialization(Object bean, String beanName) {
+                if (!migrated && ("flyway".equals(beanName) || "flywayInitializer".equals(beanName))) {
+                    DataSource dataSource = dataSourceProvider.getIfAvailable();
+                    if (dataSource != null) {
+                        Flyway.configure()
+                                .dataSource(dataSource)
+                                .locations("classpath:db/authz-migration")
+                                .table("authz_flyway_schema_history")
+                                .load()
+                                .migrate();
+                        migrated = true;
+                    }
+                }
+                return bean;
+            }
+        };
+    }
 }
 
 

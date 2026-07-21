@@ -82,6 +82,13 @@ public class SavePoliciesService implements SavePoliciesUseCase {
                 .collect(Collectors.toSet());
 
         for (PolicyItemRequest item : request.policies()) {
+            if (item.isDeleted() && (item.deletedReason() == null || item.deletedReason().isBlank())) {
+                throw new InvalidPayloadException("A reason is mandatory when deleting a policy (permissionCode: " + item.permissionCode() + ").");
+            }
+            if (!item.enabled() && !item.isDeleted() && (item.disabledReason() == null || item.disabledReason().isBlank())) {
+                throw new InvalidPayloadException("A reason is mandatory when disabling a policy (permissionCode: " + item.permissionCode() + ").");
+            }
+
             Permission permission = permissionByCode.get(item.permissionCode());
             if (permission == null) continue; // unknown permission code — skip
             Policy existingPolicy = existingByPermissionId.get(permission.getId());
