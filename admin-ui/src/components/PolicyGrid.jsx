@@ -5,6 +5,7 @@ import ConditionBuilder from './ConditionBuilder';
 const PolicyGrid = ({ role, moduleName }) => {
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [activeConditionPermission, setActiveConditionPermission] = useState(null); // The permissionCode being edited
 
   useEffect(() => {
@@ -13,17 +14,29 @@ const PolicyGrid = ({ role, moduleName }) => {
 
   const loadPolicies = async () => {
     setLoading(true);
-    const data = await fetchPolicies('ROLE', role, moduleName);
-    setPolicies(data);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await fetchPolicies('ROLE', role, moduleName);
+      setPolicies(data);
+    } catch (err) {
+      setError('Service Not Available');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleToggle = (permissionCode) => {
-    setPolicies(prev => prev.map(p => 
-      p.permissionCode === permissionCode 
-        ? { ...p, enabled: !p.enabled } 
-        : p
-    ));
+    setPolicies(prev => prev.map(p => {
+      if (p.permissionCode === permissionCode) {
+        const newEnabled = !p.enabled;
+        return { 
+          ...p, 
+          enabled: newEnabled,
+          effect: (newEnabled && !p.effect) ? 'ALLOW' : p.effect 
+        };
+      }
+      return p;
+    }));
   };
 
   const handleSave = async () => {
@@ -34,13 +47,18 @@ const PolicyGrid = ({ role, moduleName }) => {
   const handleConditionsSaved = (permissionCode, newExpression) => {
     setPolicies(prev => prev.map(p => 
       p.permissionCode === permissionCode 
-        ? { ...p, expressionJson: newExpression, enabled: true } 
+        ? { ...p, expressionJson: newExpression, enabled: true, effect: p.effect || 'ALLOW' } 
         : p
     ));
     setActiveConditionPermission(null);
   };
 
   if (loading) return <div>Loading policies...</div>;
+  if (error) return (
+    <div className="glass-panel" style={{ padding: '2rem', color: '#fca5a5', textAlign: 'center', marginTop: '1rem' }}>
+      ⚠️ {error} - The backend for {moduleName} is currently offline.
+    </div>
+  );
 
   // Group by resourceName
   const grouped = policies.reduce((acc, p) => {

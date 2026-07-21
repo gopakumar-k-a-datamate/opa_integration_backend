@@ -1,9 +1,15 @@
 const getApiUrl = (identifier) => {
   // identifier can be a namespace (e.g. 'clinical') or a permissionCode (e.g. 'clinical:appointment:view')
-  if (identifier && (identifier === 'clinical' || identifier.startsWith('clinical:'))) {
-    return 'http://localhost:8082';
+  if (!identifier) return 'http://localhost:8081';
+  
+  if (identifier.startsWith('clinical') || identifier.startsWith('billing')) {
+    return 'http://localhost:8082'; // clinic-modulith handles BOTH clinical and billing
   }
-  return 'http://localhost:8081';
+  if (identifier.startsWith('finance')) {
+    return 'http://localhost:8081'; // finance-microservice
+  }
+  
+  return 'http://localhost:8081'; // default fallback
 };
 
 export const fetchPolicies = async (subjectType, subjectId, namespace) => {
@@ -13,14 +19,8 @@ export const fetchPolicies = async (subjectType, subjectId, namespace) => {
     if (!res.ok) throw new Error('Failed to fetch');
     return await res.json();
   } catch (err) {
-    console.warn(`Backend ${baseUrl} unavailable, using mock policies.`);
-    return [
-      { permissionCode: `${namespace}:journal:create`, action: 'create', namespace: namespace, resourceName: 'journal', policyId: 1, effect: 'ALLOW', expressionJson: null, enabled: true, disabledReason: null },
-      { permissionCode: `${namespace}:journal:view`, action: 'view', namespace: namespace, resourceName: 'journal', policyId: 2, effect: 'ALLOW', expressionJson: null, enabled: true, disabledReason: null },
-      { permissionCode: `${namespace}:journal:delete`, action: 'delete', namespace: namespace, resourceName: 'journal', policyId: null, effect: null, expressionJson: null, enabled: false, disabledReason: null },
-      { permissionCode: `${namespace}:report:view`, action: 'view', namespace: namespace, resourceName: 'report', policyId: 3, effect: 'ALLOW', expressionJson: null, enabled: true, disabledReason: null },
-      { permissionCode: `${namespace}:report:export`, action: 'export', namespace: namespace, resourceName: 'report', policyId: null, effect: null, expressionJson: null, enabled: false, disabledReason: null }
-    ];
+    console.error(`Backend ${baseUrl} unavailable:`, err);
+    throw new Error('Not available');
   }
 };
 
@@ -31,11 +31,8 @@ export const fetchFields = async (permissionCode) => {
     if (!res.ok) throw new Error('Failed to fetch');
     return await res.json();
   } catch (err) {
-    console.warn(`Backend ${baseUrl} unavailable, using mock fields.`);
-    return [
-      { fieldName: 'amount', fieldType: 'NUMBER', displayName: 'Amount' },
-      { fieldName: 'departmentId', fieldType: 'STRING', displayName: 'Department ID' }
-    ];
+    console.error(`Backend ${baseUrl} unavailable:`, err);
+    throw new Error('Not available');
   }
 };
 
@@ -52,7 +49,33 @@ export const savePolicies = async (subjectType, subjectId, namespace, policies) 
     if (!res.ok) throw new Error('Failed to save');
     return await res.json();
   } catch (err) {
-    console.warn(`Backend ${baseUrl} unavailable, mocking save success.`);
-    return { message: "Policies updated successfully (MOCK)." };
+    console.error(`Backend ${baseUrl} unavailable:`, err);
+    throw new Error('Not available');
+  }
+};
+
+export const fetchRoles = async () => {
+  // Identity Service runs on port 8080
+  const baseUrl = 'http://localhost:8080';
+  try {
+    const res = await fetch(`${baseUrl}/api/v1/roles`);
+    if (!res.ok) throw new Error('Failed to fetch roles');
+    return await res.json();
+  } catch (err) {
+    console.error(`Identity Service ${baseUrl} unavailable:`, err);
+    throw new Error('Not available');
+  }
+};
+
+export const fetchNamespaces = async (microservicePort) => {
+  // microservicePort would be 8081 for Finance or 8082 for Clinic
+  const baseUrl = `http://localhost:${microservicePort}`;
+  try {
+    const res = await fetch(`${baseUrl}/internal/authz/namespaces`);
+    if (!res.ok) throw new Error('Failed to fetch namespaces');
+    return await res.json();
+  } catch (err) {
+    console.error(`Microservice ${baseUrl} unavailable:`, err);
+    throw new Error('Not available');
   }
 };
