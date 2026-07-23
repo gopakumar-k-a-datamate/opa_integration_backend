@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.datamate.authz.application.dto.policy.OpaInputPayload;
 import org.datamate.authz.application.port.out.policy.OpaEvaluationPort;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.io.FileSystemResource;
+import org.datamate.authz.shared.exception.OpaConfigurationException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,18 +25,32 @@ public class OpaRestTemplateAdapter implements OpaEvaluationPort {
     private Logger log;
 
     private final RestTemplate restTemplate;
-    private final String opaBaseUrl;
+    private final String evaluationUrl;
 
     public OpaRestTemplateAdapter(RestTemplateBuilder restTemplateBuilder,
-                                  @Value("${authz.opa.url:http://localhost:8181}") String opaBaseUrl) {
+                                  @Value("${authz.opa.config.file:opa-config.yaml}") String opaConfigFile) {
         this.restTemplate = restTemplateBuilder.build();
-        this.opaBaseUrl = opaBaseUrl;
+        
+        // Parse opa-config.yaml to extract evaluation_url
+        try {
+            YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
+            yamlFactory.setResources(new FileSystemResource(opaConfigFile));
+            java.util.Properties properties = yamlFactory.getObject();
+            
+            if (properties != null && properties.getProperty("evaluation_url") != null) {
+                this.evaluationUrl = properties.getProperty("evaluation_url");
+            } else {
+                throw new OpaConfigurationException("Required property 'evaluation_url' is missing in " + opaConfigFile);
+            }
+        } catch (Exception e) {
+            if (e instanceof OpaConfigurationException) throw e;
+            throw new OpaConfigurationException("Failed to load OPA configuration from " + opaConfigFile + ". Please ensure the file exists and contains the 'evaluation_url' property.", e);
+        }
     }
 
     @Override
     public boolean evaluate(String namespace, OpaInputPayload payload) {
-        String url = String.format("%s/v1/data/app/authz/%s/allow", opaBaseUrl, namespace);
-        
+        String url = String.format(evaluationUrl, namespace);
         try {
             log.debug("Sending evaluation request to OPA at URL: {}", url);
             ResponseEntity<Map> response = restTemplate.postForEntity(url, payload, Map.class);

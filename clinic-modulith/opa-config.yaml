@@ -18,3 +18,7 @@ bundles:
       max_delay_seconds: 20
 
 default_authorization_decision: false
+
+# Custom property read by OpaRestTemplateAdapter
+# Clinic-modulith uses %s so the adapter can dynamically route to /clinical or /billing namespaces
+evaluation_url: http://localhost:8182/v1/data/app/authz/%s/allow

@@ -11,3 +11,6 @@ bundles:
       max_delay_seconds: 20
 
 default_authorization_decision: /app/authz/finance/allow
+
+# Custom property read by OpaRestTemplateAdapter
+evaluation_url: http://localhost:8181/v1/data/app/authz/finance/allow
