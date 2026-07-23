@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import RoleSelector from './components/RoleSelector';
+import SubjectSelector from './components/SubjectSelector';
 import PolicyGrid from './components/PolicyGrid';
 import { fetchNamespaces } from './api/apiClient';
 import './index.css';
 
 function App() {
-  const [role, setRole] = useState('ACCOUNTANT');
+  const [subjectType, setSubjectType] = useState('ROLE');
+  const [subjectId, setSubjectId] = useState('');
   const [moduleName, setModuleName] = useState('finance');
   const [availableModules, setAvailableModules] = useState(['finance', 'clinical']);
 
@@ -31,7 +32,10 @@ function App() {
     <div className="app-container">
       <div className="header">
         <h1>Authorization Dashboard</h1>
-        <RoleSelector role={role} setRole={setRole} />
+        <SubjectSelector 
+          subjectType={subjectType} setSubjectType={setSubjectType} 
+          subjectId={subjectId} setSubjectId={setSubjectId} 
+        />
       </div>
 
       <div className="glass-panel">
@@ -48,7 +52,7 @@ function App() {
           ))}
         </div>
 
-        <PolicyGrid role={role} moduleName={moduleName} />
+        <PolicyGrid subjectType={subjectType} subjectId={subjectId} moduleName={moduleName} />
       </div>
     </div>
   );

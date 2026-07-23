@@ -8,6 +8,7 @@ import org.datamate.identity.application.port.out.UserPersistencePort;
 import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -25,5 +26,10 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     @Override
     public Optional<User> findByEmail(String email) {
         return repository.findByEmail(email).map(mapper::mapToDomain);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return repository.findAll().stream().map(mapper::mapToDomain).toList();
     }
 }

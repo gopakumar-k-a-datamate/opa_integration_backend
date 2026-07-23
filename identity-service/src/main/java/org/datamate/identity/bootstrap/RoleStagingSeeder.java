@@ -21,6 +21,9 @@ public class RoleStagingSeeder {
         
         insertRole(1L, "ADMIN", "Administrator Role");
         insertRole(2L, "USER", "Standard User Role");
+        insertRole(3L, "MANAGER", "Manager Role");
+        insertRole(4L, "AUDITOR", "Auditor Role");
+        insertRole(5L, "SUPPORT", "Support Role");
     }
 
     private void insertRole(Long id, String name, String description) {

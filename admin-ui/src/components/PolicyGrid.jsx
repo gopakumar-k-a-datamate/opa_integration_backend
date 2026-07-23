@@ -2,21 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { fetchPolicies, savePolicies } from '../api/apiClient';
 import ConditionBuilder from './ConditionBuilder';
 
-const PolicyGrid = ({ role, moduleName }) => {
+const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeConditionPermission, setActiveConditionPermission] = useState(null); // The permissionCode being edited
 
   useEffect(() => {
-    loadPolicies();
-  }, [role, moduleName]);
+    if (subjectId) {
+      loadPolicies();
+    }
+  }, [subjectType, subjectId, moduleName]);
 
   const loadPolicies = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchPolicies('ROLE', role, moduleName);
+      const data = await fetchPolicies(subjectType, subjectId, moduleName);
       setPolicies(data);
     } catch (err) {
       setError('Service Not Available');
@@ -40,7 +42,7 @@ const PolicyGrid = ({ role, moduleName }) => {
   };
 
   const handleSave = async () => {
-    await savePolicies('ROLE', role, moduleName, policies);
+    await savePolicies(subjectType, subjectId, moduleName, policies);
     alert('Policies updated successfully.');
   };
 

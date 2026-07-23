@@ -21,23 +21,58 @@ public class UserStagingSeeder {
     public void seed() {
         log.info("Seeding Users...");
         
-        String adminPassword = passwordEncoder.encode("admin123");
-        String userPassword = passwordEncoder.encode("user123");
+        String commonPassword = passwordEncoder.encode("password");
 
-        insertUser(1L, "admin@123.com", adminPassword, "System", "Admin");
-        insertUser(2L, "user@123.com", userPassword, "Standard", "User");
+        Long adminId = insertUser("admin@123.com", commonPassword, "System", "Admin");
+        Long userId = insertUser("user@123.com", commonPassword, "Standard", "User");
+        Long managerId = insertUser("manager@123.com", commonPassword, "System", "Manager");
+        Long auditorId = insertUser("auditor@123.com", commonPassword, "System", "Auditor");
+        Long supportId = insertUser("support@123.com", commonPassword, "System", "Support");
+
+        if (adminId != null) {
+            insertUserRole(adminId, 1L); // ADMIN
+            insertUserRole(adminId, 2L); // USER
+        }
+        if (userId != null) {
+            insertUserRole(userId, 2L); // USER
+        }
+        if (managerId != null) {
+            insertUserRole(managerId, 3L); // MANAGER
+            insertUserRole(managerId, 2L); // USER
+        }
+        if (auditorId != null) {
+            insertUserRole(auditorId, 4L); // AUDITOR
+        }
+        if (supportId != null) {
+            insertUserRole(supportId, 5L); // SUPPORT
+            insertUserRole(supportId, 2L); // USER
+        }
     }
 
-    private void insertUser(Long id, String email, String passwordHash, String firstName, String lastName) {
-        String checkSql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, email);
-        if (count != null && count > 0) {
+    private Long insertUser(String email, String passwordHash, String firstName, String lastName) {
+        String checkSql = "SELECT id FROM users WHERE email = ?";
+        try {
+            Long existingId = jdbcTemplate.queryForObject(checkSql, Long.class, email);
             log.info("User '{}' already exists. Skipping.", email);
-            return;
+            return existingId;
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // does not exist, continue to insert
         }
 
-        String sql = "INSERT INTO users (id, email, password_hash, first_name, last_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sql, id, email, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
-        log.info("Inserted user '{}'.", email);
+        String sql = "INSERT INTO users (email, password_hash, first_name, last_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+        Long newId = jdbcTemplate.queryForObject(sql, Long.class, email, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
+        log.info("Inserted user '{}' with id {}.", email, newId);
+        return newId;
+    }
+
+    private void insertUserRole(Long userId, Long roleId) {
+        String checkSql = "SELECT COUNT(*) FROM user_roles WHERE user_id = ? AND role_id = ?";
+        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, roleId);
+        if (count != null && count > 0) {
+            return;
+        }
+        String sql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
+        jdbcTemplate.update(sql, userId, roleId);
+        log.info("Mapped user {} to role {}", userId, roleId);
     }
 }

@@ -67,6 +67,18 @@ export const fetchRoles = async () => {
   }
 };
 
+export const fetchUsers = async () => {
+  const baseUrl = 'http://localhost:8080';
+  try {
+    const res = await fetch(`${baseUrl}/api/v1/users`);
+    if (!res.ok) throw new Error('Failed to fetch users');
+    return await res.json();
+  } catch (err) {
+    console.error(`Identity Service ${baseUrl} unavailable:`, err);
+    throw new Error('Not available');
+  }
+};
+
 export const fetchNamespaces = async (microservicePort) => {
   // microservicePort would be 8081 for Finance or 8082 for Clinic
   const baseUrl = `http://localhost:${microservicePort}`;
