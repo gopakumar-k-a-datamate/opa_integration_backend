@@ -20,8 +20,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Base64;
+import java.util.ArrayList;
 
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Slf4j
 @Aspect
@@ -65,7 +71,7 @@ public class PolicyEnforcementAspect {
                 resourceAnnotation.name(), 
                 resourceAnnotation.action());
 
-        // 2. Extract User Details
+        // 2. Extract User Details from Authentication or JWT
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = "testUser"; // Default to a test user for local testing
         List<String> roles = List.of("ACCOUNTANT"); // Default to ACCOUNTANT role for local testing
@@ -76,6 +82,34 @@ public class PolicyEnforcementAspect {
                     .map(GrantedAuthority::getAuthority)
                     .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
                     .collect(Collectors.toList());
+        } else {
+            // Attempt to parse JWT manually from Authorization header
+            try {
+                ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                if (attrs != null) {
+                    HttpServletRequest request = attrs.getRequest();
+                    String authHeader = request.getHeader("Authorization");
+                    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                        String token = authHeader.substring(7);
+                        String[] parts = token.split("\\.");
+                        if (parts.length == 3) {
+                            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+                            JsonNode json = new ObjectMapper().readTree(payload);
+                            
+                            if (json.has("userId")) userId = json.get("userId").asText();
+                            
+                            if (json.has("role") && json.get("role").isArray()) {
+                                roles = new ArrayList<>();
+                                for (JsonNode roleNode : json.get("role")) {
+                                    roles.add(roleNode.asText());
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to manually extract JWT from header", e);
+            }
         }
 
         // 3. Extract Resource Context via @PolicyField
