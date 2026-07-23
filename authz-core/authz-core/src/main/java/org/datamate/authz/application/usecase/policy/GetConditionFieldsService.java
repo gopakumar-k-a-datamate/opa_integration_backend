@@ -35,7 +35,7 @@ public class GetConditionFieldsService implements GetConditionFieldsUseCase {
             return List.of();
         }
 
-        return conditionFieldPort.findActiveByPermissionId(permission.get().getId())
+        return conditionFieldPort.findAllByPermissionId(permission.get().getId())
                 .stream()
                 .map(conditionFieldDtoMapper::toDto)
                 .toList();

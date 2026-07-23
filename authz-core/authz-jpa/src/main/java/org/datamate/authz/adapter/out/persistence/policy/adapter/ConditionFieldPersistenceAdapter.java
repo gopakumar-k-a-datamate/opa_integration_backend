@@ -61,6 +61,12 @@ public class ConditionFieldPersistenceAdapter implements ConditionFieldPersisten
     }
 
     @Override
+    public List<ConditionField> findAllDeprecated() {
+        return repository.findByStatusAndDeletedAtIsNull(FieldStatus.DEPRECATED)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public void markDeprecated(Long id) {
         repository.findById(id).ifPresent(entity -> {
             entity.setStatus(FieldStatus.DEPRECATED);

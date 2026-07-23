@@ -21,5 +21,7 @@ public interface SpringDataConditionFieldRepository
 
     Optional<ConditionFieldJpaEntity> findByPermissionIdAndFieldNameAndDeletedAtIsNull(
             Long permissionId, String fieldName);
+
+    List<ConditionFieldJpaEntity> findByStatusAndDeletedAtIsNull(FieldStatus status);
 }
 

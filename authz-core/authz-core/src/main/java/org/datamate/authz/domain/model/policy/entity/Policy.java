@@ -51,6 +51,12 @@ public class Policy {
     /** Reason this policy was auto-disabled, or {@code null} if it is enabled. */
     private final String disabledReason;
 
+    /** System-managed flag indicating if this policy references deprecated fields/permissions. */
+    private final boolean deprecated;
+
+    /** Optimistic locking version. */
+    private final Long version;
+
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime deletedAt;
@@ -60,7 +66,7 @@ public class Policy {
 
     private Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
-                       String disabledReason, LocalDateTime createdAt,
+                       String disabledReason, boolean deprecated, Long version, LocalDateTime createdAt,
                        LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
         this.id = id;
         this.permissionId = permissionId;
@@ -70,6 +76,8 @@ public class Policy {
         this.expressionJson = expressionJson;
         this.enabled = enabled;
         this.disabledReason = disabledReason;
+        this.deprecated = deprecated;
+        this.version = version;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
@@ -79,15 +87,15 @@ public class Policy {
     public static Policy create(Long permissionId, SubjectType subjectType, String subjectId,
                                 PolicyEffect effect, String expressionJson) {
         return new Policy(null, permissionId, subjectType, subjectId, effect, 
-                          expressionJson, true, null, LocalDateTime.now(), null, null, null);
+                          expressionJson, true, null, false, 0L, LocalDateTime.now(), null, null, null);
     }
 
     public static Policy reconstitute(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                                       PolicyEffect effect, String expressionJson, boolean enabled,
-                                      String disabledReason, LocalDateTime createdAt,
+                                      String disabledReason, boolean deprecated, Long version, LocalDateTime createdAt,
                                       LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
         return new Policy(id, permissionId, subjectType, subjectId, effect, expressionJson, 
-                          enabled, disabledReason, createdAt, updatedAt, deletedAt, deletedReason);
+                          enabled, disabledReason, deprecated, version, createdAt, updatedAt, deletedAt, deletedReason);
     }
 
     // ── Domain Behavior ────────────────────────────────────────────────────────

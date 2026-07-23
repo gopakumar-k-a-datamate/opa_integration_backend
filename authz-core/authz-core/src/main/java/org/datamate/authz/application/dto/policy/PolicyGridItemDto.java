@@ -21,7 +21,8 @@ public record PolicyGridItemDto(
         JsonNode expressionJson,
         boolean enabled,
         String disabledReason,
-        String deletedReason
+        String deletedReason,
+        boolean deprecated
 ) {}
 
 

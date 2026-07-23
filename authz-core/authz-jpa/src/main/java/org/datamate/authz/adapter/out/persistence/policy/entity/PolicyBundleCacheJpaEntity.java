@@ -24,11 +24,11 @@ public class PolicyBundleCacheJpaEntity {
     private String namespace;
 
     /** The compiled bundle.tar.gz binary data. */
-    @Column(name = "bundle_data", nullable = false)
+    @Column(name = "bundle_data")
     private byte[] bundleData;
 
     /** MD5 hash of bundle_data — used as ETag for conditional OPA polling. */
-    @Column(nullable = false)
+    @Column
     private String etag;
 
     @CreationTimestamp

@@ -47,8 +47,15 @@ public class PolicyJpaEntity {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Column(nullable = false)
+    private boolean deprecated = false;
+
     @Column(name = "disabled_reason")
     private String disabledReason;
+
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

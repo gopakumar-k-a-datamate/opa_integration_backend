@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS authz_resource (
     namespace   VARCHAR(255) NOT NULL,
     name        VARCHAR(255) NOT NULL,
     description VARCHAR(500),
+    status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at  TIMESTAMP,
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS authz_permission (
     action      VARCHAR(100) NOT NULL,
     code        VARCHAR(500) NOT NULL,  -- {namespace}:{resource}:{action}
     description VARCHAR(500),
+    status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at  TIMESTAMP,
@@ -57,6 +59,7 @@ CREATE TABLE IF NOT EXISTS authz_policy (
     expression_json JSONB,                   -- condition AST as JSON; NULL = unconditional
     enabled         BOOLEAN      NOT NULL DEFAULT TRUE,
     disabled_reason VARCHAR(500),            -- populated when auto-disabled
+    version         BIGINT       NOT NULL DEFAULT 0,
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at      TIMESTAMP

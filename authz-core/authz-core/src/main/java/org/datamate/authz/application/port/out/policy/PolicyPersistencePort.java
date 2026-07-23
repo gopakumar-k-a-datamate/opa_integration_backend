@@ -13,6 +13,9 @@ public interface PolicyPersistencePort {
     /** All active (non-deleted, enabled) policies — used by the compiler. */
     List<Policy> findAllEnabled();
 
+    /** All active (non-deleted) policies, regardless of enabled status. */
+    List<Policy> findAllActive();
+
     /** Active policies for a specific subject — used by the Admin UI grid. */
     List<Policy> findBySubject(SubjectType subjectType, String subjectId);
 
@@ -23,6 +26,9 @@ public interface PolicyPersistencePort {
     Policy upsert(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
                        String disabledReason);
+
+    /** Update the deprecated status of a policy. */
+    void updateDeprecatedStatus(Long id, boolean deprecated);
 
     /** Soft-delete a policy (sets deleted_at and deleted_reason). */
     void softDelete(Long id, String reason);

@@ -8,6 +8,7 @@ import org.datamate.authz.domain.model.policy.entity.Policy;
 import org.datamate.authz.compiler.AstBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.datamate.authz.shared.exception.InvalidPayloadException;
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,8 @@ public class RegoGenerator {
                 } else {
                     generateRule(policy, permissionCode, astRoot, sb);
                 }
+            } catch (InvalidPayloadException e) {
+                throw e; // Rethrow to allow global exception handler to return 400
             } catch (Exception e) {
                 throw new RuntimeException("Failed to compile AST for Policy " + policy.getId(), e);
             }
