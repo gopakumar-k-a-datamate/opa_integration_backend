@@ -27,6 +27,7 @@ import org.flywaydb.core.Flyway;
 import javax.sql.DataSource;
 
 @AutoConfiguration(before = FlywayAutoConfiguration.class)
+@org.springframework.context.annotation.EnableAspectJAutoProxy
 @ComponentScan(basePackages = {
         "org.datamate.authz.adapter",
         "org.datamate.authz.application",
