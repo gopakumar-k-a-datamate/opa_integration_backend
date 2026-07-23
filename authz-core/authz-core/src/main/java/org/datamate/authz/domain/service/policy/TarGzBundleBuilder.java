@@ -36,12 +36,15 @@ public class TarGzBundleBuilder {
      * @param regoContent full Rego policy text
      * @return binary {@code bundle.tar.gz} content
      */
-    public byte[] build(String regoContent) throws IOException {
+    public byte[] build(String namespace, String regoContent) throws IOException {
         byte[] regoBytes = regoContent.getBytes(StandardCharsets.UTF_8);
+        String manifestContent = "{\"roots\": [\"app/authz/" + namespace + "\"]}";
+        byte[] manifestBytes = manifestContent.getBytes(StandardCharsets.UTF_8);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (GZIPOutputStream gzip = new GZIPOutputStream(baos)) {
             writeTarEntry(gzip, REGO_ENTRY, regoBytes);
+            writeTarEntry(gzip, ".manifest", manifestBytes);
             gzip.write(new byte[BLOCK * 2]); // end-of-archive marker
         }
         return baos.toByteArray();

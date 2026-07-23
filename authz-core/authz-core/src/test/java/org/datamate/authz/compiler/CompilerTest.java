@@ -73,6 +73,7 @@ public class CompilerTest {
         package app.authz.finance
         
         default allow := false
+        default allow_rule := false
         default deny_rule := false
         
         # Policy ID: 1
@@ -97,6 +98,5 @@ public class CompilerTest {
         """.trim();
 
         assertEquals(expectedRego, actualRego.trim());
-        System.out.println("Generated Rego:\\n" + actualRego);
     }
 }

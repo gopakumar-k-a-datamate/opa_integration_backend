@@ -73,8 +73,8 @@ public class PolicyEnforcementAspect {
 
         // 2. Extract User Details from Authentication or JWT
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = "testUser"; // Default to a test user for local testing
-        List<String> roles = List.of("ACCOUNTANT"); // Default to ACCOUNTANT role for local testing
+        String userId = "anonymous";
+        List<String> roles = new ArrayList<>();
         
         if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
             userId = authentication.getName();

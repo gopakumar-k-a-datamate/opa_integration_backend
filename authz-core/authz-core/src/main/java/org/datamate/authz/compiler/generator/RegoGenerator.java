@@ -22,6 +22,7 @@ public class RegoGenerator {
         StringBuilder sb = new StringBuilder();
         sb.append("package app.authz.").append(namespace).append("\n\n");
         sb.append("default allow := false\n");
+        sb.append("default allow_rule := false\n");
         sb.append("default deny_rule := false\n\n");
 
         for (Policy policy : policies) {

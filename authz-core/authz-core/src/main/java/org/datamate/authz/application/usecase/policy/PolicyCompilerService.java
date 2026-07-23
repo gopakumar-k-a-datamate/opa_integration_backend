@@ -82,7 +82,7 @@ public class PolicyCompilerService implements PolicyCompilerPort {
         String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
         byte[] bundleBytes;
         try {
-            bundleBytes = bundleBuilder.build(regoContent);
+            bundleBytes = bundleBuilder.build(targetNamespace, regoContent);
         } catch (IOException e) {
             throw new RuntimeException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
         }
