@@ -10,7 +10,7 @@ public class UserPersistenceMapper {
         if (entity == null) return null;
         return User.reconstitute(
                 entity.getId(),
-                entity.getEmail(),
+                entity.getUserName(),
                 entity.getPasswordHash(),
                 entity.getFirstName(),
                 entity.getLastName()
@@ -21,7 +21,7 @@ public class UserPersistenceMapper {
         if (user == null) return null;
         UserJpaEntity entity = new UserJpaEntity();
         entity.setId(user.getId());
-        entity.setEmail(user.getEmail());
+        entity.setUserName(user.getUserName());
         entity.setPasswordHash(user.getPasswordHash());
         entity.setFirstName(user.getFirstName());
         entity.setLastName(user.getLastName());

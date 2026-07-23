@@ -49,19 +49,19 @@ public class UserStagingSeeder {
         }
     }
 
-    private Long insertUser(String email, String passwordHash, String firstName, String lastName) {
-        String checkSql = "SELECT id FROM users WHERE email = ?";
+    private Long insertUser(String userName, String passwordHash, String firstName, String lastName) {
+        String checkSql = "SELECT id FROM users WHERE user_name = ?";
         try {
-            Long existingId = jdbcTemplate.queryForObject(checkSql, Long.class, email);
-            log.info("User '{}' already exists. Skipping.", email);
+            Long existingId = jdbcTemplate.queryForObject(checkSql, Long.class, userName);
+            log.info("User '{}' already exists. Skipping.", userName);
             return existingId;
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            // does not exist, continue to insert
+            // Does not exist, proceed to insert
         }
 
-        String sql = "INSERT INTO users (email, password_hash, first_name, last_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
-        Long newId = jdbcTemplate.queryForObject(sql, Long.class, email, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
-        log.info("Inserted user '{}' with id {}.", email, newId);
+        String sql = "INSERT INTO users (user_name, password_hash, first_name, last_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+        Long newId = jdbcTemplate.queryForObject(sql, Long.class, userName, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
+        log.info("Inserted user '{}' with id {}.", userName, newId);
         return newId;
     }
 

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
@@ -24,11 +25,13 @@ public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
     }
 
     @Override
-    public String generateToken(User user) {
+    public String generateToken(User user, List<String> roles) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(user.getId().toString())
-                .claim("email", user.getEmail())
+                .claim("userId", user.getId())
+                .claim("userName", user.getUserName())
+                .claim("role", roles)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
                 .signWith(key)

@@ -24,8 +24,8 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return repository.findByEmail(email).map(mapper::mapToDomain);
+    public Optional<User> findByUserName(String userName) {
+        return repository.findByUserName(userName).map(mapper::mapToDomain);
     }
 
     @Override

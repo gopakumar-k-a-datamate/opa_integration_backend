@@ -16,7 +16,7 @@ public class UserService implements UserManagementUseCase {
     @Override
     public List<UserDto> listUsers() {
         return userPort.findAll().stream()
-                .map(u -> new UserDto(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName()))
+                .map(u -> new UserDto(u.getId(), u.getUserName(), u.getFirstName(), u.getLastName()))
                 .toList();
     }
 }

@@ -44,4 +44,9 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     public boolean existsByName(String name) {
         return repository.existsByName(name);
     }
+
+    @Override
+    public List<String> findRoleNamesByUserId(Long userId) {
+        return repository.findRoleNamesByUserId(userId);
+    }
 }
