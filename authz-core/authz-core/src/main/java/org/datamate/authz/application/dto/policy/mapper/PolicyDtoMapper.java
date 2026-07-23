@@ -22,7 +22,7 @@ public class PolicyDtoMapper {
                     permission.getAction(),
                     resource.getNamespace(),
                     resource.getName(),
-                    null, null, null, false, null, null
+                    null, null, null, false, null, null, false
             );
         }
 
@@ -37,7 +37,8 @@ public class PolicyDtoMapper {
                 expressionNode,
                 policy.isEnabled(),
                 policy.getDisabledReason(),
-                policy.getDeletedReason()
+                policy.getDeletedReason(),
+                policy.isDeprecated()
         );
     }
 

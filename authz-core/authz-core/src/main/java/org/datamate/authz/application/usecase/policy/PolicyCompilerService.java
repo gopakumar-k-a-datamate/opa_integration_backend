@@ -6,8 +6,13 @@ import org.datamate.authz.application.port.out.policy.PermissionPersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyPersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyBundleCachePersistencePort;
 import org.datamate.authz.application.port.out.policy.PolicyCompilerPort;
+import org.datamate.authz.application.port.out.policy.ConditionFieldPersistencePort;
 import org.datamate.authz.domain.model.policy.entity.Permission;
 import org.datamate.authz.domain.model.policy.entity.Policy;
+import org.datamate.authz.domain.model.policy.entity.ConditionField;
+import org.datamate.authz.domain.model.policy.enumtype.Status;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.datamate.authz.compiler.generator.RegoGenerator;
 import org.datamate.authz.domain.service.policy.TarGzBundleBuilder;
@@ -20,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -45,21 +51,27 @@ public class PolicyCompilerService implements PolicyCompilerPort {
     private final PolicyPersistencePort policyPort;
     private final PermissionPersistencePort permissionPort;
     private final PolicyBundleCachePersistencePort bundleCachePort;
+    private final ConditionFieldPersistencePort conditionFieldPort;
 
     private final TarGzBundleBuilder bundleBuilder;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     @Transactional
     public synchronized void recompile(String targetNamespace) {
+        synchronizeDeprecatedPolicies();
+
         List<Policy> allEnabledPolicies = policyPort.findAllEnabled();
 
         // Build permissionId → code lookup (single query — no N+1)
         Map<Long, String> permCodeLookup = permissionPort.findAllActive()
                 .stream()
+                .filter(p -> p.getStatus() == Status.ACTIVE)
                 .collect(Collectors.toMap(Permission::getId, Permission::getCode));
 
-        // Filter policies for the specific namespace
+        // Filter policies for the specific namespace, excluding deprecated ones
         List<Policy> namespacePolicies = allEnabledPolicies.stream()
+                .filter(p -> !p.isDeprecated())
                 .filter(p -> {
                     String code = permCodeLookup.get(p.getPermissionId());
                     return code != null && code.startsWith(targetNamespace + ":");
@@ -84,6 +96,48 @@ public class PolicyCompilerService implements PolicyCompilerPort {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("MD5 algorithm not available", e);
         }
+    }
+
+    private void synchronizeDeprecatedPolicies() {
+        Set<String> deprecatedFields = conditionFieldPort.findAllDeprecated()
+                .stream()
+                .map(ConditionField::getFieldName)
+                .collect(Collectors.toSet());
+
+        List<Policy> activePolicies = policyPort.findAllActive();
+        for (Policy policy : activePolicies) {
+            boolean usesDeprecatedField = false;
+            String json = policy.getExpressionJson();
+            if (json != null && !json.trim().isEmpty()) {
+                try {
+                    JsonNode root = objectMapper.readTree(json);
+                    usesDeprecatedField = hasDeprecatedField(root, deprecatedFields);
+                } catch (Exception e) {
+                    // Ignore parse errors here, let RegoGenerator fail or ignore
+                }
+            }
+            if (policy.isDeprecated() != usesDeprecatedField) {
+                policyPort.updateDeprecatedStatus(policy.getId(), usesDeprecatedField);
+            }
+        }
+    }
+
+    private boolean hasDeprecatedField(JsonNode node, Set<String> deprecatedFields) {
+        if (node == null || node.isMissingNode()) return false;
+        if (node.has("field")) {
+            String field = node.get("field").asText();
+            if (deprecatedFields.contains(field)) {
+                return true;
+            }
+        }
+        if (node.has("children") && node.get("children").isArray()) {
+            for (JsonNode child : node.get("children")) {
+                if (hasDeprecatedField(child, deprecatedFields)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

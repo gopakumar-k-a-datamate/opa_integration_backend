@@ -13,7 +13,8 @@ public class ConditionFieldDtoMapper {
                 field.getFieldType(),
                 field.getDisplayName(),
                 field.getAllowedValues(),
-                field.getOptionsEndpoint()
+                field.getOptionsEndpoint(),
+                field.getStatus()
         );
     }
 }

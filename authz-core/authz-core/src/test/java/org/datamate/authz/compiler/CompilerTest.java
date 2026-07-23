@@ -7,8 +7,8 @@ import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,7 +59,7 @@ public class CompilerTest {
         // Step 1: Create a dummy Policy entity holding the JSON
         Policy policy = Policy.reconstitute(
                 1L, 100L, SubjectType.ROLE, "ACCOUNTANT",
-                PolicyEffect.ALLOW, json, true, null,
+                PolicyEffect.ALLOW, json, true, null, false, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 

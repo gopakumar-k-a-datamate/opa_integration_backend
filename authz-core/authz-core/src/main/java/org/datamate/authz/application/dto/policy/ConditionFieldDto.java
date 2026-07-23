@@ -4,6 +4,8 @@ import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
 import java.util.List;
 
+import org.datamate.authz.domain.model.policy.enumtype.FieldStatus;
+
 /**
  * A condition field descriptor returned by the Condition Builder endpoint.
  *
@@ -12,12 +14,14 @@ import java.util.List;
  * @param displayName     Human-readable label shown in the UI
  * @param allowedValues   Static dropdown options, {@code null} if not applicable
  * @param optionsEndpoint Dynamic endpoint for live dropdown, {@code null} if not applicable
+ * @param status          The lifecycle status of the field (ACTIVE, DEPRECATED)
  */
 public record ConditionFieldDto(
         String fieldName,
         FieldType fieldType,
         String displayName,
         List<String> allowedValues,
-        String optionsEndpoint
+        String optionsEndpoint,
+        FieldStatus status
 ) {}
 

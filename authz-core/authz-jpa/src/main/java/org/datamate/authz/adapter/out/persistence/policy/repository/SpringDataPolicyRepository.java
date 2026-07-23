@@ -16,6 +16,9 @@ public interface SpringDataPolicyRepository extends JpaRepository<PolicyJpaEntit
     /** All enabled non-deleted policies — for the compiler. */
     List<PolicyJpaEntity> findAllByEnabledTrueAndDeletedAtIsNull();
 
+    /** All non-deleted policies, regardless of enabled status. */
+    List<PolicyJpaEntity> findAllByDeletedAtIsNull();
+
     /** Policies for a specific subject — for the Admin UI grid. */
     List<PolicyJpaEntity> findBySubjectTypeAndSubjectIdAndDeletedAtIsNull(
             SubjectType subjectType, String subjectId);

@@ -22,6 +22,9 @@ public interface ConditionFieldPersistencePort {
 
     Optional<ConditionField> findByPermissionIdAndFieldName(Long permissionId, String fieldName);
 
+    /** Returns ALL deprecated fields across all permissions. */
+    List<ConditionField> findAllDeprecated();
+
     /** Set field status to DEPRECATED (does not soft-delete). */
     void markDeprecated(Long id);
 

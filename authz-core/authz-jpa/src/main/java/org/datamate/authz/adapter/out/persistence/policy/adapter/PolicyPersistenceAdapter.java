@@ -9,6 +9,8 @@ import org.datamate.authz.domain.model.policy.entity.Policy;
 import org.datamate.authz.adapter.out.persistence.policy.mapper.PolicyPersistenceMapper;
 import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
+import org.datamate.authz.shared.exception.StaleDataException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -25,6 +27,12 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
     @Override
     public List<Policy> findAllEnabled() {
         return repository.findAllByEnabledTrueAndDeletedAtIsNull()
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Policy> findAllActive() {
+        return repository.findAllByDeletedAtIsNull()
                 .stream().map(mapper::toDomain).toList();
     }
 
@@ -52,7 +60,19 @@ public class PolicyPersistenceAdapter implements PolicyPersistencePort {
 
         mapper.updateEntity(entity, id, permissionId, subjectType, subjectId, effect, expressionJson, enabled, disabledReason);
 
-        return mapper.toDomain(repository.save(entity));
+        try {
+            return mapper.toDomain(repository.save(entity));
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new StaleDataException("The policy has been modified by another user. Please refresh and try again.");
+        }
+    }
+
+    @Override
+    public void updateDeprecatedStatus(Long id, boolean deprecated) {
+        repository.findById(id).ifPresent(entity -> {
+            entity.setDeprecated(deprecated);
+            repository.save(entity);
+        });
     }
 
     @Override
