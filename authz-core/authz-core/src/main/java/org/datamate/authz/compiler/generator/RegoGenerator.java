@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.shared.exception.InvalidPayloadException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,12 +43,9 @@ public class RegoGenerator {
 
                 sb.append("# Policy ID: ").append(policy.getId()).append("\n");
                 
-                if (astRoot instanceof GroupNode && ((GroupNode) astRoot).getOperator() == LogicalOperator.OR) {
-                    for (AstNode child : ((GroupNode) astRoot).getChildren()) {
-                        generateRule(policy, permissionCode, child, sb);
-                    }
-                } else {
-                    generateRule(policy, permissionCode, astRoot, sb);
+                List<List<ConditionNode>> dnfClauses = convertToDNF(astRoot);
+                for (List<ConditionNode> clause : dnfClauses) {
+                    generateRuleFromClause(policy, permissionCode, clause, sb);
                 }
             } catch (InvalidPayloadException e) {
                 throw e; // Rethrow to allow global exception handler to return 400
@@ -60,9 +58,17 @@ public class RegoGenerator {
         return sb.toString();
     }
     
-    private void generateRule(Policy policy, String permissionCode, AstNode node, StringBuilder sb) {
+    private void generateRuleFromClause(Policy policy, String permissionCode, List<ConditionNode> clause, StringBuilder sb) {
         generateRuleHeader(policy, permissionCode, sb);
-        visitNode(node, sb);
+        for (ConditionNode cond : clause) {
+            sb.append("    input.resource.")
+              .append(cond.getField())
+              .append(" ")
+              .append(cond.getComparison())
+              .append(" ")
+              .append(formatValue(cond.getValue()))
+              .append("\n");
+        }
         sb.append("}\n\n");
     }
     
@@ -87,28 +93,41 @@ public class RegoGenerator {
         sb.append("    input.permission == \"").append(permissionCode).append("\"\n");
     }
     
-    private void visitNode(AstNode node, StringBuilder sb) {
-        if (node instanceof GroupNode) {
+    private List<List<ConditionNode>> convertToDNF(AstNode node) {
+        if (node instanceof ConditionNode) {
+            List<List<ConditionNode>> dnf = new ArrayList<>();
+            List<ConditionNode> andClause = new ArrayList<>();
+            andClause.add((ConditionNode) node);
+            dnf.add(andClause);
+            return dnf;
+        } else if (node instanceof GroupNode) {
             GroupNode group = (GroupNode) node;
-            if (group.getOperator() == LogicalOperator.AND) {
-                // AND means put every child inside one rule.
+            List<List<ConditionNode>> dnf = new ArrayList<>();
+            
+            if (group.getOperator() == LogicalOperator.OR) {
                 for (AstNode child : group.getChildren()) {
-                    visitNode(child, sb);
+                    dnf.addAll(convertToDNF(child));
                 }
-            } else if (group.getOperator() == LogicalOperator.OR) {
-                // Nested OR requires more complex DNF conversion, omitting for simplicity of this core concept.
-                throw new UnsupportedOperationException("Nested OR inside AND requires Disjunctive Normal Form (DNF) conversion.");
+            } else if (group.getOperator() == LogicalOperator.AND) {
+                dnf.add(new ArrayList<>());
+                
+                for (AstNode child : group.getChildren()) {
+                    List<List<ConditionNode>> childDnf = convertToDNF(child);
+                    List<List<ConditionNode>> newDnf = new ArrayList<>();
+                    
+                    for (List<ConditionNode> existingAndClause : dnf) {
+                        for (List<ConditionNode> newAndClause : childDnf) {
+                            List<ConditionNode> combinedAndClause = new ArrayList<>(existingAndClause);
+                            combinedAndClause.addAll(newAndClause);
+                            newDnf.add(combinedAndClause);
+                        }
+                    }
+                    dnf = newDnf;
+                }
             }
-        } else if (node instanceof ConditionNode) {
-            ConditionNode cond = (ConditionNode) node;
-            sb.append("    input.resource.")
-              .append(cond.getField())
-              .append(" ")
-              .append(cond.getComparison())
-              .append(" ")
-              .append(formatValue(cond.getValue()))
-              .append("\n");
+            return dnf;
         }
+        return new ArrayList<>();
     }
     
     private String formatValue(JsonNode value) {
