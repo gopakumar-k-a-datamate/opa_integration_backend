@@ -231,21 +231,37 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
   );
 };
 
-const generatePreview = (node, fields) => {
+const generatePreview = (node, fields, depth = 0, isRoot = true) => {
   if (!node) return '';
+  const indent = '  '.repeat(depth);
   
   if (node.operator) {
-    if (!node.children || node.children.length === 0) return '(Empty Group)';
-    const childPreviews = node.children.map(c => generatePreview(c, fields)).filter(Boolean);
-    if (childPreviews.length === 0) return '(Empty Group)';
-    if (childPreviews.length === 1) return childPreviews[0];
-    return `(${childPreviews.join(` ${node.operator} `)})`;
+    if (!node.children || node.children.length === 0) return `${indent}(Empty Group)`;
+    
+    const childDepth = isRoot ? depth : depth + 1;
+    const childPreviews = node.children.map(c => generatePreview(c, fields, childDepth, false)).filter(Boolean);
+    
+    if (childPreviews.length === 0) return `${indent}(Empty Group)`;
+    if (childPreviews.length === 1) return generatePreview(node.children[0], fields, depth, isRoot);
+    
+    const childIndent = '  '.repeat(childDepth);
+    const joiner = `\n${childIndent}${node.operator}\n`;
+    
+    if (isRoot) {
+      return childPreviews.join(joiner);
+    } else {
+      return `${indent}(\n${childPreviews.join(joiner)}\n${indent})`;
+    }
   }
   
   // It's a rule
   const fieldDisplay = fields.find(f => f.fieldName === node.field)?.displayName || node.field || 'Unknown Field';
-  const val = typeof node.value === 'string' ? `"${node.value}"` : node.value;
-  return `${fieldDisplay} ${node.comparison || '=='} ${val}`;
+  let valStr = '';
+  if (typeof node.value === 'string') valStr = `"${node.value}"`;
+  else if (node.value === undefined || node.value === null) valStr = 'null';
+  else valStr = String(node.value);
+  
+  return `${indent}${fieldDisplay} ${node.comparison || '=='} ${valStr}`;
 };
 
 const ConditionBuilder = ({ permissionCode, existingExpression, onClose, onSave }) => {
@@ -277,46 +293,66 @@ const ConditionBuilder = ({ permissionCode, existingExpression, onClose, onSave 
 
   return (
     <div className="modal-overlay">
-      <div className="glass-panel modal-content" style={{ margin: 'auto', maxWidth: '900px', width: '90%', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div className="modal-header">
+      <style>
+        {`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}
+      </style>
+      <div className="glass-panel modal-content" style={{ margin: 'auto', maxWidth: '1200px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="modal-header" style={{ paddingBottom: '1rem' }}>
           <h3>Condition Builder</h3>
           <button className="btn" onClick={onClose}>✕</button>
         </div>
-        
-        <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '1rem' }}>
-          {fields.length > 0 ? (
-            <ConditionGroup 
-              node={expressionTree} 
-              fields={fields} 
-              onChange={setExpressionTree} 
-              isRoot={true} 
-            />
-          ) : (
-            <div>Loading fields...</div>
-          )}
-        </div>
 
-        <div style={{ 
-          marginTop: '1.5rem', 
-          padding: '1.5rem', 
-          background: 'rgba(0, 0, 0, 0.2)', 
-          borderRadius: '8px',
-          border: '1px solid var(--border-color)'
-        }}>
-          <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Preview</h4>
-          <div style={{ 
-            fontFamily: 'monospace', 
-            color: 'var(--text-primary)', 
-            fontSize: '0.9rem', 
-            lineHeight: '1.5',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word'
+        <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: '1.5rem' }}>
+
+          {/* Left Column: Builder */}
+          <div className="hide-scrollbar" style={{ flex: '1.8', overflowY: 'auto', paddingRight: '0.5rem', paddingBottom: '1rem' }}>
+            {fields.length > 0 ? (
+              <ConditionGroup
+                node={expressionTree}
+                fields={fields}
+                onChange={setExpressionTree}
+                isRoot={true}
+              />
+            ) : (
+              <div>Loading fields...</div>
+            )}
+          </div>
+
+          {/* Right Column: Preview */}
+          <div className="hide-scrollbar" style={{
+            flex: '1',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '1.5rem',
+            background: 'rgba(0, 0, 0, 0.2)',
+            borderRadius: '8px',
+            border: '1px solid var(--border-color)',
+            overflowY: 'auto'
           }}>
-            {fields.length > 0 ? generatePreview(expressionTree, fields) : 'Loading preview...'}
+            <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', flexShrink: 0 }}>Preview</h4>
+            <div style={{
+              fontFamily: 'monospace',
+              color: 'var(--text-primary)',
+              fontSize: '0.9rem',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              flex: 1
+            }}>
+              {fields.length > 0 ? generatePreview(expressionTree, fields) : 'Loading preview...'}
+            </div>
           </div>
         </div>
 
-        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+        <div style={{ padding: '1rem 0 0 0', display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '1rem' }}>
           <button className="btn" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSave}>Apply</button>
         </div>
