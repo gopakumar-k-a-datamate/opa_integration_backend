@@ -57,7 +57,7 @@ The system is built on a **Federated Library** that encapsulates authorization l
 1. **Identity Provider:** The central Identity module only manages Users, standard Roles (e.g., `ACCOUNTANT`), and User-Role assignments.
 2. **Shared Library (`authz-core`):** A reusable dependency injected into application services. It provisions local database tables and exposes standard REST APIs for the Admin UI and OPA.
 3. **Local Resources:** An application service defines its own **Resources** (grouped by a `namespace` for bounded context), **Permissions**, and **Condition Fields** via annotations on its Commands.
-4. **Local Auto-Registration:** At startup, the `authz-core` library scans the local application for annotations and upserts them into its **local** database schema. No central sync is required.
+4. **Database-First Migrations:** The application uses Flyway SQL scripts to define its resources and permissions in the **local** database schema. No central sync is required.
 5. **Local Policies:** A **Policy** ties a local Permission to a standard Role and adds dynamic conditions. The `authz-core` library compiles these policies into Rego and serves the bundle to the local OPA sidecar.
 
 ### Entity Relationship Diagram (per Application Database)
@@ -78,7 +78,7 @@ erDiagram
 | Decision | Rationale |
 |---|---|
 | **Federated Library Model** | The Identity module does not own policies. Each application manages its own authz state via the `authz-core` library, ensuring perfect loose coupling and zero central bottlenecks. |
-| **100% Local Auto-Registration** | `@PolicyResource` and `@PolicyField` annotations on application commands auto-register Resources, Permissions, and Fields into the *local* database on startup. |
+| **Database-First Schema** | Flyway SQL migrations define the authorization metadata, while `@PolicyResource` and `@PolicyField` annotations act purely as runtime markers for OPA evaluation. |
 | **JSON AST for conditions** | Normalized DB tables for nested AND/OR groups are overly complex. JSON maps perfectly to UI rule builders. |
 | **DENY overrides ALLOW** | Any matching DENY policy blocks access regardless of ALLOW policies. Enforced via `not deny_rule` in Rego. |
 | **Local OPA Bundle Cache** | The `authz-core` library compiles Rego and stores zipped bundles *per namespace* in the local database, serving them directly to the local OPA sidecar. |

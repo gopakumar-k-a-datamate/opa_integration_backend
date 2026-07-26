@@ -47,7 +47,7 @@ Maps users to roles. A user can have multiple roles.
 This schema is automatically provisioned inside the local database of *every* application service (e.g., Finance DB, Clinical DB) by the `authz-core` library.
 
 ### 1. Resource (`authz_resource`)
-Represents a protected entity within this specific application/module. Auto-registered on startup.
+Represents a protected entity within this specific application/module. Populated via SQL migration.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -65,7 +65,7 @@ Represents a protected entity within this specific application/module. Auto-regi
 ---
 
 ### 2. Permission (`authz_permission`)
-Represents a specific action that can be performed on a local resource. Auto-registered on startup.
+Represents a specific action that can be performed on a local resource. Populated via SQL migration.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -84,7 +84,7 @@ Represents a specific action that can be performed on a local resource. Auto-reg
 ---
 
 ### 3. Condition Field (`authz_condition_field`)
-Defines attributes that can be used in policies for a specific **Permission**. Auto-registered from Application Commands at startup (see [03-policy-engine.md](file:///Users/apple/Documents/opa_integration_backend/03-policy-engine.md)).
+Defines attributes that can be used in policies for a specific **Permission**. Populated via SQL migration (see [03-policy-engine.md](./03-policy-engine.md)).
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -117,6 +117,8 @@ The core authorization rule. This maps global subjects (Roles/Users from the IdP
 | `expression_json` | JSON | Nullable | Condition AST. `NULL` = unconditional |
 | `enabled` | BOOLEAN | NOT NULL, default `true` | Toggle without deleting |
 | `disabled_reason` | VARCHAR | | Set automatically when auto-disabled |
+| `deprecated` | BOOLEAN | NOT NULL, default `false` | System-managed flag indicating reference to deprecated fields |
+| `deleted_reason` | VARCHAR | | Reason this policy was permanently soft-deleted |
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `updated_at` | TIMESTAMP | | |
 | `deleted_at` | TIMESTAMP | | Soft delete marker |
@@ -134,8 +136,8 @@ Stores the compiled OPA bundles for this application service, separated by names
 |---|---|---|---|
 | `id` | BIGINT | PK, auto-generated | |
 | `namespace` | VARCHAR | UNIQUE, NOT NULL | The bounded context this bundle represents |
-| `bundle_data` | BLOB/BYTEA | NOT NULL | The compiled `bundle.tar.gz` |
-| `etag` | VARCHAR | NOT NULL | MD5 hash of the bundle for conditional serving |
+| `bundle_data` | BLOB/BYTEA | Nullable | The compiled `bundle.tar.gz`. Set to NULL to force recompilation |
+| `etag` | VARCHAR | Nullable | MD5 hash of the bundle for conditional serving. Set to NULL to force recompilation |
 | `created_at` | TIMESTAMP | NOT NULL | When this bundle was generated |
 
 *(Note: There is exactly one row in this table per namespace, updated whenever local policies for that namespace change).*

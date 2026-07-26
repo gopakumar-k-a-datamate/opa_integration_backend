@@ -117,28 +117,27 @@ ORDER BY display_name;
 
 ## 3. Deprecated Field Warnings
 
-When a field is removed from local code and policies are auto-disabled, the admin UI shows a warning banner *inside* that module's tab.
+When a condition field is marked as deprecated via a Database-First SQL migration, the `authz_policy` table flags any referencing policies with `deprecated = true`. The Admin UI uses this flag to show a warning banner *inside* that module's tab, though the policies remain fully active.
 
 ### Warning Banner
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│  ⚠️ 2 policies were auto-disabled because referenced fields  │
-│     were removed from code.                                   │
+│  ⚠️ 2 policies are using deprecated fields.                  │
 │                                                               │
 │  • ACCOUNTANT → journal:create                                │
-│    Field "bank" was removed from code                         │
+│    Field "bank" is deprecated and will be removed soon.       │
 │                                                               │
 │  [Review & Fix]                                               │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Admin Actions on Disabled Policies
+### Admin Actions on Deprecated Policies
 
 | Action | Effect |
 |---|---|
-| **Edit conditions** | Opens the condition builder. Admin removes or replaces the deprecated field reference. On save, `enabled` is set back to `true` and `disabled_reason` is cleared. |
-| **Delete policy** | Soft-deletes the policy. If no other policies reference the deprecated field, the local diff-sync auto-removes it on next startup. |
+| **Edit conditions** | Opens the condition builder. Admin removes or replaces the deprecated field reference. On save, `deprecated` is set back to `false`. |
+| **Delete policy** | Soft-deletes the policy. |
 
 ---
 
