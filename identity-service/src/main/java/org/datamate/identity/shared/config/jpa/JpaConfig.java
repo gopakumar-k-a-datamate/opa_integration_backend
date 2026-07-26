@@ -1,4 +1,4 @@
-package org.datamate.identity.config;
+package org.datamate.identity.shared.config.jpa;
 
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = "org.datamate.identity")
 @EntityScan(basePackages = {
         "org.datamate.identity",
-        "com.datamate.bedrock"
+        "org.springframework.modulith.events.jpa"
 })
 public class JpaConfig {
 }

@@ -31,7 +31,7 @@ class UserTest {
         assertEquals("Doe", user.getLastName());
         assertEquals("admin", user.getCreatedBy());
 
-        List<DomainEvent> events = user.getDomainEvents();
+        List<DomainEvent> events = user.pullEvents();
         assertEquals(1, events.size());
         assertTrue(events.get(0) instanceof UserCreatedEvent);
 

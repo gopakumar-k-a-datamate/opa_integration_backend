@@ -5,10 +5,12 @@ import org.datamate.identity.application.dto.UserDto;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.SecurityContextPort;
 import org.datamate.identity.application.port.out.UserPersistencePort;
+import org.datamate.identity.domain.event.UserCreatedEvent;
 import org.datamate.identity.domain.exception.UserAlreadyExistsException;
 import org.datamate.identity.domain.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +23,7 @@ class UserServiceTest {
     private UserPersistencePort userPort;
     private PasswordEncoderPort passwordEncoderPort;
     private SecurityContextPort securityContextPort;
+    private ApplicationEventPublisher eventPublisher;
     private UserService userService;
 
     @BeforeEach
@@ -28,8 +31,9 @@ class UserServiceTest {
         userPort = mock(UserPersistencePort.class);
         passwordEncoderPort = mock(PasswordEncoderPort.class);
         securityContextPort = mock(SecurityContextPort.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
 
-        userService = new UserService(userPort, passwordEncoderPort, securityContextPort);
+        userService = new UserService(userPort, passwordEncoderPort, securityContextPort, eventPublisher);
     }
 
     @Test
@@ -78,6 +82,7 @@ class UserServiceTest {
         assertEquals("admin_user", result.createdBy());
 
         verify(userPort).save(any(User.class));
+        verify(eventPublisher).publishEvent(any(UserCreatedEvent.class));
     }
 
     @Test
@@ -100,6 +105,7 @@ class UserServiceTest {
 
         assertEquals("user.alreadyExists", exception.getErrorCode());
         verify(userPort, never()).save(any(User.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -123,5 +129,6 @@ class UserServiceTest {
 
         assertEquals("user.alreadyExists", exception.getErrorCode());
         verify(userPort, never()).save(any(User.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

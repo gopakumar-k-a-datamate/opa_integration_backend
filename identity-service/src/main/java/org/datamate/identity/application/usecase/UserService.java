@@ -9,6 +9,7 @@ import org.datamate.identity.application.port.out.SecurityContextPort;
 import org.datamate.identity.application.port.out.UserPersistencePort;
 import org.datamate.identity.domain.exception.UserAlreadyExistsException;
 import org.datamate.identity.domain.model.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class UserService implements UserManagementUseCase {
     private final UserPersistencePort userPort;
     private final PasswordEncoderPort passwordEncoderPort;
     private final SecurityContextPort securityContextPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -46,6 +48,8 @@ public class UserService implements UserManagementUseCase {
         );
 
         User savedUser = userPort.save(newUser);
+
+        newUser.pullEvents().forEach(eventPublisher::publishEvent);
 
         return mapToDto(savedUser);
     }
