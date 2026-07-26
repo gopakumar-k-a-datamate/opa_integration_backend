@@ -1,0 +1,10 @@
+package org.datamate.identity.application.command;
+
+public record CreateUserCommand(
+        String userName,
+        String email,
+        String phoneNumber,
+        String firstName,
+        String lastName,
+        String password
+) {}

@@ -56,6 +56,11 @@
             <artifactId>bedrock-logging-starter</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.datamate.bedrock.framework.common.auditing</groupId>
+            <artifactId>bedrock-auditing-starter</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.modulith</groupId>-->
 <!--            <artifactId>spring-modulith-starter-jpa</artifactId>-->
@@ -87,6 +92,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

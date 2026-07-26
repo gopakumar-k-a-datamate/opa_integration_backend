@@ -18,14 +18,25 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     private final UserPersistenceMapper mapper;
 
     @Override
-    public void save(User user) {
+    public User save(User user) {
         UserJpaEntity entity = mapper.mapToJpaEntity(user);
-        repository.save(entity);
+        UserJpaEntity savedEntity = repository.save(entity);
+        return mapper.mapToDomain(savedEntity);
     }
 
     @Override
     public Optional<User> findByUserName(String userName) {
         return repository.findByUserName(userName).map(mapper::mapToDomain);
+    }
+
+    @Override
+    public boolean existsByUserName(String userName) {
+        return repository.existsByUserName(userName);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return repository.existsByEmail(email);
     }
 
     @Override

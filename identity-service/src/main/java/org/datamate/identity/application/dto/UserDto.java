@@ -1,3 +1,14 @@
 package org.datamate.identity.application.dto;
 
-public record UserDto(Long id, String userName, String firstName, String lastName) {}
+import java.time.LocalDateTime;
+
+public record UserDto(
+        Long id,
+        String userName,
+        String email,
+        String phoneNumber,
+        String firstName,
+        String lastName,
+        String createdBy,
+        LocalDateTime createdDate
+) {}

@@ -59,8 +59,8 @@ public class UserStagingSeeder {
             // Does not exist, proceed to insert
         }
 
-        String sql = "INSERT INTO users (user_name, password_hash, first_name, last_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
-        Long newId = jdbcTemplate.queryForObject(sql, Long.class, userName, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
+        String sql = "INSERT INTO users (user_name, email, password_hash, first_name, last_name, version, domain_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, 1, ?, ?) RETURNING id";
+        Long newId = jdbcTemplate.queryForObject(sql, Long.class, userName, userName, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
         log.info("Inserted user '{}' with id {}.", userName, newId);
         return newId;
     }
