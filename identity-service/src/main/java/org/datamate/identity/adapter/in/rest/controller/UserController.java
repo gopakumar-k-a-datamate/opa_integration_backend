@@ -25,7 +25,7 @@ public class UserController {
     private final UserManagementUseCase userManagementUseCase;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @AuditLog(action = "CREATE_USER", resource = "USER", resourceId = "#request.userName", description = "Create user account")
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
         CreateUserCommand command = new CreateUserCommand(

@@ -4,10 +4,11 @@ import lombok.Getter;
 import org.datamate.identity.domain.event.UserCreatedEvent;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 public class User extends AggregateRoot {
-    private final Long id;
+    private final UUID id;
     private final String userName;
     private final String email;
     private final String phoneNumber;
@@ -21,7 +22,7 @@ public class User extends AggregateRoot {
     private final LocalDateTime lastModifiedDate;
 
     private User(
-            Long id,
+            UUID id,
             String userName,
             String email,
             String phoneNumber,
@@ -59,15 +60,17 @@ public class User extends AggregateRoot {
             String lastName,
             String createdBy
     ) {
+        UUID newUserId = UUID.randomUUID();
+
         User newUser = new User(
-                null,
+                newUserId,
                 userName,
                 email,
                 phoneNumber,
                 passwordHash,
                 firstName,
                 lastName,
-                0L,
+                null,
                 0L,
                 createdBy,
                 LocalDateTime.now(),
@@ -76,7 +79,7 @@ public class User extends AggregateRoot {
         );
 
         newUser.registerEvent(new UserCreatedEvent(
-                null,
+                newUserId,
                 newUser.getDomainVersion(),
                 userName,
                 email,
@@ -90,7 +93,7 @@ public class User extends AggregateRoot {
     }
 
     public static User reconstitute(
-            Long id,
+            UUID id,
             String userName,
             String email,
             String phoneNumber,

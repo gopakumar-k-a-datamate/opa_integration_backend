@@ -1,9 +1,10 @@
 package org.datamate.identity.application.dto;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record UserDto(
-        Long id,
+        UUID id,
         String userName,
         String email,
         String phoneNumber,

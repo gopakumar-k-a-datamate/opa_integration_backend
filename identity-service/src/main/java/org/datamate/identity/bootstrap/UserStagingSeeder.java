@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -23,11 +24,11 @@ public class UserStagingSeeder {
         
         String commonPassword = passwordEncoder.encode("password");
 
-        Long adminId = insertUser("admin@123.com", commonPassword, "System", "Admin");
-        Long userId = insertUser("user@123.com", commonPassword, "Standard", "User");
-        Long managerId = insertUser("manager@123.com", commonPassword, "System", "Manager");
-        Long auditorId = insertUser("auditor@123.com", commonPassword, "System", "Auditor");
-        Long supportId = insertUser("support@123.com", commonPassword, "System", "Support");
+        UUID adminId = insertUser("admin@123.com", commonPassword, "System", "Admin");
+        UUID userId = insertUser("user@123.com", commonPassword, "Standard", "User");
+        UUID managerId = insertUser("manager@123.com", commonPassword, "System", "Manager");
+        UUID auditorId = insertUser("auditor@123.com", commonPassword, "System", "Auditor");
+        UUID supportId = insertUser("support@123.com", commonPassword, "System", "Support");
 
         if (adminId != null) {
             insertUserRole(adminId, 1L); // ADMIN
@@ -49,23 +50,24 @@ public class UserStagingSeeder {
         }
     }
 
-    private Long insertUser(String userName, String passwordHash, String firstName, String lastName) {
+    private UUID insertUser(String userName, String passwordHash, String firstName, String lastName) {
         String checkSql = "SELECT id FROM users WHERE user_name = ?";
         try {
-            Long existingId = jdbcTemplate.queryForObject(checkSql, Long.class, userName);
+            UUID existingId = jdbcTemplate.queryForObject(checkSql, UUID.class, userName);
             log.info("User '{}' already exists. Skipping.", userName);
             return existingId;
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             // Does not exist, proceed to insert
         }
 
-        String sql = "INSERT INTO users (user_name, email, password_hash, first_name, last_name, version, domain_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, 1, ?, ?) RETURNING id";
-        Long newId = jdbcTemplate.queryForObject(sql, Long.class, userName, userName, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
+        UUID newUserId = UUID.randomUUID();
+        String sql = "INSERT INTO users (id, user_name, email, password_hash, first_name, last_name, version, domain_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?, ?) RETURNING id";
+        UUID newId = jdbcTemplate.queryForObject(sql, UUID.class, newUserId, userName, userName, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
         log.info("Inserted user '{}' with id {}.", userName, newId);
         return newId;
     }
 
-    private void insertUserRole(Long userId, Long roleId) {
+    private void insertUserRole(UUID userId, Long roleId) {
         String checkSql = "SELECT COUNT(*) FROM user_roles WHERE user_id = ? AND role_id = ?";
         Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, roleId);
         if (count != null && count > 0) {

@@ -22,7 +22,7 @@ class UserTest {
                 "admin"
         );
 
-        assertNull(user.getId());
+        assertNotNull(user.getId());
         assertEquals("john_doe", user.getUserName());
         assertEquals("john@example.com", user.getEmail());
         assertEquals("+1234567890", user.getPhoneNumber());
@@ -36,6 +36,8 @@ class UserTest {
         assertTrue(events.get(0) instanceof UserCreatedEvent);
 
         UserCreatedEvent createdEvent = (UserCreatedEvent) events.get(0);
+        assertNotNull(createdEvent.aggregateId());
+        assertEquals(user.getId(), createdEvent.aggregateId());
         assertEquals("john_doe", createdEvent.userName());
         assertEquals("john@example.com", createdEvent.email());
         assertEquals("admin", createdEvent.createdBy());

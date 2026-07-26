@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record UserCreatedEvent(
         String eventId,
-        Long aggregateId,
+        UUID aggregateId,
         Long domainVersion,
         String schemaVersion,
         Instant occurredOn,
@@ -16,11 +16,11 @@ public record UserCreatedEvent(
         String firstName,
         String lastName,
         String createdBy
-) implements VersionedDomainEvent<Long> {
+) implements VersionedDomainEvent<UUID> {
     public static final String SCHEMA_VERSION = "1.0";
 
     public UserCreatedEvent(
-            Long aggregateId, Long domainVersion, String userName, String email,
+            UUID aggregateId, Long domainVersion, String userName, String email,
             String phoneNumber, String firstName, String lastName, String createdBy
     ) {
         this(

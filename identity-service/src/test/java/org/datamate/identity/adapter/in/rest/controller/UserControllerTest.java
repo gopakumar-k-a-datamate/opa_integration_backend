@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -44,6 +45,8 @@ class UserControllerTest {
 
     @Test
     void shouldCreateUserSuccessfullyWhenValidRequestProvided() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+
         CreateUserRequest request = new CreateUserRequest(
                 "new_admin",
                 "admin@example.com",
@@ -54,7 +57,7 @@ class UserControllerTest {
         );
 
         UserDto responseDto = new UserDto(
-                10L,
+                sampleId,
                 "new_admin",
                 "admin@example.com",
                 "+1234567890",
@@ -70,7 +73,7 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.id").value(sampleId.toString()))
                 .andExpect(jsonPath("$.userName").value("new_admin"))
                 .andExpect(jsonPath("$.email").value("admin@example.com"))
                 .andExpect(jsonPath("$.firstName").value("Admin"))

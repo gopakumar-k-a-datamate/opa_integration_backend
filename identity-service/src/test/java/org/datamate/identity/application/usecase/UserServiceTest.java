@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,13 +48,15 @@ class UserServiceTest {
                 "secret123"
         );
 
+        UUID userId = UUID.randomUUID();
+
         when(userPort.existsByUserName("jane_doe")).thenReturn(false);
         when(userPort.existsByEmail("jane@example.com")).thenReturn(false);
         when(passwordEncoderPort.encode("secret123")).thenReturn("hashed_secret123");
         when(securityContextPort.getCurrentUsername()).thenReturn("admin_user");
 
         User savedUserMock = User.reconstitute(
-                1L,
+                userId,
                 "jane_doe",
                 "jane@example.com",
                 "+1987654321",
@@ -73,7 +76,7 @@ class UserServiceTest {
         UserDto result = userService.createUser(command);
 
         assertNotNull(result);
-        assertEquals(1L, result.id());
+        assertEquals(userId, result.id());
         assertEquals("jane_doe", result.userName());
         assertEquals("jane@example.com", result.email());
         assertEquals("+1987654321", result.phoneNumber());

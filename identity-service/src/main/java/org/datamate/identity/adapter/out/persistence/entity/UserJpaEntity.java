@@ -3,8 +3,6 @@ package org.datamate.identity.adapter.out.persistence.entity;
 import com.datamate.bedrock.framework.common.auditing.entity.BaseAuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -15,6 +13,7 @@ import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -25,8 +24,7 @@ import java.time.LocalDateTime;
 @Setter
 public class UserJpaEntity extends BaseAuditableEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(name = "user_name", nullable = false, unique = true)
     private String userName;
