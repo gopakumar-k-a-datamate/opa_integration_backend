@@ -1,11 +1,11 @@
-package org.datamate.finance.domain;
+package org.datamate.finance.application.dto;
 
 import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
 @PolicyResource(namespace = "finance", name = "journal", action = "create", description = "Create new journal entries")
-public class Journal {
+public class CreateJournalPolicyResource {
 
     @PolicyField(type = FieldType.NUMBER, displayName = "Amount")
     private Double amount;
