@@ -70,7 +70,7 @@ While the database dictates the available permissions to the Admin UI, the appli
 ```java
 // In the Finance module's Application Layer
 @PolicyResource(namespace = "finance", name = "journal", action = "create")
-public record CreateJournalCommand(
+public record CreateJournalPolicyResource(
     
     @PolicyField(displayName = "Journal Amount", type = FieldType.NUMBER)
     BigDecimal amount,

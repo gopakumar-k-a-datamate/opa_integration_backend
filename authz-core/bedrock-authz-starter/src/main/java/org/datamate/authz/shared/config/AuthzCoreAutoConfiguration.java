@@ -31,7 +31,8 @@ import javax.sql.DataSource;
 @ComponentScan(basePackages = {
         "org.datamate.authz.adapter",
         "org.datamate.authz.application",
-        "org.datamate.authz.domain.service.policy"
+        "org.datamate.authz.domain.service.policy",
+        "org.datamate.authz.enforcement"
 })
 @EnableJpaRepositories(basePackages = "org.datamate.authz.adapter.out.persistence.policy.repository")
 @EntityScan(basePackages = "org.datamate.authz.adapter.out.persistence.policy.entity")

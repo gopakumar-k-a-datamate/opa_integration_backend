@@ -1,69 +1,54 @@
-package org.datamate.authz.application.interceptor;
+package org.datamate.authz.enforcement;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.datamate.authz.application.dto.policy.OpaInputPayload;
 import org.datamate.authz.application.port.out.policy.OpaEvaluationPort;
 import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.Base64;
-import java.util.ArrayList;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import jakarta.servlet.http.HttpServletRequest;
 
 @Slf4j
-@Aspect
 @Component
-public class PolicyEnforcementAspect {
-
+public class DefaultPolicyEnforcer implements PolicyEnforcer {
 
     private final OpaEvaluationPort opaEvaluationPort;
 
-    public PolicyEnforcementAspect(@org.springframework.context.annotation.Lazy OpaEvaluationPort opaEvaluationPort) {
+    public DefaultPolicyEnforcer(@Lazy OpaEvaluationPort opaEvaluationPort) {
         this.opaEvaluationPort = opaEvaluationPort;
     }
 
-    // Intercept any method that takes a Command object annotated with @PolicyResource.
-    // We use a broad pointcut and then filter dynamically.
-    @Around("execution(* org.datamate..*(..))")
-    public Object enforcePolicy(ProceedingJoinPoint joinPoint) throws Throwable {
-        
-        Object command = null;
-        PolicyResource resourceAnnotation = null;
+    @Override
+    public boolean supports(Object resource) {
+        return resource != null && resource.getClass().isAnnotationPresent(PolicyResource.class);
+    }
 
-        // Find the argument annotated with @PolicyResource
-        for (Object arg : joinPoint.getArgs()) {
-            if (arg != null) {
-                resourceAnnotation = arg.getClass().getAnnotation(PolicyResource.class);
-                if (resourceAnnotation != null) {
-                    command = arg;
-                    break;
-                }
-            }
+    @Override
+    public boolean evaluate(Object resource) {
+        if (!supports(resource)) {
+            log.debug("Resource {} is not annotated with @PolicyResource. Bypassing OPA evaluation.", 
+                    resource != null ? resource.getClass().getName() : "null");
+            return true;
         }
 
-        // If no protected command is found, just proceed
-        if (resourceAnnotation == null) {
-            return joinPoint.proceed();
-        }
+        PolicyResource resourceAnnotation = resource.getClass().getAnnotation(PolicyResource.class);
 
         // 1. Build Permission Code
         String permissionCode = String.format("%s:%s:%s", 
@@ -114,11 +99,11 @@ public class PolicyEnforcementAspect {
 
         // 3. Extract Resource Context via @PolicyField
         Map<String, Object> resourceContext = new HashMap<>();
-        for (Field field : command.getClass().getDeclaredFields()) {
+        for (Field field : resource.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(PolicyField.class)) {
                 field.setAccessible(true);
                 try {
-                    Object value = field.get(command);
+                    Object value = field.get(resource);
                     resourceContext.put(field.getName(), value);
                 } catch (IllegalAccessException e) {
                     log.warn("Failed to extract PolicyField '{}' from Command", field.getName(), e);
@@ -140,13 +125,18 @@ public class PolicyEnforcementAspect {
 
         // 5. Evaluate Policy against OPA
         log.debug("Evaluating policy for permission: {}", permissionCode);
-        boolean isAllowed = opaEvaluationPort.evaluate(resourceAnnotation.namespace(), payload);
+        return opaEvaluationPort.evaluate(resourceAnnotation.namespace(), payload);
+    }
 
-        if (!isAllowed) {
-            log.warn("Access Denied for user {} attempting {}", userId, permissionCode);
+    @Override
+    public void enforce(Object resource) {
+        if (!evaluate(resource)) {
+            PolicyResource resourceAnnotation = resource != null ? resource.getClass().getAnnotation(PolicyResource.class) : null;
+            String permissionCode = resourceAnnotation != null 
+                    ? String.format("%s:%s:%s", resourceAnnotation.namespace(), resourceAnnotation.name(), resourceAnnotation.action())
+                    : "unknown";
+            log.warn("Access Denied attempting {}", permissionCode);
             throw new AccessDeniedException("Access Denied: You do not have permission to perform this action.");
         }
-
-        return joinPoint.proceed();
     }
 }

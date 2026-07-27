@@ -17,7 +17,7 @@ In your application code, you define the resource, action, and fields using anno
 ```java
 // Example: Adding a new Journal Create command in the Finance module
 @PolicyResource(namespace = "finance", name = "journal", action = "create")
-public record CreateJournalCommand(
+public record CreateJournalPolicyResource(
     
     @PolicyField(displayName = "Journal Amount", type = FieldType.NUMBER)
     BigDecimal amount,
