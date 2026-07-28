@@ -42,7 +42,7 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
   };
 
   const handleSave = async () => {
-    await savePolicies(subjectType, subjectId, moduleName, policies);
+    await savePolicies(subjectType, subjectId, moduleName, policies.filter(p => p.enabled));
     alert('Policies updated successfully.');
   };
 

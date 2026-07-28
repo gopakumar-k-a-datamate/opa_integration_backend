@@ -24,6 +24,8 @@ public class updateInvoiceRequestService implements UpdateInvoiceServiceUsecase 
         if(payload!=null){
             policy.setTotalAmount(payload.totalAmount());
             policy.setIsPaid(payload.isPaid());
+            policy.setAccountType(payload.accountType());
+            policy.setInvoiceType(payload.invoiceType());
             policyEnforcer.enforce(policy);
         }
         return "invoice updated successfully";
