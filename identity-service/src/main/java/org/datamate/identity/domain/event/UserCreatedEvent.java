@@ -2,6 +2,7 @@ package org.datamate.identity.domain.event;
 
 import java.time.Instant;
 import java.util.UUID;
+import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 
 public record UserCreatedEvent(
         String eventId,

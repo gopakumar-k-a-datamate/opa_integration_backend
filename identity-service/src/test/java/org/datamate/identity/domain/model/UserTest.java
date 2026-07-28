@@ -1,6 +1,6 @@
 package org.datamate.identity.domain.model;
 
-import org.datamate.identity.domain.event.DomainEvent;
+import com.datamate.bedrock.framework.common.ddd.event.DomainEvent;
 import org.datamate.identity.domain.event.UserCreatedEvent;
 import org.junit.jupiter.api.Test;
 

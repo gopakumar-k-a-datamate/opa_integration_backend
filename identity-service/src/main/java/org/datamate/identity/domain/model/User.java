@@ -2,6 +2,7 @@ package org.datamate.identity.domain.model;
 
 import lombok.Getter;
 import org.datamate.identity.domain.event.UserCreatedEvent;
+import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
