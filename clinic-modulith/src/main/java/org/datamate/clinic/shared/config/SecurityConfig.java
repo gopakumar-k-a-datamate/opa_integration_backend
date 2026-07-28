@@ -1,4 +1,4 @@
-package org.datamate.clinic.config;
+package org.datamate.clinic.shared.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

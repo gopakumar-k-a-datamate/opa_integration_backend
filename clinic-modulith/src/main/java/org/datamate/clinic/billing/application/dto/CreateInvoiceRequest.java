@@ -1,4 +1,4 @@
-package org.datamate.clinic.billing.controller.dto;
+package org.datamate.clinic.billing.application.dto;
 
 public record CreateInvoiceRequest(
     Double totalAmount,

@@ -5,7 +5,7 @@ import org.datamate.authz.application.dto.policy.OpaInputPayload;
 import org.datamate.authz.application.port.out.policy.OpaEvaluationPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ClassPathResource;
 import org.datamate.authz.shared.exception.OpaConfigurationException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,7 @@ public class OpaRestTemplateAdapter implements OpaEvaluationPort {
         // Parse opa-config.yaml to extract evaluation_url
         try {
             YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
-            yamlFactory.setResources(new FileSystemResource(opaConfigFile));
+            yamlFactory.setResources(new ClassPathResource(opaConfigFile));
             java.util.Properties properties = yamlFactory.getObject();
             
             if (properties != null && properties.getProperty("evaluation_url") != null) {

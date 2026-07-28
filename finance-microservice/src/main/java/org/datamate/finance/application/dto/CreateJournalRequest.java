@@ -1,4 +1,4 @@
-package org.datamate.finance.controller.dto;
+package org.datamate.finance.application.dto;
 
 public record CreateJournalRequest(
     Double amount,

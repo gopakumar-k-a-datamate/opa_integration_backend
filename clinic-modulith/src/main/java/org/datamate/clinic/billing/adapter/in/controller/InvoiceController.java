@@ -1,7 +1,7 @@
-package org.datamate.clinic.billing.controller;
+package org.datamate.clinic.billing.adapter.in.controller;
 
-import org.datamate.clinic.billing.application.InvoiceService;
-import org.datamate.clinic.billing.controller.dto.CreateInvoiceRequest;
+import org.datamate.clinic.billing.application.usecase.InvoiceService;
+import org.datamate.clinic.billing.application.dto.CreateInvoiceRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

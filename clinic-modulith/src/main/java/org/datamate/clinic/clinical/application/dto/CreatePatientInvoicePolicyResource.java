@@ -1,4 +1,4 @@
-package org.datamate.clinic.billing.application.dto;
+package org.datamate.clinic.clinical.application.dto;
 
 import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;

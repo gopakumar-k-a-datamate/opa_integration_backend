@@ -1,7 +1,7 @@
 package org.datamate.finance.controller;
 
 import org.datamate.finance.application.JournalService;
-import org.datamate.finance.controller.dto.CreateJournalRequest;
+import org.datamate.finance.application.dto.CreateJournalRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
