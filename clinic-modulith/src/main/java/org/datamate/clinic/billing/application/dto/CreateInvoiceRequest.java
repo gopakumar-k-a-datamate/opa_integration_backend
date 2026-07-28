@@ -5,5 +5,7 @@ public record CreateInvoiceRequest(
     String insuranceProvider,
     Boolean isPaid,
     Double discountPercentage,
-    String dueDate
+    String dueDate,
+    String invoiceType,
+    String accountType
 ) {}

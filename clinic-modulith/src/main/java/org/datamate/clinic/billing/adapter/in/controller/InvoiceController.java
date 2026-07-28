@@ -1,27 +1,35 @@
 package org.datamate.clinic.billing.adapter.in.controller;
 
-import org.datamate.clinic.billing.application.usecase.InvoiceService;
+import org.datamate.clinic.billing.application.dto.UpdateInvoiceRequest;
+import org.datamate.clinic.billing.application.port.in.CreateInvoiceServiceUsecase;
+import org.datamate.clinic.billing.application.port.in.UpdateInvoiceServiceUsecase;
+import org.datamate.clinic.billing.application.usecase.CreateInvoiceService;
 import org.datamate.clinic.billing.application.dto.CreateInvoiceRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/invoices")
 public class InvoiceController {
 
-    private final InvoiceService invoiceService;
+    private final CreateInvoiceServiceUsecase createInvoiceServiceUsecase;
+    private final UpdateInvoiceServiceUsecase updateInvoiceServiceUsecase;
 
-    public InvoiceController(InvoiceService invoiceService) {
-        this.invoiceService = invoiceService;
+    public InvoiceController(CreateInvoiceService createInvoiceService, UpdateInvoiceServiceUsecase updateInvoiceServiceUsecase) {
+        this.createInvoiceServiceUsecase = createInvoiceService;
+        this.updateInvoiceServiceUsecase = updateInvoiceServiceUsecase;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public String createInvoice(@RequestBody CreateInvoiceRequest payload) {
-        return invoiceService.createInvoice(payload);
+        return createInvoiceServiceUsecase.createInvoice(payload);
+    }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public String updateInvoice(@RequestBody UpdateInvoiceRequest payload){
+
+        return updateInvoiceServiceUsecase.updateInvoice(payload);
     }
 }

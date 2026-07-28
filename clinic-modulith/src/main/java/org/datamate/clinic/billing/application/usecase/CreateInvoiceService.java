@@ -5,6 +5,7 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.enforcement.PolicyEnforcer;
 import org.datamate.clinic.billing.application.dto.CreateInvoicePolicyResource;
 import org.datamate.clinic.billing.application.dto.CreateInvoiceRequest;
+import org.datamate.clinic.billing.application.port.in.CreateInvoiceServiceUsecase;
 import org.datamate.clinic.billing.application.port.out.PractitionerPort;
 import org.datamate.clinic.billing.application.port.out.PatientPort;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class InvoiceService {
+public class CreateInvoiceService implements CreateInvoiceServiceUsecase {
 
     @EnableLogger
     private Logger log;
@@ -21,12 +22,13 @@ public class InvoiceService {
     private final PractitionerPort practitionerPort;
     private final PatientPort patientPort;
 
-    public InvoiceService(PolicyEnforcer policyEnforcer, PractitionerPort practitionerPort, PatientPort patientPort) {
+    public CreateInvoiceService(PolicyEnforcer policyEnforcer, PractitionerPort practitionerPort, PatientPort patientPort) {
         this.policyEnforcer = policyEnforcer;
         this.practitionerPort = practitionerPort;
         this.patientPort = patientPort;
     }
 
+    @Override
     public String createInvoice(CreateInvoiceRequest payload) {
         // 1. Fetching related entities from ports BEFORE authorization
         log.info("Fetching practitioner details from port...");
@@ -65,6 +67,8 @@ public class InvoiceService {
             command.setIsPaid(payload.isPaid());
             command.setDiscountPercentage(payload.discountPercentage());
             command.setDueDate(payload.dueDate());
+            command.setInvoiceType(payload.invoiceType());
+            command.setAccountType(payload.accountType());
         }
 
         // 4. Finally, Enforce the Policy at the exact right moment
