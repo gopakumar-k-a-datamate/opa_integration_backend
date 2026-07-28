@@ -44,6 +44,8 @@ public class UserService implements UserManagementUseCase {
                 passwordHash,
                 command.firstName(),
                 command.lastName(),
+                command.referenceSystem(),
+                command.referenceValue(),
                 createdBy
         );
 
@@ -70,6 +72,8 @@ public class UserService implements UserManagementUseCase {
                 user.getPhoneNumber(),
                 user.getFirstName(),
                 user.getLastName(),
+                user.getReferenceSystem(),
+                user.getReferenceValue(),
                 user.getCreatedBy(),
                 user.getCreatedDate()
         );

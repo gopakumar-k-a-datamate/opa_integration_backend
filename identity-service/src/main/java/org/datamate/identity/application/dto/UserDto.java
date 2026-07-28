@@ -10,6 +10,8 @@ public record UserDto(
         String phoneNumber,
         String firstName,
         String lastName,
+        String referenceSystem,
+        String referenceValue,
         String createdBy,
         LocalDateTime createdDate
 ) {}

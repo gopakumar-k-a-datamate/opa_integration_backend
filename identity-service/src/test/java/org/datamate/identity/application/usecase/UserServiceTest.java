@@ -45,7 +45,9 @@ class UserServiceTest {
                 "+1987654321",
                 "Jane",
                 "Doe",
-                "secret123"
+                "secret123",
+                "ELLIDER",
+                "EXT-12345"
         );
 
         UUID userId = UUID.randomUUID();
@@ -63,6 +65,8 @@ class UserServiceTest {
                 "hashed_secret123",
                 "Jane",
                 "Doe",
+                "ELLIDER",
+                "EXT-12345",
                 0L,
                 1L,
                 "admin_user",
@@ -82,6 +86,8 @@ class UserServiceTest {
         assertEquals("+1987654321", result.phoneNumber());
         assertEquals("Jane", result.firstName());
         assertEquals("Doe", result.lastName());
+        assertEquals("ELLIDER", result.referenceSystem());
+        assertEquals("EXT-12345", result.referenceValue());
         assertEquals("admin_user", result.createdBy());
 
         verify(userPort).save(any(User.class));
@@ -96,7 +102,9 @@ class UserServiceTest {
                 "+1987654321",
                 "Jane",
                 "Doe",
-                "secret123"
+                "secret123",
+                null,
+                null
         );
 
         when(userPort.existsByUserName("jane_doe")).thenReturn(true);
@@ -119,7 +127,9 @@ class UserServiceTest {
                 "+1987654321",
                 "Jane",
                 "Doe",
-                "secret123"
+                "secret123",
+                null,
+                null
         );
 
         when(userPort.existsByUserName("jane_doe")).thenReturn(false);

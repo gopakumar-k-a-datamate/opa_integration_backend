@@ -25,5 +25,11 @@ public record CreateUserRequest(
 
         @NotBlank(message = "Password is mandatory")
         @Size(min = 6, message = "Password must be at least 6 characters")
-        String password
+        String password,
+
+        @Size(max = 50, message = "Reference system must be at most 50 characters")
+        String referenceSystem,
+
+        @Size(max = 255, message = "Reference value must be at most 255 characters")
+        String referenceValue
 ) {}

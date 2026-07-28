@@ -17,6 +17,8 @@ public class UserPersistenceMapper {
                 entity.getPasswordHash(),
                 entity.getFirstName(),
                 entity.getLastName(),
+                entity.getReferenceSystem(),
+                entity.getReferenceValue(),
                 entity.getVersion(),
                 entity.getDomainVersion(),
                 entity.getCreatedBy(),
@@ -36,6 +38,8 @@ public class UserPersistenceMapper {
         entity.setPasswordHash(user.getPasswordHash());
         entity.setFirstName(user.getFirstName());
         entity.setLastName(user.getLastName());
+        entity.setReferenceSystem(user.getReferenceSystem());
+        entity.setReferenceValue(user.getReferenceValue());
         entity.setVersion(user.getVersion());
         entity.setDomainVersion(user.getDomainVersion());
         entity.setCreatedBy(user.getCreatedBy());

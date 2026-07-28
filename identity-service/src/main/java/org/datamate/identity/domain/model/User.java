@@ -15,6 +15,8 @@ public class User extends AggregateRoot {
     private final String passwordHash;
     private final String firstName;
     private final String lastName;
+    private final String referenceSystem;
+    private final String referenceValue;
     private final Long version;
     private final String createdBy;
     private final LocalDateTime createdDate;
@@ -29,6 +31,8 @@ public class User extends AggregateRoot {
             String passwordHash,
             String firstName,
             String lastName,
+            String referenceSystem,
+            String referenceValue,
             Long version,
             Long domainVersion,
             String createdBy,
@@ -44,6 +48,8 @@ public class User extends AggregateRoot {
         this.passwordHash = passwordHash;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.referenceSystem = referenceSystem;
+        this.referenceValue = referenceValue;
         this.version = version;
         this.createdBy = createdBy;
         this.createdDate = createdDate;
@@ -58,6 +64,8 @@ public class User extends AggregateRoot {
             String passwordHash,
             String firstName,
             String lastName,
+            String referenceSystem,
+            String referenceValue,
             String createdBy
     ) {
         UUID newUserId = UUID.randomUUID();
@@ -70,6 +78,8 @@ public class User extends AggregateRoot {
                 passwordHash,
                 firstName,
                 lastName,
+                referenceSystem,
+                referenceValue,
                 null,
                 0L,
                 createdBy,
@@ -100,6 +110,8 @@ public class User extends AggregateRoot {
             String passwordHash,
             String firstName,
             String lastName,
+            String referenceSystem,
+            String referenceValue,
             Long version,
             Long domainVersion,
             String createdBy,
@@ -115,6 +127,8 @@ public class User extends AggregateRoot {
                 passwordHash,
                 firstName,
                 lastName,
+                referenceSystem,
+                referenceValue,
                 version,
                 domainVersion,
                 createdBy,

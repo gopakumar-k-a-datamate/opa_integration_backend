@@ -47,6 +47,8 @@ END $$;
 ALTER TABLE users
     ADD COLUMN IF NOT EXISTS email VARCHAR(255),
     ADD COLUMN IF NOT EXISTS phone_number VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS reference_system VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS reference_value VARCHAR(255),
     ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS domain_version BIGINT NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS created_by VARCHAR(255),
@@ -81,6 +83,8 @@ CREATE TABLE IF NOT EXISTS users_aud (
     user_name VARCHAR(255),
     email VARCHAR(255),
     phone_number VARCHAR(50),
+    reference_system VARCHAR(50),
+    reference_value VARCHAR(255),
     password_hash VARCHAR(255),
     first_name VARCHAR(100),
     last_name VARCHAR(100),
@@ -93,6 +97,10 @@ CREATE TABLE IF NOT EXISTS users_aud (
     deleted_at TIMESTAMP,
     CONSTRAINT pk_users_aud PRIMARY KEY (id, rev)
 );
+
+ALTER TABLE users_aud
+    ADD COLUMN IF NOT EXISTS reference_system VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS reference_value VARCHAR(255);
 
 CREATE SCHEMA IF NOT EXISTS audit;
 

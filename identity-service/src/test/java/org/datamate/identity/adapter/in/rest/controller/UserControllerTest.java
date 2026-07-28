@@ -53,7 +53,9 @@ class UserControllerTest {
                 "+1234567890",
                 "Admin",
                 "User",
-                "securePass123"
+                "securePass123",
+                "ELLIDER",
+                "EXT-12345"
         );
 
         UserDto responseDto = new UserDto(
@@ -63,6 +65,8 @@ class UserControllerTest {
                 "+1234567890",
                 "Admin",
                 "User",
+                "ELLIDER",
+                "EXT-12345",
                 "SYSTEM_ADMIN",
                 LocalDateTime.now()
         );
@@ -77,7 +81,9 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.userName").value("new_admin"))
                 .andExpect(jsonPath("$.email").value("admin@example.com"))
                 .andExpect(jsonPath("$.firstName").value("Admin"))
-                .andExpect(jsonPath("$.lastName").value("User"));
+                .andExpect(jsonPath("$.lastName").value("User"))
+                .andExpect(jsonPath("$.referenceSystem").value("ELLIDER"))
+                .andExpect(jsonPath("$.referenceValue").value("EXT-12345"));
     }
 
     @Test
@@ -88,7 +94,9 @@ class UserControllerTest {
                 "+1234567890",
                 "",
                 "User",
-                "123"
+                "123",
+                null,
+                null
         );
 
         mockMvc.perform(post("/api/v1/users")

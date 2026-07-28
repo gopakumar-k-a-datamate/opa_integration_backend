@@ -19,6 +19,8 @@ class UserTest {
                 "hashedPassword",
                 "John",
                 "Doe",
+                "ELLIDER",
+                "EXT-12345",
                 "admin"
         );
 
@@ -29,6 +31,8 @@ class UserTest {
         assertEquals("hashedPassword", user.getPasswordHash());
         assertEquals("John", user.getFirstName());
         assertEquals("Doe", user.getLastName());
+        assertEquals("ELLIDER", user.getReferenceSystem());
+        assertEquals("EXT-12345", user.getReferenceValue());
         assertEquals("admin", user.getCreatedBy());
 
         List<DomainEvent> events = user.pullEvents();

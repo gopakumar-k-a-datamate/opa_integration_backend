@@ -44,6 +44,12 @@ public class UserJpaEntity extends BaseAuditableEntity {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "reference_system", length = 50)
+    private String referenceSystem;
+
+    @Column(name = "reference_value", length = 255)
+    private String referenceValue;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;

@@ -6,5 +6,7 @@ public record CreateUserCommand(
         String phoneNumber,
         String firstName,
         String lastName,
-        String password
+        String password,
+        String referenceSystem,
+        String referenceValue
 ) {}

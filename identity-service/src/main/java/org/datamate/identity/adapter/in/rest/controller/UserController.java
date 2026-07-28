@@ -34,7 +34,9 @@ public class UserController {
                 request.phoneNumber(),
                 request.firstName(),
                 request.lastName(),
-                request.password()
+                request.password(),
+                request.referenceSystem(),
+                request.referenceValue()
         );
         UserDto createdUser = userManagementUseCase.createUser(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
