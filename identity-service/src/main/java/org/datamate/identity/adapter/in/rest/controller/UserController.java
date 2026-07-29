@@ -10,11 +10,7 @@ import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,9 +21,10 @@ public class UserController {
     private final UserManagementUseCase userManagementUseCase;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('ADMIN')")
     @AuditLog(action = "CREATE_USER", resource = "USER", resourceId = "#request.userName", description = "Create user account")
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public UserDto createUser(@Valid @RequestBody CreateUserRequest request) {
         CreateUserCommand command = new CreateUserCommand(
                 request.userName(),
                 request.email(),
@@ -38,8 +35,7 @@ public class UserController {
                 request.referenceSystem(),
                 request.referenceValue()
         );
-        UserDto createdUser = userManagementUseCase.createUser(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        return userManagementUseCase.createUser(command);
     }
 
     @GetMapping
