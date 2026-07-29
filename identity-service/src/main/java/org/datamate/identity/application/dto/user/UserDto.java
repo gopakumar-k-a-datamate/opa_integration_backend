@@ -1,4 +1,4 @@
-package org.datamate.identity.application.dto;
+package org.datamate.identity.application.dto.user;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.datamate.identity.adapter.out.persistence.entity;
+package org.datamate.identity.adapter.out.persistence.entity.user;
 
 import com.datamate.bedrock.framework.common.auditing.entity.BaseAuditableEntity;
 import jakarta.persistence.Column;
@@ -13,10 +13,12 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
+import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
 import org.datamate.identity.shared.model.UserStatus;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -68,6 +70,7 @@ public class UserJpaEntity extends BaseAuditableEntity {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     private Set<RoleJpaEntity> roles = new HashSet<>();
 
     @Version

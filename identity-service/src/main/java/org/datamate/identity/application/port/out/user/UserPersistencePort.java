@@ -1,4 +1,4 @@
-package org.datamate.identity.application.port.out;
+package org.datamate.identity.application.port.out.user;
 
 import org.datamate.identity.domain.model.User;
 import java.util.List;

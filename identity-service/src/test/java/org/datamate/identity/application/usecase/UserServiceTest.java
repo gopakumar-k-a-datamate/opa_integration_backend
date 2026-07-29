@@ -1,12 +1,14 @@
 package org.datamate.identity.application.usecase;
 
-import org.datamate.identity.application.command.CreateUserCommand;
-import org.datamate.identity.application.dto.UserDto;
+import org.datamate.identity.application.command.user.CreateUserCommand;
+import org.datamate.identity.application.dto.user.UserDto;
+import org.datamate.identity.application.port.in.LoginUseCase;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.SecurityContextPort;
-import org.datamate.identity.application.port.out.UserPersistencePort;
-import org.datamate.identity.domain.event.UserCreatedEvent;
-import org.datamate.identity.domain.exception.UserAlreadyExistsException;
+import org.datamate.identity.application.port.out.user.UserPersistencePort;
+import org.datamate.identity.application.usecase.user.UserService;
+import org.datamate.identity.shared.event.user.UserCreatedEvent;
+import org.datamate.identity.domain.exception.user.UserAlreadyExistsException;
 import org.datamate.identity.domain.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

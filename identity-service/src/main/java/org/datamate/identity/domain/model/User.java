@@ -1,7 +1,7 @@
 package org.datamate.identity.domain.model;
 
 import lombok.Getter;
-import org.datamate.identity.domain.event.UserCreatedEvent;
+import org.datamate.identity.shared.event.user.UserCreatedEvent;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 

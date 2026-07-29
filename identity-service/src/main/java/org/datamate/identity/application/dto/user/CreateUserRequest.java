@@ -1,4 +1,4 @@
-package org.datamate.identity.application.dto;
+package org.datamate.identity.application.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

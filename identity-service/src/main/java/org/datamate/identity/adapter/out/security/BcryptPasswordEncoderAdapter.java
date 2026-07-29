@@ -1,5 +1,6 @@
 package org.datamate.identity.adapter.out.security;
 
+import org.datamate.identity.application.port.in.LoginUseCase;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

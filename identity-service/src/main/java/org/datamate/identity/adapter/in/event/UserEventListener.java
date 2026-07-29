@@ -2,7 +2,7 @@ package org.datamate.identity.adapter.in.event;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.domain.event.UserCreatedEvent;
+import org.datamate.identity.shared.event.user.UserCreatedEvent;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 

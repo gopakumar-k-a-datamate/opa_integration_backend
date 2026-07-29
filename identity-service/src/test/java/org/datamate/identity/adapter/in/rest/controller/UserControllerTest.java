@@ -1,10 +1,10 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.identity.application.command.CreateUserCommand;
-import org.datamate.identity.application.dto.CreateUserRequest;
-import org.datamate.identity.application.dto.UserDto;
-import org.datamate.identity.application.port.in.UserManagementUseCase;
+import org.datamate.identity.application.command.user.CreateUserCommand;
+import org.datamate.identity.application.dto.user.CreateUserRequest;
+import org.datamate.identity.application.dto.user.UserDto;
+import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

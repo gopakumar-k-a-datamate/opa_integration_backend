@@ -1,10 +1,10 @@
-package org.datamate.identity.adapter.out.persistence.adapter;
+package org.datamate.identity.adapter.out.persistence.adapter.user;
 
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.adapter.out.persistence.entity.UserJpaEntity;
-import org.datamate.identity.adapter.out.persistence.mapper.UserPersistenceMapper;
-import org.datamate.identity.adapter.out.persistence.repository.SpringDataUserRepository;
-import org.datamate.identity.application.port.out.UserPersistencePort;
+import org.datamate.identity.adapter.out.persistence.entity.user.UserJpaEntity;
+import org.datamate.identity.adapter.out.persistence.mapper.user.UserPersistenceMapper;
+import org.datamate.identity.adapter.out.persistence.repository.user.SpringDataUserRepository;
+import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Component;
 

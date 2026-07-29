@@ -6,7 +6,7 @@ import org.datamate.identity.application.dto.LoginRequest;
 import org.datamate.identity.application.port.in.LoginUseCase;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.TokenGeneratorPort;
-import org.datamate.identity.application.port.out.UserPersistencePort;
+import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.domain.exception.InvalidCredentialsException;
 import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Service;
