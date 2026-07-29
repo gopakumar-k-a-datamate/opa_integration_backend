@@ -75,7 +75,9 @@ public class UserService implements UserManagementUseCase {
                 user.getReferenceSystem(),
                 user.getReferenceValue(),
                 user.getCreatedBy(),
-                user.getCreatedDate()
+                user.getCreatedDate(),
+                user.getStatus(),
+                user.getRoles()
         );
     }
 }

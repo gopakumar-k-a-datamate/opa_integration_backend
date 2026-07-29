@@ -3,7 +3,12 @@ package org.datamate.identity.adapter.out.persistence.entity;
 import com.datamate.bedrock.framework.common.auditing.entity.BaseAuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
@@ -11,8 +16,11 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
+import org.datamate.identity.shared.model.UserStatus;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -49,6 +57,18 @@ public class UserJpaEntity extends BaseAuditableEntity {
 
     @Column(name = "reference_value", length = 255)
     private String referenceValue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserStatus status;
+
+    @ManyToMany(fetch = jakarta.persistence.FetchType.LAZY)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<RoleJpaEntity> roles = new HashSet<>();
 
     @Version
     @Column(name = "version", nullable = false)

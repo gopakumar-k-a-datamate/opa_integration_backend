@@ -2,9 +2,12 @@ package org.datamate.identity.domain.model;
 
 import lombok.Getter;
 import org.datamate.identity.domain.event.UserCreatedEvent;
+import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,6 +21,8 @@ public class User extends AggregateRoot {
     private final String lastName;
     private final String referenceSystem;
     private final String referenceValue;
+    private final UserStatus status;
+    private final List<String> roles;
     private final Long version;
     private final String createdBy;
     private final LocalDateTime createdDate;
@@ -34,6 +39,8 @@ public class User extends AggregateRoot {
             String lastName,
             String referenceSystem,
             String referenceValue,
+            UserStatus status,
+            List<String> roles,
             Long version,
             Long domainVersion,
             String createdBy,
@@ -51,6 +58,8 @@ public class User extends AggregateRoot {
         this.lastName = lastName;
         this.referenceSystem = referenceSystem;
         this.referenceValue = referenceValue;
+        this.status = status;
+        this.roles = roles != null ? roles : new ArrayList<>();
         this.version = version;
         this.createdBy = createdBy;
         this.createdDate = createdDate;
@@ -81,6 +90,8 @@ public class User extends AggregateRoot {
                 lastName,
                 referenceSystem,
                 referenceValue,
+                UserStatus.ACTIVE,
+                new ArrayList<>(),
                 null,
                 0L,
                 createdBy,
@@ -97,6 +108,7 @@ public class User extends AggregateRoot {
                 phoneNumber,
                 firstName,
                 lastName,
+                UserStatus.ACTIVE,
                 createdBy
         ));
 
@@ -113,6 +125,8 @@ public class User extends AggregateRoot {
             String lastName,
             String referenceSystem,
             String referenceValue,
+            UserStatus status,
+            List<String> roles,
             Long version,
             Long domainVersion,
             String createdBy,
@@ -130,6 +144,8 @@ public class User extends AggregateRoot {
                 lastName,
                 referenceSystem,
                 referenceValue,
+                status,
+                roles,
                 version,
                 domainVersion,
                 createdBy,

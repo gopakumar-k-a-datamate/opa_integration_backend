@@ -2,6 +2,7 @@ package org.datamate.identity.domain.event;
 
 import java.time.Instant;
 import java.util.UUID;
+import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 
 public record UserCreatedEvent(
@@ -16,17 +17,18 @@ public record UserCreatedEvent(
         String phoneNumber,
         String firstName,
         String lastName,
+        UserStatus status,
         String createdBy
 ) implements VersionedDomainEvent<UUID> {
     public static final String SCHEMA_VERSION = "1.0";
 
     public UserCreatedEvent(
             UUID aggregateId, Long domainVersion, String userName, String email,
-            String phoneNumber, String firstName, String lastName, String createdBy
+            String phoneNumber, String firstName, String lastName, UserStatus status, String createdBy
     ) {
         this(
                 UUID.randomUUID().toString(), aggregateId, domainVersion, SCHEMA_VERSION, Instant.now(),
-                userName, email, phoneNumber, firstName, lastName, createdBy
+                userName, email, phoneNumber, firstName, lastName, status, createdBy
         );
     }
 }

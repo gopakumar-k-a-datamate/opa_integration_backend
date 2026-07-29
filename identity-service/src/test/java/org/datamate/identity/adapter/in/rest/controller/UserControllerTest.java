@@ -68,7 +68,9 @@ class UserControllerTest {
                 "ELLIDER",
                 "EXT-12345",
                 "SYSTEM_ADMIN",
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                org.datamate.identity.shared.model.UserStatus.ACTIVE,
+                java.util.List.of("ADMIN", "USER")
         );
 
         when(userManagementUseCase.createUser(any(CreateUserCommand.class))).thenReturn(responseDto);

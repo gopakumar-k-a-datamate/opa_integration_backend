@@ -1,8 +1,11 @@
 package org.datamate.identity.adapter.out.persistence.mapper;
 
+import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.entity.UserJpaEntity;
 import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Component;
+
+import java.util.stream.Collectors;
 
 @Component
 public class UserPersistenceMapper {
@@ -19,6 +22,10 @@ public class UserPersistenceMapper {
                 entity.getLastName(),
                 entity.getReferenceSystem(),
                 entity.getReferenceValue(),
+                entity.getStatus(),
+                entity.getRoles() != null 
+                        ? entity.getRoles().stream().map(RoleJpaEntity::getName).collect(Collectors.toList()) 
+                        : java.util.Collections.emptyList(),
                 entity.getVersion(),
                 entity.getDomainVersion(),
                 entity.getCreatedBy(),
@@ -40,6 +47,7 @@ public class UserPersistenceMapper {
         entity.setLastName(user.getLastName());
         entity.setReferenceSystem(user.getReferenceSystem());
         entity.setReferenceValue(user.getReferenceValue());
+        entity.setStatus(user.getStatus());
         entity.setVersion(user.getVersion());
         entity.setDomainVersion(user.getDomainVersion());
         entity.setCreatedBy(user.getCreatedBy());

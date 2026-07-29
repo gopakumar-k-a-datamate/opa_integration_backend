@@ -61,8 +61,9 @@ public class UserStagingSeeder {
         }
 
         UUID newUserId = UUID.randomUUID();
-        String sql = "INSERT INTO users (id, user_name, email, password_hash, first_name, last_name, version, domain_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?, ?) RETURNING id";
-        UUID newId = jdbcTemplate.queryForObject(sql, UUID.class, newUserId, userName, userName, passwordHash, firstName, lastName, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
+        String status = userName.startsWith("support") ? "INACTIVE" : "ACTIVE";
+        String sql = "INSERT INTO users (id, user_name, email, password_hash, first_name, last_name, status, version, domain_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, ?, ?) RETURNING id";
+        UUID newId = jdbcTemplate.queryForObject(sql, UUID.class, newUserId, userName, userName, passwordHash, firstName, lastName, status, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
         log.info("Inserted user '{}' with id {}.", userName, newId);
         return newId;
     }

@@ -1,7 +1,9 @@
 package org.datamate.identity.application.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import org.datamate.identity.shared.model.UserStatus;
 
 public record UserDto(
         UUID id,
@@ -13,5 +15,7 @@ public record UserDto(
         String referenceSystem,
         String referenceValue,
         String createdBy,
-        LocalDateTime createdDate
+        LocalDateTime createdDate,
+        UserStatus status,
+        List<String> roles
 ) {}

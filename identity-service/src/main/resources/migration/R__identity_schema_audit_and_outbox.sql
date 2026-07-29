@@ -49,6 +49,7 @@ ALTER TABLE users
     ADD COLUMN IF NOT EXISTS phone_number VARCHAR(50),
     ADD COLUMN IF NOT EXISTS reference_system VARCHAR(50),
     ADD COLUMN IF NOT EXISTS reference_value VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'ACTIVE' NOT NULL,
     ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS domain_version BIGINT NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS created_by VARCHAR(255),
@@ -85,6 +86,7 @@ CREATE TABLE IF NOT EXISTS users_aud (
     phone_number VARCHAR(50),
     reference_system VARCHAR(50),
     reference_value VARCHAR(255),
+    status VARCHAR(20),
     password_hash VARCHAR(255),
     first_name VARCHAR(100),
     last_name VARCHAR(100),
@@ -100,7 +102,8 @@ CREATE TABLE IF NOT EXISTS users_aud (
 
 ALTER TABLE users_aud
     ADD COLUMN IF NOT EXISTS reference_system VARCHAR(50),
-    ADD COLUMN IF NOT EXISTS reference_value VARCHAR(255);
+    ADD COLUMN IF NOT EXISTS reference_value VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20);
 
 CREATE SCHEMA IF NOT EXISTS audit;
 

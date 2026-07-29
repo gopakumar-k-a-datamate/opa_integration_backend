@@ -67,6 +67,8 @@ class UserServiceTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                org.datamate.identity.shared.model.UserStatus.ACTIVE,
+                java.util.Collections.emptyList(),
                 0L,
                 1L,
                 "admin_user",
