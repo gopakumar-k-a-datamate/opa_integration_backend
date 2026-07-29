@@ -26,10 +26,4 @@ public class InvoiceController {
         return createInvoiceServiceUsecase.createInvoice(payload);
     }
 
-    @PutMapping
-    @ResponseStatus(HttpStatus.OK)
-    public String updateInvoice(@RequestBody UpdateInvoiceRequest payload){
-
-        return updateInvoiceServiceUsecase.updateInvoice(payload);
-    }
 }
