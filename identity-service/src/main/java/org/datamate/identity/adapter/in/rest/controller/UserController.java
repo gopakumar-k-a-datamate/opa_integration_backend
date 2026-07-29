@@ -8,9 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.datamate.identity.application.dto.user.UserResponseDto;
+import org.datamate.identity.application.dto.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.UserManagementUseCase;
+import org.datamate.identity.shared.model.UserStatus;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,8 +41,21 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> listUsers() {
-        log.info("List users request received");
-        return ResponseEntity.ok(userManagementUseCase.listUsers());
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDto> listUsers() {
+        return userManagementUseCase.listUsers();
+    }
+
+    @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
+    public Paged<UserResponseDto> searchUsers(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) UserStatus status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        UserSearchCriteria criteria = new UserSearchCriteria(search, role, status);
+        PageQuery pageQuery = new PageQuery(page, size);
+        return userManagementUseCase.searchUsers(criteria, pageQuery);
     }
 }
