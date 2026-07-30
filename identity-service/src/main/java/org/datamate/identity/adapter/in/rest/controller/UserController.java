@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.command.user.CreateUserCommand;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
+import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserManagementUseCase userManagementUseCase;
+    private final CreateUserUseCase createUserUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -35,7 +37,7 @@ public class UserController {
                 request.referenceSystem(),
                 request.referenceValue()
         );
-        return userManagementUseCase.createUser(command);
+        return createUserUseCase.createUser(command);
     }
 
     @GetMapping
