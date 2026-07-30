@@ -34,6 +34,7 @@ class UserTest {
         assertEquals("ELLIDER", user.getReferenceSystem());
         assertEquals("EXT-12345", user.getReferenceValue());
         assertEquals("admin", user.getCreatedBy());
+        assertTrue(user.isPasswordTemporary());
 
         List<DomainEvent> events = user.pullEvents();
         assertEquals(1, events.size());

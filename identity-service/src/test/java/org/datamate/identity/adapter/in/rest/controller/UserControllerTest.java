@@ -70,7 +70,8 @@ class UserControllerTest {
                 "SYSTEM_ADMIN",
                 LocalDateTime.now(),
                 org.datamate.identity.shared.model.UserStatus.ACTIVE,
-                java.util.List.of("ADMIN", "USER")
+                java.util.List.of("ADMIN", "USER"),
+                true
         );
 
         when(createUserUseCase.createUser(any(CreateUserCommand.class))).thenReturn(responseDto);

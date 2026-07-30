@@ -26,6 +26,7 @@ public class UserPersistenceMapper {
                 entity.getRoles() != null 
                         ? entity.getRoles().stream().map(RoleJpaEntity::getName).collect(Collectors.toList()) 
                         : java.util.Collections.emptyList(),
+                entity.isPasswordTemporary(),
                 entity.getVersion(),
                 entity.getDomainVersion(),
                 entity.getCreatedBy(),
@@ -48,6 +49,7 @@ public class UserPersistenceMapper {
         entity.setReferenceSystem(user.getReferenceSystem());
         entity.setReferenceValue(user.getReferenceValue());
         entity.setStatus(user.getStatus());
+        entity.setPasswordTemporary(user.isPasswordTemporary());
         entity.setVersion(user.getVersion());
         entity.setDomainVersion(user.getDomainVersion());
         entity.setCreatedBy(user.getCreatedBy());

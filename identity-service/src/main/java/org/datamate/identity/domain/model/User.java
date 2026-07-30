@@ -23,6 +23,7 @@ public class User extends AggregateRoot {
     private final String referenceValue;
     private final UserStatus status;
     private final List<String> roles;
+    private final boolean passwordTemporary;
     private final Long version;
     private final String createdBy;
     private final LocalDateTime createdDate;
@@ -41,6 +42,7 @@ public class User extends AggregateRoot {
             String referenceValue,
             UserStatus status,
             List<String> roles,
+            boolean passwordTemporary,
             Long version,
             Long domainVersion,
             String createdBy,
@@ -60,6 +62,7 @@ public class User extends AggregateRoot {
         this.referenceValue = referenceValue;
         this.status = status;
         this.roles = roles != null ? roles : new ArrayList<>();
+        this.passwordTemporary = passwordTemporary;
         this.version = version;
         this.createdBy = createdBy;
         this.createdDate = createdDate;
@@ -92,6 +95,7 @@ public class User extends AggregateRoot {
                 referenceValue,
                 UserStatus.INACTIVE,
                 new ArrayList<>(),
+                true,
                 null,
                 0L,
                 createdBy,
@@ -127,6 +131,7 @@ public class User extends AggregateRoot {
             String referenceValue,
             UserStatus status,
             List<String> roles,
+            boolean passwordTemporary,
             Long version,
             Long domainVersion,
             String createdBy,
@@ -146,6 +151,7 @@ public class User extends AggregateRoot {
                 referenceValue,
                 status,
                 roles,
+                passwordTemporary,
                 version,
                 domainVersion,
                 createdBy,

@@ -64,6 +64,9 @@ public class UserJpaEntity extends BaseAuditableEntity {
     @Column(name = "status", nullable = false)
     private UserStatus status;
 
+    @Column(name = "password_temporary", nullable = false)
+    private boolean passwordTemporary;
+
     @ManyToMany(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinTable(
         name = "user_roles",

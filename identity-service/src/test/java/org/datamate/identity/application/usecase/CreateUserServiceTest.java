@@ -74,6 +74,7 @@ class CreateUserServiceTest {
                 "EXT-12345",
                 org.datamate.identity.shared.model.UserStatus.ACTIVE,
                 java.util.Collections.emptyList(),
+                true,
                 0L,
                 1L,
                 "admin_user",

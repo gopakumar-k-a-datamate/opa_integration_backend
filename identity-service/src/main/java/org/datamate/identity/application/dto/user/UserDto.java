@@ -17,5 +17,6 @@ public record UserDto(
         String createdBy,
         LocalDateTime createdDate,
         UserStatus status,
-        List<String> roles
+        List<String> roles,
+        boolean passwordTemporary
 ) {}

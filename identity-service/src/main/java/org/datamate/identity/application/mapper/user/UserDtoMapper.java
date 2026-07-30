@@ -23,7 +23,8 @@ public class UserDtoMapper {
                 entity.getCreatedBy(),
                 entity.getCreatedDate(),
                 entity.getStatus(),
-                entity.getRoles()
+                entity.getRoles(),
+                entity.isPasswordTemporary()
         );
     }
 }
