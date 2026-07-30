@@ -1,7 +1,7 @@
 package org.datamate.identity.application.usecase.user;
 
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.application.command.user.CreateUserCommand;
+import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
@@ -28,27 +28,27 @@ public class CreateUserService implements CreateUserUseCase {
 
     @Override
     @Transactional
-    public UserDto createUser(CreateUserCommand command) {
-        if (userPort.existsByUserName(command.userName())) {
-            throw new UserAlreadyExistsException("Username '" + command.userName() + "' already exists");
+    public UserDto createUser(CreateUserRequest request) {
+        if (userPort.existsByUserName(request.userName())) {
+            throw new UserAlreadyExistsException("Username '" + request.userName() + "' already exists");
         }
 
-        if (userPort.existsByEmail(command.email())) {
-            throw new UserAlreadyExistsException("Email '" + command.email() + "' already exists");
+        if (userPort.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("Email '" + request.email() + "' already exists");
         }
 
-        String passwordHash = passwordEncoderPort.encode(command.password());
+        String passwordHash = passwordEncoderPort.encode(request.password());
         String createdBy = securityContextPort.getCurrentUsername();
 
         User newUser = User.create(
-                command.userName(),
-                command.email(),
-                command.phoneNumber(),
+                request.userName(),
+                request.email(),
+                request.phoneNumber(),
                 passwordHash,
-                command.firstName(),
-                command.lastName(),
-                command.referenceSystem(),
-                command.referenceValue(),
+                request.firstName(),
+                request.lastName(),
+                request.referenceSystem(),
+                request.referenceValue(),
                 createdBy
         );
 

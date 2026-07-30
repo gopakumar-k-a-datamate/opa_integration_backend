@@ -3,7 +3,6 @@ package org.datamate.identity.adapter.in.rest.controller;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.application.command.user.CreateUserCommand;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
@@ -27,17 +26,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @AuditLog(action = "CREATE_USER", resource = "USER", resourceId = "#request.userName", description = "Create user account")
     public UserDto createUser(@Valid @RequestBody CreateUserRequest request) {
-        CreateUserCommand command = new CreateUserCommand(
-                request.userName(),
-                request.email(),
-                request.phoneNumber(),
-                request.firstName(),
-                request.lastName(),
-                request.password(),
-                request.referenceSystem(),
-                request.referenceValue()
-        );
-        return createUserUseCase.createUser(command);
+        return createUserUseCase.createUser(request);
     }
 
     @GetMapping

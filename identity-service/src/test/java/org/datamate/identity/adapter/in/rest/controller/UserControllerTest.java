@@ -1,7 +1,6 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.identity.application.command.user.CreateUserCommand;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
@@ -74,7 +73,7 @@ class UserControllerTest {
                 true
         );
 
-        when(createUserUseCase.createUser(any(CreateUserCommand.class))).thenReturn(responseDto);
+        when(createUserUseCase.createUser(any(CreateUserRequest.class))).thenReturn(responseDto);
 
         mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)

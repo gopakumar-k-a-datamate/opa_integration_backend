@@ -1,6 +1,6 @@
 package org.datamate.identity.application.usecase;
 
-import org.datamate.identity.application.command.user.CreateUserCommand;
+import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
@@ -44,7 +44,7 @@ class CreateUserServiceTest {
 
     @Test
     void shouldCreateUserSuccessfullyWhenValidCommandProvided() {
-        CreateUserCommand command = new CreateUserCommand(
+        CreateUserRequest command = new CreateUserRequest(
                 "jane_doe",
                 "jane@example.com",
                 "+1987654321",
@@ -104,7 +104,7 @@ class CreateUserServiceTest {
 
     @Test
     void shouldThrowUserAlreadyExistsExceptionWhenUserNameExists() {
-        CreateUserCommand command = new CreateUserCommand(
+        CreateUserRequest command = new CreateUserRequest(
                 "jane_doe",
                 "jane@example.com",
                 "+1987654321",
@@ -129,7 +129,7 @@ class CreateUserServiceTest {
 
     @Test
     void shouldThrowUserAlreadyExistsExceptionWhenEmailExists() {
-        CreateUserCommand command = new CreateUserCommand(
+        CreateUserRequest command = new CreateUserRequest(
                 "jane_doe",
                 "jane@example.com",
                 "+1987654321",

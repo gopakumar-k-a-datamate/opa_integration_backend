@@ -1,7 +1,6 @@
 package org.datamate.identity.application.usecase.user;
 
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.application.command.user.CreateUserCommand;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.application.port.in.LoginUseCase;
