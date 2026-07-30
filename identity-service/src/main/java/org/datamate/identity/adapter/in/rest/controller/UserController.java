@@ -10,7 +10,7 @@ import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
 import org.datamate.identity.application.dto.user.UserSearchCriteria;
-import org.datamate.identity.application.port.in.user.UserManagementUseCase;
+import org.datamate.identity.application.port.in.user.ListUserUseCase;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
@@ -28,8 +28,7 @@ public class UserController {
 
     @EnableLogger
     private Logger log;
-
-    private final UserManagementUseCase userManagementUseCase;
+    private final ListUserUseCase listUserUseCase;
     private final CreateUserUseCase createUserUseCase;
 
     @PostMapping
@@ -42,15 +41,9 @@ public class UserController {
         return createUserUseCase.createUser(request);
     }
 
-    @GetMapping
+    @GetMapping("/list")
     @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> listUsers() {
-        return userManagementUseCase.listUsers();
-    }
-
-    @GetMapping("/search")
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Search users", description = "Search and filter user accounts using search query, role, and status, with support for pagination.")
+    @Operation(summary = "List users", description = "Search and filter user accounts using search query, role, and status, with support for pagination.")
     public Paged<UserResponseDto> searchUsers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String role,
@@ -59,6 +52,6 @@ public class UserController {
             @RequestParam(defaultValue = "10") int size) {
         UserSearchCriteria criteria = new UserSearchCriteria(search, role, status);
         PageQuery pageQuery = new PageQuery(page, size);
-        return userManagementUseCase.searchUsers(criteria, pageQuery);
+        return listUserUseCase.searchUsers(criteria, pageQuery);
     }
 }
