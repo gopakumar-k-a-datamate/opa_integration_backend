@@ -5,6 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.datamate.identity.application.dto.user.UserResponseDto;
+import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.port.in.user.ListUserUseCase;
+import org.datamate.identity.shared.model.UserStatus;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +28,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +41,9 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private ListUserUseCase listUserUseCase;
 
     @Mock
     private CreateUserUseCase createUserUseCase;
@@ -117,5 +128,49 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldSearchUsersSuccessfully() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+        UserResponseDto userResponseDto = new UserResponseDto(
+                sampleId,
+                "john_doe",
+                "john@example.com",
+                "John",
+                "Doe",
+                UserStatus.ACTIVE,
+                List.of("USER")
+        );
+
+        Paged<UserResponseDto> pagedResult = new Paged<>(
+                List.of(userResponseDto),
+                1,
+                10,
+                1L,
+                1,
+                false,
+                false
+        );
+
+        UserSearchCriteria criteria = new UserSearchCriteria("john", "USER", UserStatus.ACTIVE);
+        when(listUserUseCase.searchUsers(eq(criteria), any(PageQuery.class)))
+                .thenReturn(pagedResult);
+
+        mockMvc.perform(get("/api/v1/users/list")
+                        .param("search", "john")
+                        .param("role", "USER")
+                        .param("status", "ACTIVE")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(sampleId.toString()))
+                .andExpect(jsonPath("$.content[0].userName").value("john_doe"))
+                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.content[0].roles[0]").value("USER"))
+                .andExpect(jsonPath("$.pageNumber").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }
