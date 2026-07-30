@@ -3,6 +3,7 @@ package org.datamate.identity.bootstrap;
 import lombok.RequiredArgsConstructor;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -56,7 +57,7 @@ public class UserStagingSeeder {
             UUID existingId = jdbcTemplate.queryForObject(checkSql, UUID.class, userName);
             log.info("User '{}' already exists. Skipping.", userName);
             return existingId;
-        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             // Does not exist, proceed to insert
         }
 

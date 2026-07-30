@@ -3,6 +3,7 @@ package org.datamate.identity.adapter.out.persistence.entity.user;
 import com.datamate.bedrock.framework.common.auditing.entity.BaseAuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Id;
@@ -67,7 +68,7 @@ public class UserJpaEntity extends BaseAuditableEntity {
     @Column(name = "password_temporary", nullable = false)
     private boolean passwordTemporary;
 
-    @ManyToMany(fetch = jakarta.persistence.FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),

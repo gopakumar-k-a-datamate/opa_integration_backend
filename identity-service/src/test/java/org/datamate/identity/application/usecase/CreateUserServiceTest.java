@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,8 +73,8 @@ class CreateUserServiceTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
-                org.datamate.identity.shared.model.UserStatus.ACTIVE,
-                java.util.Collections.emptyList(),
+                UserStatus.ACTIVE,
+                Collections.emptyList(),
                 true,
                 0L,
                 1L,

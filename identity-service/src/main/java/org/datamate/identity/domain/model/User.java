@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.datamate.identity.shared.event.user.UserCreatedEvent;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
+import org.datamate.identity.domain.exception.user.InvalidUserDataException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -81,6 +82,8 @@ public class User extends AggregateRoot {
             String referenceValue,
             String createdBy
     ) {
+        validateState(userName, email, passwordHash, firstName, lastName, createdBy);
+
         UUID newUserId = UUID.randomUUID();
 
         User newUser = new User(
@@ -159,5 +162,36 @@ public class User extends AggregateRoot {
                 lastModifiedBy,
                 lastModifiedDate
         );
+    }
+
+    private static void validateState(
+            String userName,
+            String email,
+            String passwordHash,
+            String firstName,
+            String lastName,
+            String createdBy
+    ) {
+        if (userName == null || userName.isBlank()) {
+            throw new InvalidUserDataException("Username is required.");
+        }
+        if (email == null || email.isBlank()) {
+            throw new InvalidUserDataException("Email is required.");
+        }
+        if (!email.contains("@")) {
+            throw new InvalidUserDataException("Email must be valid.");
+        }
+        if (passwordHash == null || passwordHash.isBlank()) {
+            throw new InvalidUserDataException("Password hash is required.");
+        }
+        if (firstName == null || firstName.isBlank()) {
+            throw new InvalidUserDataException("First name is required.");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new InvalidUserDataException("Last name is required.");
+        }
+        if (createdBy == null || createdBy.isBlank()) {
+            throw new InvalidUserDataException("Created by reference is required.");
+        }
     }
 }

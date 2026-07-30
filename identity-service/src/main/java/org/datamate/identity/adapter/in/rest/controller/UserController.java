@@ -24,7 +24,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('ADMIN')")
-    @AuditLog(action = "CREATE_USER", resource = "USER", resourceId = "#request.userName", description = "Create user account")
+    @AuditLog(action = "CREATE_USER", resource = "USER", description = "Create user account")
     public UserDto createUser(@Valid @RequestBody CreateUserRequest request) {
         return createUserUseCase.createUser(request);
     }

@@ -1,5 +1,6 @@
 package org.datamate.identity.shared.config.audit;
 
+import org.datamate.identity.shared.constants.AppConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -15,8 +16,8 @@ public class AuditorConfig {
     public AuditorAware<String> auditorProvider() {
         return () -> {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-                return Optional.of("SYSTEM_USER");
+            if (auth == null || !auth.isAuthenticated() || AppConstants.ANONYMOUS_USER.equals(auth.getName())) {
+                return Optional.of(AppConstants.SYSTEM_USER);
             }
             return Optional.ofNullable(auth.getName());
         };

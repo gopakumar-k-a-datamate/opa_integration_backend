@@ -5,6 +5,7 @@ import org.datamate.identity.adapter.out.persistence.entity.user.UserJpaEntity;
 import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,7 +26,7 @@ public class UserPersistenceMapper {
                 entity.getStatus(),
                 entity.getRoles() != null 
                         ? entity.getRoles().stream().map(RoleJpaEntity::getName).collect(Collectors.toList()) 
-                        : java.util.Collections.emptyList(),
+                        : Collections.emptyList(),
                 entity.isPasswordTemporary(),
                 entity.getVersion(),
                 entity.getDomainVersion(),

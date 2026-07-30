@@ -11,10 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.datamate.identity.shared.model.UserStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -68,8 +70,8 @@ class UserControllerTest {
                 "EXT-12345",
                 "SYSTEM_ADMIN",
                 LocalDateTime.now(),
-                org.datamate.identity.shared.model.UserStatus.ACTIVE,
-                java.util.List.of("ADMIN", "USER"),
+                UserStatus.ACTIVE,
+                List.of("ADMIN", "USER"),
                 true
         );
 
