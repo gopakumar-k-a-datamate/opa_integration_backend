@@ -90,7 +90,7 @@ public class User extends AggregateRoot {
                 lastName,
                 referenceSystem,
                 referenceValue,
-                UserStatus.ACTIVE,
+                UserStatus.INACTIVE,
                 new ArrayList<>(),
                 null,
                 0L,
@@ -108,7 +108,7 @@ public class User extends AggregateRoot {
                 phoneNumber,
                 firstName,
                 lastName,
-                UserStatus.ACTIVE,
+                UserStatus.INACTIVE,
                 createdBy
         ));
 
