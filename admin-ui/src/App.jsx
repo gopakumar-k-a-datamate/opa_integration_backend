@@ -16,8 +16,9 @@ function App() {
         // Fetch from both microservices (falling back to empty arrays if offline)
         const financeModules = await fetchNamespaces(8081).catch(() => []);
         const clinicModules = await fetchNamespaces(8082).catch(() => []);
+        const pharmacyModules = await fetchNamespaces(8083).catch(() => []);
         
-        const combined = [...new Set([...financeModules, ...clinicModules])];
+        const combined = [...new Set([...financeModules, ...clinicModules, ...pharmacyModules])];
         if (combined.length > 0) {
           setAvailableModules(combined);
         }

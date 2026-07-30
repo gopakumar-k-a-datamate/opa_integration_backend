@@ -127,7 +127,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     }
 
     private String serializeJson(PolicyItemRequest item) {
-        if (item.expressionJson() == null) return null;
+        if (item.expressionJson() == null || item.expressionJson().isNull()) return null;
         try {
             return objectMapper.writeValueAsString(item.expressionJson());
         } catch (Exception e) {

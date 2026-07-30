@@ -1,8 +1,7 @@
 package org.datamate.pharmacy.application.dto;
 
-public record PatientDto(
+public record PractitionerDto(
     String id,
-    String name,
-    int age,
+    String level,
     String ward
 ) {}

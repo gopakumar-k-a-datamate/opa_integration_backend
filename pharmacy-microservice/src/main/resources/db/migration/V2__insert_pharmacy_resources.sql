@@ -13,6 +13,3 @@ VALUES
 (1, 'drugClass', 'STRING', 'Drug Class', '["OTC", "PRESCRIPTION", "CONTROLLED"]'),
 (1, 'patientAge', 'NUMBER', 'Patient Age', NULL);
 
--- Create a base policy allowing PHARMACIST to dispense
-INSERT INTO authz_policy (permission_id, subject_type, subject_id, effect, enabled)
-VALUES (1, 'ROLE', 'PHARMACIST', 'ALLOW', true);

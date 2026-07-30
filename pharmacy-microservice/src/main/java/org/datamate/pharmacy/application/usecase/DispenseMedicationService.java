@@ -39,10 +39,23 @@ public class DispenseMedicationService {
         MedicationDto medication = medicationPort.getMedicationById(request.medicationId());
         PatientDto patient = patientPort.getPatientById(request.patientId());
 
+
         if (medication == null || patient == null) {
             throw new IllegalArgumentException("Invalid medication or patient");
         }
+        System.out.println("Medication Details");
+        System.out.println("------------------");
+        System.out.println("ID          : " + medication.getId());
+        System.out.println("Name        : " + medication.getName());
+        System.out.println("Drug Class  : " + medication.getDrugClass());
+        System.out.println("Stock       : " + medication.getCurrentStock());
+        System.out.println("Min Stock   : " + medication.getMinimumStockThreshold());
 
+        System.out.println("Patient Details");
+        System.out.println("------------------");
+        System.out.println("Patient ID: " + patient.id());
+        System.out.println("Name: " + patient.name());
+        System.out.println("Age: " + patient.age());
         if (medication.getCurrentStock() < request.quantity()) {
             throw new IllegalStateException("Insufficient stock to dispense");
         }

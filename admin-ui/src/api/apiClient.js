@@ -8,6 +8,9 @@ const getApiUrl = (identifier) => {
   if (identifier.startsWith('finance')) {
     return 'http://localhost:8081'; // finance-microservice
   }
+  if (identifier.startsWith('pharmacy')) {
+    return 'http://localhost:8083'; // pharmacy-microservice
+  }
   
   return 'http://localhost:8081'; // default fallback
 };

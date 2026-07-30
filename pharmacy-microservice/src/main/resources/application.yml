@@ -2,11 +2,13 @@ spring:
   application:
     name: pharmacy-microservice
   datasource:
-    url: jdbc:postgresql://localhost:5433/pharmacy_db
+    url: jdbc:postgresql://localhost:5433/pharmacy_db?options=-c%20TimeZone=Asia/Kolkata
     username: myuser
     password: mypassword
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: "0"
     locations: classpath:db/migration
 
 server:
