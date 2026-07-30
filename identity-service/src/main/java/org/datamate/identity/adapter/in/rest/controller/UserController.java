@@ -14,6 +14,7 @@ import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('ADMIN')")
     @AuditLog(action = "CREATE_USER", resource = "USER", description = "Create user account")
+    @Operation(summary = "Create a new user", description = "Creates a new user account with the provided details such as username, email, password, and reference systems.")
     public UserDto createUser(@Valid @RequestBody CreateUserRequest request) {
         log.info("Create user request received for '{}'", request.userName());
         return createUserUseCase.createUser(request);
@@ -48,6 +50,7 @@ public class UserController {
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Search users", description = "Search and filter user accounts using search query, role, and status, with support for pagination.")
     public Paged<UserResponseDto> searchUsers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String role,
