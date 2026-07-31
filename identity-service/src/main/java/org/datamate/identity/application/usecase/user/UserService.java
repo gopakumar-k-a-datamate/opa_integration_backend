@@ -1,5 +1,7 @@
 package org.datamate.identity.application.usecase.user;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
@@ -19,14 +21,20 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserManagementUseCase {
+
+    @EnableLogger
+    private Logger log;
+
     private final UserPersistencePort userPort;
     private final UserDtoMapper userDtoMapper;
 
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> listUsers() {
-        return userPort.findAll().stream()
+        List<UserDto> users = userPort.findAll().stream()
                 .map(userDtoMapper::toDto)
                 .toList();
+        log.info("Listed {} users", users.size());
+        return users;
     }
 }

@@ -1,5 +1,6 @@
 package org.datamate.identity.application.usecase;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.UUID;
@@ -30,17 +32,24 @@ class CreateUserServiceTest {
     private SecurityContextPort securityContextPort;
     private ApplicationEventPublisher eventPublisher;
     private UserDtoMapper userDtoMapper;
+    private Logger log;
     private CreateUserService createUserService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         userPort = mock(UserPersistencePort.class);
         passwordEncoderPort = mock(PasswordEncoderPort.class);
         securityContextPort = mock(SecurityContextPort.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
         userDtoMapper = new UserDtoMapper();
+        log = mock(Logger.class);
 
         createUserService = new CreateUserService(userPort, passwordEncoderPort, securityContextPort, eventPublisher, userDtoMapper);
+
+        // Manually inject the logger mock because it's a non-constructor private field (@EnableLogger)
+        Field logField = CreateUserService.class.getDeclaredField("log");
+        logField.setAccessible(true);
+        logField.set(createUserService, log);
     }
 
     @Test

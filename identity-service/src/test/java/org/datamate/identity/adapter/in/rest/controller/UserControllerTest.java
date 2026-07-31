@@ -1,5 +1,6 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
@@ -15,6 +16,7 @@ import org.datamate.identity.shared.model.UserStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -35,11 +37,19 @@ class UserControllerTest {
     @Mock
     private CreateUserUseCase createUserUseCase;
 
+    @Mock
+    private Logger log;
+
     @InjectMocks
     private UserController userController;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        // Manually inject the logger mock because it's a non-constructor private field (@EnableLogger)
+        Field logField = UserController.class.getDeclaredField("log");
+        logField.setAccessible(true);
+        logField.set(userController, log);
+
         mockMvc = MockMvcBuilders.standaloneSetup(userController)
                 .build();
     }
