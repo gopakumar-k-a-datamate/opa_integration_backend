@@ -1,4 +1,4 @@
-package org.datamate.identity.adapter.out.persistence.specification.user;
+package org.datamate.identity.adapter.out.persistence.user.specification;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.common.logging.util.LoggerManager;
@@ -6,7 +6,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
-import org.datamate.identity.adapter.out.persistence.entity.user.UserJpaEntity;
+import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
 import org.datamate.identity.application.dto.user.UserSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -15,10 +15,20 @@ import java.util.List;
 
 public class UserSpecification {
 
-    private static final Logger log = LoggerManager.getLogger(UserSpecification.class);
+    private static Logger log;
+
+    private static Logger logger() {
+        if (log == null && LoggerManager.isInitialized()) {
+            log = LoggerManager.getLogger(UserSpecification.class);
+        }
+        return log;
+    }
 
     public static Specification<UserJpaEntity> filterUsers(UserSearchCriteria criteria) {
-        log.debug("Building user search specification with criteria {}", criteria);
+        Logger logger = logger();
+        if (logger != null) {
+            logger.debug("Building user search specification with criteria {}", criteria);
+        }
         return (root, query, cb) -> {
             // Eagerly fetch roles to avoid N+1 query problem, but not for count queries
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {

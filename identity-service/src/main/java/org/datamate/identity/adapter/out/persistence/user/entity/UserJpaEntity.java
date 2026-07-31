@@ -1,4 +1,4 @@
-package org.datamate.identity.adapter.out.persistence.entity.user;
+package org.datamate.identity.adapter.out.persistence.user.entity;
 
 import com.datamate.bedrock.framework.common.auditing.entity.BaseAuditableEntity;
 import jakarta.persistence.Column;

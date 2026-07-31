@@ -1,6 +1,6 @@
-package org.datamate.identity.adapter.out.persistence.repository.user;
+package org.datamate.identity.adapter.out.persistence.user.repository;
 
-import org.datamate.identity.adapter.out.persistence.entity.user.UserJpaEntity;
+import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
