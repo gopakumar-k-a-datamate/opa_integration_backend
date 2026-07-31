@@ -7,48 +7,47 @@ import org.datamate.pharmacy.application.dto.PatientDto;
 import org.datamate.pharmacy.application.dto.PractitionerDto;
 import org.datamate.pharmacy.application.port.out.PatientPort;
 import org.datamate.pharmacy.application.port.out.PractitionerPort;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CreatePrescriptionService {
 
-    private final PolicyEnforcer policyEnforcer;
-    private final PatientPort patientPort;
     private final PractitionerPort practitionerPort;
+    private final PatientPort patientPort;
+    private final PolicyEnforcer enforcer;
 
-    public CreatePrescriptionService(PolicyEnforcer policyEnforcer, PatientPort patientPort, PractitionerPort practitionerPort) {
-        this.policyEnforcer = policyEnforcer;
-        this.patientPort = patientPort;
+    public CreatePrescriptionService(PractitionerPort practitionerPort,
+                                     PatientPort patientPort,
+                                     PolicyEnforcer enforcer) {
         this.practitionerPort = practitionerPort;
+        this.patientPort = patientPort;
+        this.enforcer = enforcer;
     }
 
-    public String createPrescription(CreatePrescriptionRequest request) {
-        // 1. Business Logic: Fetch Data
-        PractitionerDto doc = practitionerPort.getPractitionerById(request.practitionerId());
-        PatientDto patient = patientPort.getPatientById(request.patientId());
+    public String createPrescription(CreatePrescriptionRequest payload){
 
-        if (doc == null || patient == null) {
-            throw new IllegalArgumentException("Invalid Practitioner or Patient ID");
+        PractitionerDto practioner = practitionerPort.getPractitionerById(payload.practitionerId());
+
+        if(practioner == null) {
+            throw new IllegalArgumentException("Practitioner not found");
         }
 
-        // 2. Pre-Compute Attributes & Assemble Context for OPA
-        CreatePrescriptionPolicyResource policyResource = new CreatePrescriptionPolicyResource();
-        policyResource.setDoctorLevel(doc.level());
-        
-        // Business logic evaluates relationship, passes boolean to OPA
-        boolean sameWard = doc.ward().equals(patient.ward());
-        policyResource.setSameWard(sameWard);
+        CreatePrescriptionPolicyResource resource = new CreatePrescriptionPolicyResource();
+        resource.setDoctorLevel(practioner.level());
 
-        System.out.println("--- Prescription Request ---");
-        System.out.println("Doctor Level: " + doc.level());
-        System.out.println("Doctor Ward: " + doc.ward());
-        System.out.println("Patient Ward: " + patient.ward());
-        System.out.println("Is Same Ward? " + sameWard);
+        PatientDto patient = patientPort.getPatientById(payload.patientId());
 
-        // 3. Enforce via OPA!
-        policyEnforcer.enforce(policyResource);
+        if (patient == null){
+            throw new IllegalArgumentException("Patient not found");
+        }
 
-        // 4. Save (Mocked)
-        return "Prescription for " + request.medication() + " successfully created! OPA Approved.";
+        Boolean isSameWard = practioner.ward().equals(patient.ward());
+        resource.setIsSameWard(isSameWard);
+
+        enforcer.enforce(resource);
+
+        return "";
     }
 }
