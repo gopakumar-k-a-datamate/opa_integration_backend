@@ -1,6 +1,8 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
@@ -18,6 +20,10 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
+
+    @EnableLogger
+    private Logger log;
+
     private final UserManagementUseCase userManagementUseCase;
     private final CreateUserUseCase createUserUseCase;
 
@@ -26,11 +32,13 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @AuditLog(action = "CREATE_USER", resource = "USER", description = "Create user account")
     public UserDto createUser(@Valid @RequestBody CreateUserRequest request) {
+        log.info("Create user request received for '{}'", request.userName());
         return createUserUseCase.createUser(request);
     }
 
     @GetMapping
     public ResponseEntity<List<UserDto>> listUsers() {
+        log.info("List users request received");
         return ResponseEntity.ok(userManagementUseCase.listUsers());
     }
 }

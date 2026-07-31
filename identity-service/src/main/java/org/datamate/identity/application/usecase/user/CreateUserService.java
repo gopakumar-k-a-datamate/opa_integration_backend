@@ -1,5 +1,7 @@
 package org.datamate.identity.application.usecase.user;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
@@ -20,6 +22,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CreateUserService implements CreateUserUseCase {
+
+    @EnableLogger
+    private Logger log;
+
     private final UserPersistencePort userPort;
     private final PasswordEncoderPort passwordEncoderPort;
     private final SecurityContextPort securityContextPort;
@@ -29,11 +35,14 @@ public class CreateUserService implements CreateUserUseCase {
     @Override
     @Transactional
     public UserDto createUser(CreateUserRequest request) {
+        log.info("Creating user '{}'", request.userName());
         if (userPort.existsByUserName(request.userName())) {
+            log.warn("User creation failed: username '{}' already exists", request.userName());
             throw new UserAlreadyExistsException("Username '" + request.userName() + "' already exists");
         }
 
         if (userPort.existsByEmail(request.email())) {
+            log.warn("User creation failed: email '{}' already exists", request.email());
             throw new UserAlreadyExistsException("Email '" + request.email() + "' already exists");
         }
 
@@ -56,6 +65,7 @@ public class CreateUserService implements CreateUserUseCase {
 
         newUser.pullEvents().forEach(eventPublisher::publishEvent);
 
+        log.info("User '{}' created with id {}", request.userName(), savedUser.getId());
         return userDtoMapper.toDto(savedUser);
     }
 

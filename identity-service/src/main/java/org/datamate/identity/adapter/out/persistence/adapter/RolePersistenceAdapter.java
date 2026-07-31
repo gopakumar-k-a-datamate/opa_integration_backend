@@ -1,5 +1,7 @@
 package org.datamate.identity.adapter.out.persistence.adapter;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.mapper.RolePersistenceMapper;
@@ -16,6 +18,10 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class RolePersistenceAdapter implements RolePersistencePort {
+
+    @EnableLogger
+    private Logger log;
+
     private final SpringDataRoleRepository repository;
     private final RolePersistenceMapper mapper;
 
@@ -23,6 +29,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     public Role save(Role role) {
         RoleJpaEntity entity = mapper.mapToJpaEntity(role);
         RoleJpaEntity saved = repository.save(entity);
+        log.debug("Role '{}' persisted with id {}", saved.getName(), saved.getId());
         return mapper.mapToDomain(saved);
     }
 
@@ -38,6 +45,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
 
     @Override
     public void delete(Long id) {
+        log.debug("Deleting role with id {}", id);
         repository.deleteById(id);
     }
 

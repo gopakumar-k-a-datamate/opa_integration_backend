@@ -1,5 +1,7 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.AuthResponse;
 import org.datamate.identity.application.dto.LoginRequest;
@@ -12,10 +14,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    @EnableLogger
+    private Logger log;
+
     private final LoginUseCase loginUseCase;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        return ResponseEntity.ok(loginUseCase.login(request));
+        log.info("Login request received for user '{}'", request.userName());
+        AuthResponse response = loginUseCase.login(request);
+        log.info("Login request completed for user '{}'", request.userName());
+        return ResponseEntity.ok(response);
     }
 }

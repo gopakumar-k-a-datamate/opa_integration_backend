@@ -1,5 +1,7 @@
 package org.datamate.identity.adapter.in.rest.security;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -25,6 +27,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    @EnableLogger
+    private Logger log;
 
     private final SecretKey key;
 
@@ -65,9 +70,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                log.debug("Authenticated user '{}' via JWT", userId);
             }
         } catch (Exception e) {
-            // Invalid token
+            log.warn("Invalid JWT token: {}", e.getMessage());
         }
         
         filterChain.doFilter(request, response);

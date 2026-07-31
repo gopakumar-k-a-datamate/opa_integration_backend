@@ -1,5 +1,7 @@
 package org.datamate.identity.adapter.out.persistence.adapter.user;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.adapter.out.persistence.entity.user.UserJpaEntity;
 import org.datamate.identity.adapter.out.persistence.mapper.user.UserPersistenceMapper;
@@ -14,6 +16,10 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class UserPersistenceAdapter implements UserPersistencePort {
+
+    @EnableLogger
+    private Logger log;
+
     private final SpringDataUserRepository repository;
     private final UserPersistenceMapper mapper;
 
@@ -21,6 +27,7 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     public User save(User user) {
         UserJpaEntity entity = mapper.mapToJpaEntity(user);
         UserJpaEntity savedEntity = repository.save(entity);
+        log.debug("User '{}' persisted with id {}", savedEntity.getUserName(), savedEntity.getId());
         return mapper.mapToDomain(savedEntity);
     }
 
