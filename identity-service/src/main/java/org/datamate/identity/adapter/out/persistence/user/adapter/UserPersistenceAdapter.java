@@ -1,12 +1,12 @@
-package org.datamate.identity.adapter.out.persistence.adapter.user;
+package org.datamate.identity.adapter.out.persistence.user.adapter;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.adapter.out.persistence.entity.user.UserJpaEntity;
-import org.datamate.identity.adapter.out.persistence.mapper.user.UserPersistenceMapper;
-import org.datamate.identity.adapter.out.persistence.repository.user.SpringDataUserRepository;
-import org.datamate.identity.adapter.out.persistence.specification.user.UserSpecification;
+import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
+import org.datamate.identity.adapter.out.persistence.user.mapper.UserPersistenceMapper;
+import org.datamate.identity.adapter.out.persistence.user.repository.SpringDataUserRepository;
+import org.datamate.identity.adapter.out.persistence.user.specification.UserSpecification;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.application.dto.user.UserSearchCriteria;
 import org.datamate.identity.domain.model.User;
