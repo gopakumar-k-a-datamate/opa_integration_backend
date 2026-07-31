@@ -1,5 +1,7 @@
 package org.datamate.identity.adapter.out.persistence.specification.user;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.logging.util.LoggerManager;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -12,7 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserSpecification {
+
+    private static final Logger log = LoggerManager.getLogger(UserSpecification.class);
+
     public static Specification<UserJpaEntity> filterUsers(UserSearchCriteria criteria) {
+        log.debug("Building user search specification with criteria {}", criteria);
         return (root, query, cb) -> {
             // Eagerly fetch roles to avoid N+1 query problem, but not for count queries
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {

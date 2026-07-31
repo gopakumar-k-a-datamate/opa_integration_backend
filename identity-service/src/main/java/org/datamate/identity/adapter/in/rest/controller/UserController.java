@@ -50,8 +50,12 @@ public class UserController {
             @RequestParam(required = false) UserStatus status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
+        log.info("Search users request received [search: '{}', role: '{}', status: '{}', page: {}, size: {}]",
+                search, role, status, page, size);
         UserSearchCriteria criteria = new UserSearchCriteria(search, role, status);
         PageQuery pageQuery = new PageQuery(page, size);
-        return listUserUseCase.searchUsers(criteria, pageQuery);
+        Paged<UserResponseDto> result = listUserUseCase.searchUsers(criteria, pageQuery);
+        log.info("Search users completed, returned {} of {} users", result.content().size(), result.totalElements());
+        return result;
     }
 }
