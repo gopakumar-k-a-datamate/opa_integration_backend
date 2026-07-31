@@ -20,7 +20,6 @@ public class PrescriptionController {
 
 
     @PostMapping("/prescription")
-    @PreAuthorize("prescriptionAuthorizor.Prescription")
     public String createPrescription(@RequestBody CreatePrescriptionRequest body){
         return createPrescription.createPrescription(body);
     }

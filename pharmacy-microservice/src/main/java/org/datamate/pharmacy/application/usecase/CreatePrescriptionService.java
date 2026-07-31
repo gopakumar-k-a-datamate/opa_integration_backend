@@ -26,28 +26,9 @@ public class CreatePrescriptionService {
         this.enforcer = enforcer;
     }
 
-    public String createPrescription(CreatePrescriptionRequest payload){
 
-        PractitionerDto practioner = practitionerPort.getPractitionerById(payload.practitionerId());
-
-        if(practioner == null) {
-            throw new IllegalArgumentException("Practitioner not found");
-        }
-
-        CreatePrescriptionPolicyResource resource = new CreatePrescriptionPolicyResource();
-        resource.setDoctorLevel(practioner.level());
-
-        PatientDto patient = patientPort.getPatientById(payload.patientId());
-
-        if (patient == null){
-            throw new IllegalArgumentException("Patient not found");
-        }
-
-        Boolean isSameWard = practioner.ward().equals(patient.ward());
-        resource.setIsSameWard(isSameWard);
-
-        enforcer.enforce(resource);
-
-        return "";
+    @PreAuthorize("prescriptionAuthorizor.prescriptionCreate()")
+    public String createPrescription(CreatePrescriptionRequest payload) {
+        return "Prescription created ";
     }
 }
