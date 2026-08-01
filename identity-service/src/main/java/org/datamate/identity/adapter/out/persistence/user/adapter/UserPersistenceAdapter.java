@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.datamate.identity.shared.pagination.PaginationHelperMethods.toPageable;
 import static org.datamate.identity.shared.pagination.PaginationHelperMethods.toPaged;
@@ -39,6 +40,11 @@ public class UserPersistenceAdapter implements UserPersistencePort {
         UserJpaEntity savedEntity = repository.save(entity);
         log.debug("User '{}' persisted with id {}", savedEntity.getUserName(), savedEntity.getId());
         return mapper.mapToDomain(savedEntity);
+    }
+
+    @Override
+    public Optional<User> findById(UUID id) {
+        return repository.findById(id).map(mapper::mapToDomain);
     }
 
     @Override
