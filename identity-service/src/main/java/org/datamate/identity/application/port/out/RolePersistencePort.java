@@ -3,6 +3,7 @@ package org.datamate.identity.application.port.out;
 import org.datamate.identity.domain.model.Role;
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 public interface RolePersistencePort {
     Role save(Role role);
@@ -10,5 +11,5 @@ public interface RolePersistencePort {
     List<Role> findAll();
     void delete(Long id);
     boolean existsByName(String name);
-    List<String> findRoleNamesByUserId(Long userId);
+    List<String> findRoleNamesByUserId(UUID userId);
 }

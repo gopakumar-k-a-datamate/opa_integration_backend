@@ -1,5 +1,7 @@
 package org.datamate.identity.adapter.out.security;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.datamate.identity.application.port.out.TokenGeneratorPort;
@@ -14,6 +16,10 @@ import java.util.List;
 
 @Component
 public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
+
+    @EnableLogger
+    private Logger log;
+
     private final SecretKey key;
     private final long expirationMs;
 
@@ -27,6 +33,7 @@ public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
     @Override
     public String generateToken(User user, List<String> roles) {
         Date now = new Date();
+        log.debug("Generating JWT for user '{}' with roles {}", user.getUserName(), roles);
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("userId", user.getId())

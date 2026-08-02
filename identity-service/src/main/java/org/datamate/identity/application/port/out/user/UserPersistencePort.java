@@ -1,11 +1,13 @@
-package org.datamate.identity.application.port.out;
+package org.datamate.identity.application.port.out.user;
 
 import org.datamate.identity.domain.model.User;
 import java.util.List;
 import java.util.Optional;
 
 public interface UserPersistencePort {
-    void save(User user);
+    User save(User user);
     Optional<User> findByUserName(String userName);
+    boolean existsByUserName(String userName);
+    boolean existsByEmail(String email);
     List<User> findAll();
 }

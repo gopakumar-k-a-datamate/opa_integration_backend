@@ -1,0 +1,121 @@
+package org.datamate.identity.adapter.in.rest.controller;
+
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.datamate.identity.application.dto.user.CreateUserRequest;
+import org.datamate.identity.application.dto.user.UserDto;
+import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.datamate.identity.shared.model.UserStatus;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(MockitoExtension.class)
+class UserControllerTest {
+
+    private MockMvc mockMvc;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private CreateUserUseCase createUserUseCase;
+
+    @Mock
+    private Logger log;
+
+    @InjectMocks
+    private UserController userController;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        // Manually inject the logger mock because it's a non-constructor private field (@EnableLogger)
+        Field logField = UserController.class.getDeclaredField("log");
+        logField.setAccessible(true);
+        logField.set(userController, log);
+
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .build();
+    }
+
+    @Test
+    void shouldCreateUserSuccessfullyWhenValidRequestProvided() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+
+        CreateUserRequest request = new CreateUserRequest(
+                "new_admin",
+                "admin@example.com",
+                "+1234567890",
+                "Admin",
+                "User",
+                "securePass123",
+                "ELLIDER",
+                "EXT-12345"
+        );
+
+        UserDto responseDto = new UserDto(
+                sampleId,
+                "new_admin",
+                "admin@example.com",
+                "+1234567890",
+                "Admin",
+                "User",
+                "ELLIDER",
+                "EXT-12345",
+                "SYSTEM_ADMIN",
+                LocalDateTime.now(),
+                UserStatus.ACTIVE,
+                List.of("ADMIN", "USER"),
+                true
+        );
+
+        when(createUserUseCase.createUser(any(CreateUserRequest.class))).thenReturn(responseDto);
+
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(sampleId.toString()))
+                .andExpect(jsonPath("$.userName").value("new_admin"))
+                .andExpect(jsonPath("$.email").value("admin@example.com"))
+                .andExpect(jsonPath("$.firstName").value("Admin"))
+                .andExpect(jsonPath("$.lastName").value("User"))
+                .andExpect(jsonPath("$.referenceSystem").value("ELLIDER"))
+                .andExpect(jsonPath("$.referenceValue").value("EXT-12345"));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenMandatoryFieldsMissing() throws Exception {
+        CreateUserRequest request = new CreateUserRequest(
+                "",
+                "invalid-email",
+                "+1234567890",
+                "",
+                "User",
+                "123",
+                null,
+                null
+        );
+
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+}

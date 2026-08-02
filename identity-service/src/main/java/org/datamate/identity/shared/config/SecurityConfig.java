@@ -2,8 +2,10 @@ package org.datamate.identity.shared.config;
 
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.adapter.in.rest.security.JwtAuthenticationFilter;
+import org.datamate.identity.shared.config.security.RevisionMetadataFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final RevisionMetadataFilter revisionMetadataFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,11 +42,12 @@ public class SecurityConfig {
                     "/swagger-ui.html"
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/roles", "/api/v1/users").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/roles", "/api/v1/users").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(revisionMetadataFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
