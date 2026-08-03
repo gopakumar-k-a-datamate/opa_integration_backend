@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  *
  * <p>Example usage:</p>
  * <pre>{@code
- * @PolicyResource(namespace = "finance", name = "journal", action = "create")
+ * @PolicyResource(namespace = "finance", resourceName = "journal", action = "create")
  * public record CreateJournalCommand(
  *     @PolicyField(displayName = "Amount", type = FieldType.NUMBER)
  *     BigDecimal amount
@@ -29,7 +29,7 @@ public @interface PolicyResource {
     String namespace();
 
     /** Resource name within the namespace, e.g. {@code "journal"}, {@code "patient"}. */
-    String name();
+    String resourceName();
 
     /** Action being performed on the resource, e.g. {@code "create"}, {@code "view"}. */
     String action();

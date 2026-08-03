@@ -1,6 +1,8 @@
-﻿package org.datamate.pharmacy.application.usecase;
+package org.datamate.pharmacy.application.usecase;
 
+import org.datamate.authz.enforcement.PolicyEnforcer;
 import org.datamate.pharmacy.application.dto.CreatePrescriptionPolicyResource;
+import org.datamate.pharmacy.application.dto.CreatePrescriptionRequest;
 import org.datamate.pharmacy.application.dto.PatientDto;
 import org.datamate.pharmacy.application.dto.PractitionerDto;
 import org.datamate.pharmacy.application.port.out.PatientPort;
@@ -14,9 +16,15 @@ public class PrescriptionCreatePreAuthorize {
     private final PatientPort patientPort;
     private final PolicyEnforcer enforcer;
 
+    public PrescriptionCreatePreAuthorize(PractitionerPort practitionerPort, PatientPort patientPort, PolicyEnforcer enforcer) {
+        this.practitionerPort = practitionerPort;
+        this.patientPort = patientPort;
+        this.enforcer = enforcer;
+    }
+
 
     //
-    public void prescriptionCreate() {
+    public boolean prescriptionCreate(CreatePrescriptionRequest payload) {
         PractitionerDto practioner = practitionerPort.getPractitionerById(payload.practitionerId());
 
         if(practioner == null) {
@@ -36,5 +44,6 @@ public class PrescriptionCreatePreAuthorize {
         resource.setIsSameWard(isSameWard);
 
         enforcer.enforce(resource);
+        return true;
     }
 }

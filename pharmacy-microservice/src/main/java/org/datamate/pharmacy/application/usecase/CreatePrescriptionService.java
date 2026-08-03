@@ -27,7 +27,7 @@ public class CreatePrescriptionService {
     }
 
 
-    @PreAuthorize("prescriptionAuthorizor.prescriptionCreate()")
+    @PreAuthorize("@prescriptionAuthorizor.prescriptionCreate(#payload)")
     public String createPrescription(CreatePrescriptionRequest payload) {
         return "Prescription created ";
     }

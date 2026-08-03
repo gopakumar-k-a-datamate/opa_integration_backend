@@ -6,7 +6,7 @@ import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
 @PolicyResource(
     namespace = "finance", 
-    name = "journal", 
+    resourceName = "journal", 
     action = "approve", 
     description = "Approve a submitted journal entry"
 )

@@ -53,7 +53,7 @@ public class DefaultPolicyEnforcer implements PolicyEnforcer {
         // 1. Build Permission Code
         String permissionCode = String.format("%s:%s:%s", 
                 resourceAnnotation.namespace(), 
-                resourceAnnotation.name(), 
+                resourceAnnotation.resourceName(), 
                 resourceAnnotation.action());
 
         // 2. Extract User Details from Authentication or JWT
@@ -133,7 +133,7 @@ public class DefaultPolicyEnforcer implements PolicyEnforcer {
         if (!evaluate(resource)) {
             PolicyResource resourceAnnotation = resource != null ? resource.getClass().getAnnotation(PolicyResource.class) : null;
             String permissionCode = resourceAnnotation != null 
-                    ? String.format("%s:%s:%s", resourceAnnotation.namespace(), resourceAnnotation.name(), resourceAnnotation.action())
+                    ? String.format("%s:%s:%s", resourceAnnotation.namespace(), resourceAnnotation.resourceName(), resourceAnnotation.action())
                     : "unknown";
             log.warn("Access Denied attempting {}", permissionCode);
             throw new AccessDeniedException("Access Denied: You do not have permission to perform this action.");

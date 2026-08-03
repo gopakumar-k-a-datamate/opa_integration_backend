@@ -4,7 +4,7 @@ import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
-@PolicyResource(namespace = "clinical", name = "encounter", action = "read", description = "View patient encounters")
+@PolicyResource(namespace = "clinical", resourceName = "encounter", action = "read", description = "View patient encounters")
 public class ReadPatientEncounterPolicyResource {
 
     @PolicyField(type = FieldType.STRING, displayName = "Doctor Specialty", allowedValues = {"CARDIOLOGY", "NEUROLOGY", "GENERAL_PRACTICE", "PEDIATRICS"})

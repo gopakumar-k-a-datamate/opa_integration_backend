@@ -4,7 +4,7 @@ import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
-@PolicyResource(namespace = "clinical", name = "settings", action = "update", description = "Update clinical settings")
+@PolicyResource(namespace = "clinical", resourceName = "settings", action = "update", description = "Update clinical settings")
 public class UpdateSettingPolicyResource {
 
     @PolicyField(type = FieldType.STRING, displayName = "Sensitivity Level", allowedValues = {"LOW", "MEDIUM", "HIGH"})

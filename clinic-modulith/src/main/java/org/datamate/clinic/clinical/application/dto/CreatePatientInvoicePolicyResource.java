@@ -4,7 +4,7 @@ import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
-@PolicyResource(namespace = "billing", name = "invoice", action = "create", description = "Create patient invoice")
+@PolicyResource(namespace = "billing", resourceName = "invoice", action = "create", description = "Create patient invoice")
 public class CreatePatientInvoicePolicyResource {
 
     @PolicyField(type = FieldType.NUMBER, displayName = "Total Amount")

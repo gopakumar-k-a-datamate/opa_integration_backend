@@ -4,7 +4,7 @@ import org.datamate.authz.shared.annotation.PolicyField;
 import org.datamate.authz.shared.annotation.PolicyResource;
 import org.datamate.authz.domain.model.policy.enumtype.FieldType;
 
-@PolicyResource(namespace = "finance", name = "journal", action = "create", description = "Create new journal entries")
+@PolicyResource(namespace = "finance", resourceName = "journal", action = "create", description = "Create new journal entries")
 public class CreateJournalPolicyResource {
 
     @PolicyField(type = FieldType.NUMBER, displayName = "Amount")
