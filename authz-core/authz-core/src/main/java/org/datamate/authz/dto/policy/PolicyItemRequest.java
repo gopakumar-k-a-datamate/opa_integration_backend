@@ -2,6 +2,8 @@ package org.datamate.authz.dto.policy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * A single policy entry inside a {@link SavePoliciesRequest}.
@@ -15,8 +17,8 @@ import org.datamate.authz.model.policy.enumtype.PolicyEffect;
  * @param disabledReason  Reason for disabling
  */
 public record PolicyItemRequest(
-        String permissionCode,
-        PolicyEffect effect,
+        @NotBlank(message = "permissionCode is required") String permissionCode,
+        @NotNull(message = "effect is required") PolicyEffect effect,
         JsonNode expressionJson,
         boolean enabled,
         boolean isDeleted,

@@ -23,8 +23,7 @@
 
     <modules>
         <module>authz-core</module>
-        <module>authz-jpa</module>
-        <module>authz-rest</module>
+        <module>authz-opa</module>
         <module>bedrock-authz-starter</module>
     </modules>
 

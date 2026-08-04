@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.authz.dto.policy.OpaInputPayload;
-import org.datamate.authz.api.policy.OpaEvaluationClient;
+import org.datamate.authz.dto.policy.EvaluationPayload;
+import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.springframework.context.annotation.Lazy;
@@ -33,10 +33,12 @@ public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
     @EnableLogger
     private Logger log;
 
-    private final OpaEvaluationClient opaEvaluationClient;
+    private final PolicyEvaluationClient policyEvaluationClient;
+    private final ObjectMapper objectMapper;
 
-    public SpringSecurityPolicyEnforcer(@Lazy OpaEvaluationClient opaEvaluationClient) {
-        this.opaEvaluationClient = opaEvaluationClient;
+    public SpringSecurityPolicyEnforcer(@Lazy PolicyEvaluationClient policyEvaluationClient, ObjectMapper objectMapper) {
+        this.policyEvaluationClient = policyEvaluationClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -83,7 +85,7 @@ public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
                         String[] parts = token.split("\\.");
                         if (parts.length == 3) {
                             String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-                            JsonNode json = new ObjectMapper().readTree(payload);
+                            JsonNode json = objectMapper.readTree(payload);
                             
                             if (json.has("userId")) userId = json.get("userId").asText();
                             
@@ -116,9 +118,9 @@ public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
         }
 
         // 4. Construct Payload
-        OpaInputPayload payload = OpaInputPayload.builder()
-                .input(OpaInputPayload.Input.builder()
-                        .user(OpaInputPayload.User.builder()
+        EvaluationPayload payload = EvaluationPayload.builder()
+                .input(EvaluationPayload.Input.builder()
+                        .user(EvaluationPayload.User.builder()
                                 .id(userId)
                                 .roles(roles)
                                 .build())
@@ -129,7 +131,7 @@ public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
 
         // 5. Evaluate Policy against OPA
         log.debug("Evaluating policy for permission: {}", permissionCode);
-        return opaEvaluationClient.evaluate(resourceAnnotation.namespace(), payload);
+        return policyEvaluationClient.evaluate(resourceAnnotation.namespace(), payload);
     }
 
     @Override

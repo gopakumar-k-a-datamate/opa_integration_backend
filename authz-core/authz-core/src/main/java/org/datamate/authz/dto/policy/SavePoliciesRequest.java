@@ -2,6 +2,10 @@ package org.datamate.authz.dto.policy;
 
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 /**
@@ -17,10 +21,10 @@ import java.util.List;
  * </p>
  */
 public record SavePoliciesRequest(
-        SubjectType subjectType,
-        String subjectId,
-        String namespace,
-        List<PolicyItemRequest> policies
+        @NotNull(message = "subjectType is required") SubjectType subjectType,
+        @NotBlank(message = "subjectId is required") String subjectId,
+        @NotBlank(message = "namespace is required") String namespace,
+        @NotNull(message = "policies array cannot be null") @Valid List<PolicyItemRequest> policies
 ) {}
 
 

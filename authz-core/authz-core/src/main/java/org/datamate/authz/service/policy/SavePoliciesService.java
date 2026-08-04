@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.datamate.authz.exception.InvalidPayloadException;
 
+
 /**
  * Full-state sync for all policies belonging to a subject within this module.
  *
@@ -47,10 +48,6 @@ public class SavePoliciesService {
     
     @Transactional
     public void savePolicies(SavePoliciesRequest request) {
-        if (request == null || request.policies() == null) {
-            throw new InvalidPayloadException("The 'policies' array in the request body cannot be null.");
-        }
-
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();
         String targetNamespace = request.namespace();
@@ -131,7 +128,7 @@ public class SavePoliciesService {
         try {
             return objectMapper.writeValueAsString(item.expressionJson());
         } catch (Exception e) {
-            return null;
+            throw new InvalidPayloadException("Failed to serialize policy expression AST for permission: " + item.permissionCode());
         }
     }
 }
