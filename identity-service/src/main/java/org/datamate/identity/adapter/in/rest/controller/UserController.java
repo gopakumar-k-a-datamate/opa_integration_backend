@@ -9,17 +9,14 @@ import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
-import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.ListUserUseCase;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -40,7 +37,7 @@ public class UserController {
         return createUserUseCase.createUser(request);
     }
 
-    @GetMapping("/list")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "List users", description = "Search and filter user accounts using search query, role, and status, with support for pagination.")
     public Paged<UserResponseDto> searchUsers(

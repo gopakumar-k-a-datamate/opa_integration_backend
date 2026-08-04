@@ -1,7 +1,7 @@
 package org.datamate.identity.application.port.out.user;
 
 import org.datamate.identity.domain.model.User;
-import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.query.user.UserSearchCriteria;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import java.util.List;

@@ -7,7 +7,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
-import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -30,10 +30,7 @@ public class UserSpecification {
             logger.debug("Building user search specification with criteria {}", criteria);
         }
         return (root, query, cb) -> {
-            // Eagerly fetch roles to avoid N+1 query problem, but not for count queries
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                root.fetch("roles", JoinType.LEFT);
-            }
+
 
             List<Predicate> predicates = new ArrayList<>();
 

@@ -19,6 +19,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
 import org.datamate.identity.shared.model.UserStatus;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.envers.RelationTargetAuditMode;
 
 import java.time.LocalDateTime;
@@ -69,6 +70,7 @@ public class UserJpaEntity extends BaseAuditableEntity {
     private boolean passwordTemporary;
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 100)
     @JoinTable(
         name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
