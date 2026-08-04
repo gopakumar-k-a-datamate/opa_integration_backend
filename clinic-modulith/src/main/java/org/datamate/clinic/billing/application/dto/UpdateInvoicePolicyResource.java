@@ -1,8 +1,8 @@
 package org.datamate.clinic.billing.application.dto;
 
-import org.datamate.authz.domain.model.policy.enumtype.FieldType;
-import org.datamate.authz.shared.annotation.PolicyField;
-import org.datamate.authz.shared.annotation.PolicyResource;
+import org.datamate.authz.model.policy.enumtype.FieldType;
+import org.datamate.authz.annotation.PolicyField;
+import org.datamate.authz.annotation.PolicyResource;
 
 @PolicyResource(namespace = "billing", resourceName = "invoice", action = "update", description = "Update patient invoice")
 public class UpdateInvoicePolicyResource {

@@ -6,7 +6,7 @@ import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.datamate.authz.shared.exception.InvalidPayloadException;
+import org.datamate.authz.exception.InvalidPayloadException;
 
 public class AstBuilder {
 

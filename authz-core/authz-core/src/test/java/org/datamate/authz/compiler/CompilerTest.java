@@ -1,9 +1,9 @@
 package org.datamate.authz.compiler;
 
 import org.datamate.authz.compiler.generator.RegoGenerator;
-import org.datamate.authz.domain.model.policy.entity.Policy;
-import org.datamate.authz.domain.model.policy.enumtype.PolicyEffect;
-import org.datamate.authz.domain.model.policy.enumtype.SubjectType;
+import org.datamate.authz.model.policy.entity.Policy;
+import org.datamate.authz.model.policy.enumtype.PolicyEffect;
+import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

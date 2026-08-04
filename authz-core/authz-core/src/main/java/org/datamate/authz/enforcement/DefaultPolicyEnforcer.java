@@ -3,11 +3,12 @@ package org.datamate.authz.enforcement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.datamate.authz.application.dto.policy.OpaInputPayload;
-import org.datamate.authz.application.port.out.policy.OpaEvaluationPort;
-import org.datamate.authz.shared.annotation.PolicyField;
-import org.datamate.authz.shared.annotation.PolicyResource;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.datamate.authz.dto.policy.OpaInputPayload;
+import org.datamate.authz.api.policy.OpaEvaluationClient;
+import org.datamate.authz.annotation.PolicyField;
+import org.datamate.authz.annotation.PolicyResource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -25,14 +26,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Component
 public class DefaultPolicyEnforcer implements PolicyEnforcer {
 
-    private final OpaEvaluationPort opaEvaluationPort;
+    @EnableLogger
+    private Logger log;
 
-    public DefaultPolicyEnforcer(@Lazy OpaEvaluationPort opaEvaluationPort) {
-        this.opaEvaluationPort = opaEvaluationPort;
+    private final OpaEvaluationClient opaEvaluationClient;
+
+    public DefaultPolicyEnforcer(@Lazy OpaEvaluationClient opaEvaluationClient) {
+        this.opaEvaluationClient = opaEvaluationClient;
     }
 
     @Override
@@ -125,7 +128,7 @@ public class DefaultPolicyEnforcer implements PolicyEnforcer {
 
         // 5. Evaluate Policy against OPA
         log.debug("Evaluating policy for permission: {}", permissionCode);
-        return opaEvaluationPort.evaluate(resourceAnnotation.namespace(), payload);
+        return opaEvaluationClient.evaluate(resourceAnnotation.namespace(), payload);
     }
 
     @Override

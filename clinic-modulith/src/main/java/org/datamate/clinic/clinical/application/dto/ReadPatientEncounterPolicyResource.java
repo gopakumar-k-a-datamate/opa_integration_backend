@@ -1,8 +1,8 @@
 package org.datamate.clinic.clinical.application.dto;
 
-import org.datamate.authz.shared.annotation.PolicyField;
-import org.datamate.authz.shared.annotation.PolicyResource;
-import org.datamate.authz.domain.model.policy.enumtype.FieldType;
+import org.datamate.authz.annotation.PolicyField;
+import org.datamate.authz.annotation.PolicyResource;
+import org.datamate.authz.model.policy.enumtype.FieldType;
 
 @PolicyResource(namespace = "clinical", resourceName = "encounter", action = "read", description = "View patient encounters")
 public class ReadPatientEncounterPolicyResource {

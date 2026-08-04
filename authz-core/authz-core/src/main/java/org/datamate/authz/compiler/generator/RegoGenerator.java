@@ -4,11 +4,11 @@ import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
-import org.datamate.authz.domain.model.policy.entity.Policy;
+import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.compiler.AstBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.authz.shared.exception.InvalidPayloadException;
+import org.datamate.authz.exception.InvalidPayloadException;
 
 import java.util.ArrayList;
 import java.util.List;
