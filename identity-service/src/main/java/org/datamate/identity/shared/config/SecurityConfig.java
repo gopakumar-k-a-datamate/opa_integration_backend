@@ -41,7 +41,7 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/roles", "/api/v1/users").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
                 .anyRequest().authenticated()

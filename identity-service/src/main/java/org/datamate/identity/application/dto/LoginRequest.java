@@ -1,3 +1,11 @@
 package org.datamate.identity.application.dto;
 
-public record LoginRequest(String userName, String password) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record LoginRequest(
+        @NotBlank(message = "Username is required")
+        String userName,
+
+        @NotBlank(message = "Password is required")
+        String password
+) {}

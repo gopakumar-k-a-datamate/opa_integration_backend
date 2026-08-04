@@ -1,47 +1,52 @@
 package org.datamate.identity.adapter.out.security;
 
-import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
-import com.datamate.bedrock.framework.common.logging.service.Logger;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.datamate.bedrock.framework.common.security.jwt.service.JwtTokenService;
+import com.datamate.bedrock.framework.common.security.vo.UserDetails;
+import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.port.out.TokenGeneratorPort;
 import org.datamate.identity.domain.model.User;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
 
-    @EnableLogger
-    private Logger log;
+    private final JwtTokenService jwtTokenService;
+    private final ConcurrentHashMap<String, Boolean> tokenBlacklist = new ConcurrentHashMap<>();
 
-    private final SecretKey key;
-    private final long expirationMs;
-
-    public JwtTokenGeneratorAdapter(
-            @Value("${app.security.jwt.secret}") String secret,
-            @Value("${app.security.jwt.expiration-ms}") long expirationMs) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationMs = expirationMs;
+    @Override
+    public String generateAccessToken(User user) {
+        UserDetails details = UserDetails.of(
+                user.getId().toString(),
+                user.getUserName(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName()
+        );
+        return jwtTokenService.generateAccessToken(details);
     }
 
     @Override
-    public String generateToken(User user, List<String> roles) {
-        Date now = new Date();
-        log.debug("Generating JWT for user '{}' with roles {}", user.getUserName(), roles);
-        return Jwts.builder()
-                .subject(user.getId().toString())
-                .claim("userId", user.getId())
-                .claim("userName", user.getUserName())
-                .claim("role", roles)
-                .issuedAt(now)
-                .expiration(new Date(now.getTime() + expirationMs))
-                .signWith(key)
-                .compact();
+    public String generateRefreshToken(User user) {
+        UserDetails details = UserDetails.of(
+                user.getId().toString(),
+                user.getUserName(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName()
+        );
+        return jwtTokenService.generateRefreshToken(details);
+    }
+
+    @Override
+    public void invalidateToken(String token) {
+        tokenBlacklist.put(token, Boolean.TRUE);
+    }
+
+    @Override
+    public boolean isBlacklisted(String token) {
+        return tokenBlacklist.containsKey(token);
     }
 }

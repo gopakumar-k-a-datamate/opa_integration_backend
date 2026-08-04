@@ -1,6 +1,6 @@
 package org.datamate.identity.application.port.out;
 
 public interface PasswordEncoderPort {
-    String encode(String rawPassword);
-    boolean matches(String rawPassword, String encodedPassword);
+    String encode(CharSequence rawPassword);
+    boolean matches(CharSequence rawPassword, String encodedPassword);
 }

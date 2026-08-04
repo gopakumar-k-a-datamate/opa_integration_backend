@@ -1,12 +1,11 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
-import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
-import com.datamate.bedrock.framework.common.logging.service.Logger;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.datamate.identity.application.command.LoginCommand;
 import org.datamate.identity.application.dto.AuthResponse;
 import org.datamate.identity.application.dto.LoginRequest;
 import org.datamate.identity.application.port.in.LoginUseCase;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,16 +14,18 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @EnableLogger
-    private Logger log;
-
     private final LoginUseCase loginUseCase;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        log.info("Login request received for user '{}'", request.userName());
-        AuthResponse response = loginUseCase.login(request);
-        log.info("Login request completed for user '{}'", request.userName());
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginCommand command = new LoginCommand(request.userName(), request.password());
+        AuthResponse response = loginUseCase.login(command);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        loginUseCase.logout(authHeader);
+        return ResponseEntity.ok().build();
     }
 }
