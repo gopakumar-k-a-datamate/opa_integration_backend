@@ -11,12 +11,15 @@ import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
 import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.ListUserUseCase;
+import org.datamate.identity.application.port.in.user.GetUserUseCase;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -27,6 +30,7 @@ public class UserController {
     private Logger log;
     private final ListUserUseCase listUserUseCase;
     private final CreateUserUseCase createUserUseCase;
+    private final GetUserUseCase getUserUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -36,6 +40,15 @@ public class UserController {
         log.info("Create user request received for '{}'", request.userName());
         return createUserUseCase.createUser(request);
     }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get user details", description = "Retrieve a user's detailed information by their unique ID.")
+    public UserDto getUserById(@PathVariable UUID id) {
+        log.info("Get user details request received for ID: {}", id);
+        return getUserUseCase.getUserById(id);
+    }
+
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
