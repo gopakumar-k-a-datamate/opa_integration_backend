@@ -7,8 +7,11 @@ import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import java.util.List;
 import java.util.Optional;
 
+import java.util.UUID;
+
 public interface UserPersistencePort {
     User save(User user);
+    Optional<User> findById(UUID id);
     Optional<User> findByUserName(String userName);
     boolean existsByUserName(String userName);
     boolean existsByEmail(String email);

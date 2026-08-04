@@ -8,6 +8,7 @@ import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
 import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.ListUserUseCase;
+import org.datamate.identity.application.port.in.user.GetUserUseCase;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
@@ -48,6 +49,9 @@ class UserControllerTest {
     private CreateUserUseCase createUserUseCase;
 
     @Mock
+    private GetUserUseCase getUserUseCase;
+
+    @Mock
     private Logger log;
 
     @InjectMocks
@@ -61,7 +65,17 @@ class UserControllerTest {
         logField.set(userController, log);
 
         mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new TestExceptionHandler())
                 .build();
+    }
+
+    @org.springframework.web.bind.annotation.RestControllerAdvice
+    static class TestExceptionHandler {
+        @org.springframework.web.bind.annotation.ExceptionHandler(org.datamate.identity.domain.exception.user.UserNotFoundException.class)
+        @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NOT_FOUND)
+        public String handleUserNotFound(org.datamate.identity.domain.exception.user.UserNotFoundException ex) {
+            return ex.getMessage();
+        }
     }
 
     @Test
@@ -171,5 +185,47 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.pageNumber").value(1))
                 .andExpect(jsonPath("$.pageSize").value(10))
                 .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void shouldReturnUserDetailsSuccessfullyWhenUserExists() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+        UserDto responseDto = new UserDto(
+                sampleId,
+                "john_doe",
+                "john@example.com",
+                "+1234567890",
+                "John",
+                "Doe",
+                "ELLIDER",
+                "EXT-12345",
+                "SYSTEM_ADMIN",
+                LocalDateTime.now(),
+                UserStatus.ACTIVE,
+                List.of("USER"),
+                false
+        );
+
+        when(getUserUseCase.getUserById(eq(sampleId))).thenReturn(responseDto);
+
+        mockMvc.perform(get("/api/v1/users/" + sampleId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(sampleId.toString()))
+                .andExpect(jsonPath("$.userName").value("john_doe"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.roles[0]").value("USER"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+        when(getUserUseCase.getUserById(eq(sampleId)))
+                .thenThrow(new org.datamate.identity.domain.exception.user.UserNotFoundException("User not found"));
+
+        mockMvc.perform(get("/api/v1/users/" + sampleId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }
