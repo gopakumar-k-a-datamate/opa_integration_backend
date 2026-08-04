@@ -4,7 +4,7 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import org.datamate.identity.application.dto.user.UserResponseDto;
-import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.application.usecase.user.ListUserUseService;

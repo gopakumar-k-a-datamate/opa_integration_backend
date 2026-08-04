@@ -8,7 +8,7 @@ import org.datamate.identity.adapter.out.persistence.user.mapper.UserPersistence
 import org.datamate.identity.adapter.out.persistence.user.repository.SpringDataUserRepository;
 import org.datamate.identity.adapter.out.persistence.user.specification.UserSpecification;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.domain.model.User;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;

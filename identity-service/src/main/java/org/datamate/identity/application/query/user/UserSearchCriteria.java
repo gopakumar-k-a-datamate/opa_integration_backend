@@ -1,4 +1,4 @@
-package org.datamate.identity.application.dto.user;
+package org.datamate.identity.application.query.user;
 
 import org.datamate.identity.shared.model.UserStatus;
 

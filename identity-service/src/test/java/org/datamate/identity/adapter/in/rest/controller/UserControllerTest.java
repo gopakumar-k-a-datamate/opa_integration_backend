@@ -6,7 +6,7 @@ import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
-import org.datamate.identity.application.dto.user.UserSearchCriteria;
+import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.ListUserUseCase;
 import org.datamate.identity.application.port.in.user.GetUserUseCase;
 import org.datamate.identity.shared.model.UserStatus;
@@ -19,7 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.datamate.identity.shared.model.UserStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -171,7 +170,7 @@ class UserControllerTest {
         when(listUserUseCase.searchUsers(eq(criteria), any(PageQuery.class)))
                 .thenReturn(pagedResult);
 
-        mockMvc.perform(get("/api/v1/users/list")
+        mockMvc.perform(get("/api/v1/users")
                         .param("search", "john")
                         .param("role", "USER")
                         .param("status", "ACTIVE")
