@@ -1,5 +1,6 @@
-package org.datamate.authz.enforcement;
+package org.datamate.authz.starter.enforcement;
 
+import org.datamate.authz.enforcement.PolicyEnforcer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,14 +28,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class DefaultPolicyEnforcer implements PolicyEnforcer {
+public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
 
     @EnableLogger
     private Logger log;
 
     private final OpaEvaluationClient opaEvaluationClient;
 
-    public DefaultPolicyEnforcer(@Lazy OpaEvaluationClient opaEvaluationClient) {
+    public SpringSecurityPolicyEnforcer(@Lazy OpaEvaluationClient opaEvaluationClient) {
         this.opaEvaluationClient = opaEvaluationClient;
     }
 

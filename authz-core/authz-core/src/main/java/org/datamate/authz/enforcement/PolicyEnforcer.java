@@ -19,7 +19,7 @@ public interface PolicyEnforcer {
      * is unauthorized to perform the action on the given resource.
      *
      * @param resource The domain resource command or object.
-     * @throws org.springframework.security.access.AccessDeniedException if authorization fails.
+     * @throws org.datamate.authz.exception.AuthzDeniedException if authorization fails.
      */
     void enforce(Object resource);
 
