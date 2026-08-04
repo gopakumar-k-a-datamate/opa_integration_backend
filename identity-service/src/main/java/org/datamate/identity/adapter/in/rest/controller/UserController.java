@@ -33,7 +33,6 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('ADMIN')")
     @AuditLog(action = "CREATE_USER", resource = "USER", description = "Create user account")
     @Operation(summary = "Create a new user", description = "Creates a new user account with the provided details such as username, email, password, and reference systems.")
     public UserDto createUser(@Valid @RequestBody CreateUserRequest request) {
