@@ -1,0 +1,3 @@
+org.datamate.authz.starter.config.AuthzCoreAutoConfiguration
+org.datamate.authz.starter.config.AuthzJpaAutoConfiguration
+org.datamate.authz.starter.config.AuthzRestAutoConfiguration
