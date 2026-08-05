@@ -9,6 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
+
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,14 +24,16 @@ import static org.mockito.Mockito.*;
 class DeactivateUserServiceTest {
 
     private UserPersistencePort userPort;
+    private ApplicationEventPublisher eventPublisher;
     private Logger log;
     private DeactivateUserService deactivateUserService;
 
     @BeforeEach
     void setUp() throws Exception {
         userPort = mock(UserPersistencePort.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
         log = mock(Logger.class);
-        deactivateUserService = new DeactivateUserService(userPort);
+        deactivateUserService = new DeactivateUserService(userPort, eventPublisher);
 
         Field logField = DeactivateUserService.class.getDeclaredField("log");
         logField.setAccessible(true);
@@ -56,6 +61,7 @@ class DeactivateUserServiceTest {
         assertNotNull(savedUser);
         assertEquals(UserStatus.INACTIVE, savedUser.getStatus());
         assertEquals("admin_user", savedUser.getLastModifiedBy());
+        verify(eventPublisher).publishEvent(any(UserDeactivatedEvent.class));
         verify(log).info("Starting deactivation of user ID: {} by admin: {}", userId, "admin_user");
         verify(log).info("Successfully deactivated user ID: {} by admin: {}", userId, "admin_user");
     }

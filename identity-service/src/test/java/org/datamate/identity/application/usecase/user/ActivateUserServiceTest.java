@@ -9,6 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.datamate.identity.shared.event.user.UserActivatedEvent;
+
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,14 +24,16 @@ import static org.mockito.Mockito.*;
 class ActivateUserServiceTest {
 
     private UserPersistencePort userPort;
+    private ApplicationEventPublisher eventPublisher;
     private Logger log;
     private ActivateUserService activateUserService;
 
     @BeforeEach
     void setUp() throws Exception {
         userPort = mock(UserPersistencePort.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
         log = mock(Logger.class);
-        activateUserService = new ActivateUserService(userPort);
+        activateUserService = new ActivateUserService(userPort, eventPublisher);
 
         Field logField = ActivateUserService.class.getDeclaredField("log");
         logField.setAccessible(true);
@@ -56,6 +61,7 @@ class ActivateUserServiceTest {
         assertNotNull(savedUser);
         assertEquals(UserStatus.ACTIVE, savedUser.getStatus());
         assertEquals("admin_user", savedUser.getLastModifiedBy());
+        verify(eventPublisher).publishEvent(any(UserActivatedEvent.class));
         verify(log).info("Starting activation of user ID: {} by admin: {}", userId, "admin_user");
         verify(log).info("Successfully activated user ID: {} by admin: {}", userId, "admin_user");
     }

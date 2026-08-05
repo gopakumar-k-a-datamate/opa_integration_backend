@@ -7,6 +7,7 @@ import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.domain.model.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class ActivateUserService implements ActivateUserUseCase {
     private Logger log;
 
     private final UserPersistencePort userPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -33,6 +35,8 @@ public class ActivateUserService implements ActivateUserUseCase {
 
         User activatedUser = user.activate(adminUsername);
         userPort.save(activatedUser);
+
+        activatedUser.pullEvents().forEach(eventPublisher::publishEvent);
 
         log.info("Successfully activated user ID: {} by admin: {}", id, adminUsername);
     }

@@ -7,6 +7,7 @@ import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.domain.model.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class DeactivateUserService implements DeactivateUserUseCase {
     private Logger log;
 
     private final UserPersistencePort userPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -33,6 +35,8 @@ public class DeactivateUserService implements DeactivateUserUseCase {
 
         User deactivatedUser = user.deactivate(adminUsername);
         userPort.save(deactivatedUser);
+
+        deactivatedUser.pullEvents().forEach(eventPublisher::publishEvent);
 
         log.info("Successfully deactivated user ID: {} by admin: {}", id, adminUsername);
     }
