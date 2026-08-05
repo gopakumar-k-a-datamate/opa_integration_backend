@@ -2,6 +2,8 @@ package org.datamate.identity.domain.model;
 
 import lombok.Getter;
 import org.datamate.identity.shared.event.user.UserCreatedEvent;
+import org.datamate.identity.shared.event.user.UserActivatedEvent;
+import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
 import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
 import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
 import org.datamate.identity.shared.model.UserStatus;
@@ -164,6 +166,80 @@ public class User extends AggregateRoot {
                 lastModifiedBy,
                 lastModifiedDate
         );
+    }
+
+    public User activate(String updatedBy) {
+        if (this.status == UserStatus.ACTIVE) {
+            return this;
+        }
+        User updatedUser = new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.passwordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                UserStatus.ACTIVE,
+                this.roles,
+                this.passwordTemporary,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+        updatedUser.registerEvent(new UserActivatedEvent(
+                this.id,
+                updatedUser.getDomainVersion() + 1,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.firstName,
+                this.lastName,
+                updatedBy
+        ));
+        return updatedUser;
+    }
+
+    public User deactivate(String updatedBy) {
+        if (this.status == UserStatus.INACTIVE) {
+            return this;
+        }
+        User updatedUser = new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.passwordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                UserStatus.INACTIVE,
+                this.roles,
+                this.passwordTemporary,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+        updatedUser.registerEvent(new UserDeactivatedEvent(
+                this.id,
+                updatedUser.getDomainVersion() + 1,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.firstName,
+                this.lastName,
+                updatedBy
+        ));
+        return updatedUser;
     }
 
     public User resetPassword(String newPasswordHash, String adminUsername) {

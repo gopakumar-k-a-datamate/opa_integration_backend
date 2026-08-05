@@ -23,6 +23,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
+import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
+
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -35,6 +39,8 @@ public class UserController {
     private final ListUserUseCase listUserUseCase;
     private final CreateUserUseCase createUserUseCase;
     private final GetUserUseCase getUserUseCase;
+    private final ActivateUserUseCase activateUserUseCase;
+    private final DeactivateUserUseCase deactivateUserUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
 
@@ -73,6 +79,25 @@ public class UserController {
         return result;
     }
 
+    @PostMapping("/{id}/activate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "ACTIVATE_USER", resource = "USER", description = "Activate user account")
+    @Operation(summary = "Activate user account", description = "Activates an inactive user account.")
+    public void activateUser(@PathVariable UUID id, Principal principal) {
+        String adminUsername = principal != null ? principal.getName() : "SYSTEM";
+        log.info("Activate user request received for ID: {} by admin: {}", id, adminUsername);
+        activateUserUseCase.activateUser(id, adminUsername);
+    }
+
+    @PostMapping("/{id}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "DEACTIVATE_USER", resource = "USER", description = "Deactivate user account")
+    @Operation(summary = "Deactivate user account", description = "Deactivates an active user account.")
+    public void deactivateUser(@PathVariable UUID id, Principal principal) {
+        String adminUsername = principal != null ? principal.getName() : "SYSTEM";
+        log.info("Deactivate user request received for ID: {} by admin: {}", id, adminUsername);
+        deactivateUserUseCase.deactivateUser(id, adminUsername);
+    }
     @PostMapping("/{id}/reset-password")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "RESET_USER_PASSWORD", resource = "USER", description = "Administrator reset user password")

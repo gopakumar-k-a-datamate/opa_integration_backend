@@ -9,6 +9,8 @@ import org.datamate.identity.application.dto.user.UserResponseDto;
 import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.ListUserUseCase;
 import org.datamate.identity.application.port.in.user.GetUserUseCase;
+import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
+import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
@@ -30,6 +32,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -50,6 +53,12 @@ class UserControllerTest {
 
     @Mock
     private GetUserUseCase getUserUseCase;
+
+    @Mock
+    private ActivateUserUseCase activateUserUseCase;
+
+    @Mock
+    private DeactivateUserUseCase deactivateUserUseCase;
 
     @Mock
     private Logger log;
@@ -227,5 +236,27 @@ class UserControllerTest {
         mockMvc.perform(get("/api/v1/users/" + sampleId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldActivateUserSuccessfully() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+
+        mockMvc.perform(post("/api/v1/users/" + sampleId + "/activate")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(activateUserUseCase).activateUser(eq(sampleId), eq("SYSTEM"));
+    }
+
+    @Test
+    void shouldDeactivateUserSuccessfully() throws Exception {
+        UUID sampleId = UUID.randomUUID();
+
+        mockMvc.perform(post("/api/v1/users/" + sampleId + "/deactivate")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(deactivateUserUseCase).deactivateUser(eq(sampleId), eq("SYSTEM"));
     }
 }
