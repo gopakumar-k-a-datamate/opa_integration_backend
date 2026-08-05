@@ -5,6 +5,8 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.shared.event.user.UserCreatedEvent;
 import org.datamate.identity.shared.event.user.UserActivatedEvent;
 import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
+import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
+import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
@@ -29,9 +31,23 @@ public class UserEventListener {
     }
 
     @ApplicationModuleListener
+    public void onUserPasswordResetByAdmin(UserPasswordResetByAdminEvent event) {
+        if (log != null) {
+            log.info("Received UserPasswordResetByAdminEvent outbox event for user ID: {}, reset by admin: {}", event.aggregateId(), event.resetBy());
+        }
+    }
+
+    @ApplicationModuleListener
     public void onUserDeactivated(UserDeactivatedEvent event) {
         if (log != null) {
             log.info("Received UserDeactivatedEvent outbox event for user ID: {}, deactivated by: {}", event.aggregateId(), event.deactivatedBy());
+        }
+    }
+
+    @ApplicationModuleListener
+    public void onUserPasswordChanged(UserPasswordChangedEvent event) {
+        if (log != null) {
+            log.info("Received UserPasswordChangedEvent outbox event for user ID: {}, changed by: {}", event.aggregateId(), event.changedBy());
         }
     }
 }

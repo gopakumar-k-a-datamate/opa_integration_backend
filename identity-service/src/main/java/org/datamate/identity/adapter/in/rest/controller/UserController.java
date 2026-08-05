@@ -6,8 +6,12 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
+import org.datamate.identity.application.dto.user.ResetPasswordRequest;
+import org.datamate.identity.application.dto.user.ChangePasswordRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.datamate.identity.application.port.in.user.ResetPasswordUseCase;
+import org.datamate.identity.application.port.in.user.ChangePasswordUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
 import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.datamate.identity.application.port.in.user.ListUserUseCase;
@@ -37,6 +41,8 @@ public class UserController {
     private final GetUserUseCase getUserUseCase;
     private final ActivateUserUseCase activateUserUseCase;
     private final DeactivateUserUseCase deactivateUserUseCase;
+    private final ResetPasswordUseCase resetPasswordUseCase;
+    private final ChangePasswordUseCase changePasswordUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -54,7 +60,6 @@ public class UserController {
         log.info("Get user details request received for ID: {}", id);
         return getUserUseCase.getUserById(id);
     }
-
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -92,5 +97,22 @@ public class UserController {
         String adminUsername = principal != null ? principal.getName() : "SYSTEM";
         log.info("Deactivate user request received for ID: {} by admin: {}", id, adminUsername);
         deactivateUserUseCase.deactivateUser(id, adminUsername);
+    }
+    @PostMapping("/{id}/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "RESET_USER_PASSWORD", resource = "USER", description = "Administrator reset user password")
+    @Operation(summary = "Reset user password", description = "Allows a System Administrator to reset a user's password to a temporary password.")
+    public UserDto resetPassword(@PathVariable UUID id, @Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Admin reset password request received for user ID: {}", id);
+        return resetPasswordUseCase.resetPassword(id, request);
+    }
+
+    @PostMapping("/{id}/change-password")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "CHANGE_USER_PASSWORD", resource = "USER", description = "User changed password")
+    @Operation(summary = "Change user password", description = "Allows an authenticated user to change their password by supplying the old password.")
+    public UserDto changePassword(@PathVariable UUID id, @Valid @RequestBody ChangePasswordRequest request) {
+        log.info("Change password request received for user ID: {}", id);
+        return changePasswordUseCase.changePassword(id, request);
     }
 }
