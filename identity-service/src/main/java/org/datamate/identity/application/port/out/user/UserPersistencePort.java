@@ -15,6 +15,7 @@ public interface UserPersistencePort {
     Optional<User> findByUserName(String userName);
     boolean existsByUserName(String userName);
     boolean existsByEmail(String email);
+    boolean existsByEmailAndIdNot(String email, UUID id);
     List<User> findAll();
     Paged<User> searchUsers(UserSearchCriteria criteria, PageQuery pageQuery);
 }

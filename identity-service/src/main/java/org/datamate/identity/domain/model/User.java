@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.datamate.identity.shared.event.user.UserCreatedEvent;
 import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
 import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
+import org.datamate.identity.shared.event.user.UserInformationUpdatedEvent;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 import org.datamate.identity.domain.exception.user.InvalidUserDataException;
@@ -232,6 +233,68 @@ public class User extends AggregateRoot {
                 username
         ));
         return updatedUser;
+    }
+
+    public User updateInformation(
+            String email,
+            String phoneNumber,
+            String firstName,
+            String lastName,
+            String referenceSystem,
+            String referenceValue,
+            String adminUsername
+    ) {
+        validateUpdate(email, firstName, lastName);
+
+        User updatedUser = new User(
+                this.id,
+                this.userName,
+                email,
+                phoneNumber,
+                this.passwordHash,
+                firstName,
+                lastName,
+                referenceSystem,
+                referenceValue,
+                this.status,
+                this.roles,
+                this.passwordTemporary,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                adminUsername,
+                LocalDateTime.now()
+        );
+
+        updatedUser.registerEvent(new UserInformationUpdatedEvent(
+                this.id,
+                updatedUser.getDomainVersion() + 1,
+                email,
+                phoneNumber,
+                firstName,
+                lastName,
+                referenceSystem,
+                referenceValue,
+                adminUsername
+        ));
+
+        return updatedUser;
+    }
+
+    private void validateUpdate(String email, String firstName, String lastName) {
+        if (email == null || email.isBlank()) {
+            throw new InvalidUserDataException("Email is required.");
+        }
+        if (!email.contains("@")) {
+            throw new InvalidUserDataException("Email must be valid.");
+        }
+        if (firstName == null || firstName.isBlank()) {
+            throw new InvalidUserDataException("First name is required.");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new InvalidUserDataException("Last name is required.");
+        }
     }
 
     private static void validateState(

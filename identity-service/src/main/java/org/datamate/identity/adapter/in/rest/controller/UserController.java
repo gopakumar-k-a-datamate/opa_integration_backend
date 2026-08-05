@@ -22,7 +22,10 @@ import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.datamate.identity.application.port.in.user.UpdateUserUseCase;
+import org.datamate.identity.application.dto.user.UpdateUserRequest;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -37,6 +40,7 @@ public class UserController {
     private final GetUserUseCase getUserUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
+    private final UpdateUserUseCase updateUserUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -89,5 +93,19 @@ public class UserController {
     public UserDto changePassword(@PathVariable UUID id, @Valid @RequestBody ChangePasswordRequest request) {
         log.info("Change password request received for user ID: {}", id);
         return changePasswordUseCase.changePassword(id, request);
+    }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "UPDATE_USER", resource = "USER", description = "Update user details")
+    @Operation(summary = "Update user account information", description = "Edits the information of an existing user account.")
+    public UserDto updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRequest request,
+            Principal principal
+    ) {
+        String adminUsername = principal != null ? principal.getName() : "SYSTEM";
+        log.info("Update user request received for ID: {} by admin: {}", id, adminUsername);
+        return updateUserUseCase.updateUser(id, request, adminUsername);
     }
 }

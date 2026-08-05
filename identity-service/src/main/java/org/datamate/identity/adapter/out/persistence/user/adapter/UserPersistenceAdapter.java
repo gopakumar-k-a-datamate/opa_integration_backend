@@ -36,7 +36,9 @@ public class UserPersistenceAdapter implements UserPersistencePort {
 
     @Override
     public User save(User user) {
-        UserJpaEntity entity = mapper.mapToJpaEntity(user);
+        UserJpaEntity entity = repository.findById(user.getId())
+                .orElseGet(UserJpaEntity::new);
+        mapper.updateJpaEntity(entity, user);
         UserJpaEntity savedEntity = repository.save(entity);
         log.debug("User '{}' persisted with id {}", savedEntity.getUserName(), savedEntity.getId());
         return mapper.mapToDomain(savedEntity);
@@ -60,6 +62,11 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     @Override
     public boolean existsByEmail(String email) {
         return repository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean existsByEmailAndIdNot(String email, UUID id) {
+        return repository.existsByEmailAndIdNot(email, id);
     }
 
     @Override
