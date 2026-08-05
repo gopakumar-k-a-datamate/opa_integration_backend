@@ -2,6 +2,8 @@ package org.datamate.identity.domain.model;
 
 import lombok.Getter;
 import org.datamate.identity.shared.event.user.UserCreatedEvent;
+import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
+import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 import org.datamate.identity.domain.exception.user.InvalidUserDataException;
@@ -162,6 +164,74 @@ public class User extends AggregateRoot {
                 lastModifiedBy,
                 lastModifiedDate
         );
+    }
+
+    public User resetPassword(String newPasswordHash, String adminUsername) {
+        User updatedUser = new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                newPasswordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                this.status,
+                this.roles,
+                true, // passwordTemporary = true
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                adminUsername,
+                LocalDateTime.now()
+        );
+        updatedUser.registerEvent(new UserPasswordResetByAdminEvent(
+                this.id,
+                updatedUser.getDomainVersion() + 1,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.firstName,
+                this.lastName,
+                adminUsername
+        ));
+        return updatedUser;
+    }
+
+    public User changePassword(String newPasswordHash, String username) {
+        User updatedUser = new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                newPasswordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                this.status,
+                this.roles,
+                false, // passwordTemporary = false
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                username,
+                LocalDateTime.now()
+        );
+        updatedUser.registerEvent(new UserPasswordChangedEvent(
+                this.id,
+                updatedUser.getDomainVersion() + 1,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.firstName,
+                this.lastName,
+                username
+        ));
+        return updatedUser;
     }
 
     private static void validateState(
