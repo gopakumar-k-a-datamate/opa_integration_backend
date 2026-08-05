@@ -19,7 +19,8 @@ public class AuditLogSpecification {
             }
 
             if (StringUtils.hasText(username)) {
-                predicates.add(criteriaBuilder.equal(root.get("username"), username));
+                String searchPattern = "%" + username + "%";
+                predicates.add(criteriaBuilder.like(root.get("arguments"), searchPattern));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

@@ -18,7 +18,7 @@ public class AuthController {
     private final LoginUseCase loginUseCase;
 
     @PostMapping("/login")
-    @AuditLog(action = "USER_LOGIN", resource = "AUTH", description = "User login attempt")
+    @AuditLog(action = "USER_LOGIN", resource = "AUTH", description = "User login attempt", includeArgs = true)
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginCommand command = new LoginCommand(request.userName(), request.password());
         AuthResponse response = loginUseCase.login(command);

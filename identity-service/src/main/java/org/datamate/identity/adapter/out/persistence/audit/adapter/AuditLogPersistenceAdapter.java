@@ -36,7 +36,7 @@ public class AuditLogPersistenceAdapter implements AuditLogPersistencePort {
 
         List<LoginHistoryDto> dtos = pageResult.getContent().stream()
                 .map(log -> new LoginHistoryDto(
-                        log.getUsername(),
+                        extractUsernameFromArguments(log.getArguments(), log.getUsername()),
                         log.getCreatedDate(),
                         log.getStatus() != null ? log.getStatus().name() : "SUCCESS",
                         log.getClientIp(),
@@ -53,5 +53,21 @@ public class AuditLogPersistenceAdapter implements AuditLogPersistencePort {
                 pageResult.hasNext(),
                 pageResult.hasPrevious()
         );
+    }
+
+    private String extractUsernameFromArguments(String argumentsJson, String defaultUsername) {
+        if (argumentsJson == null) {
+            return defaultUsername;
+        }
+        try {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\"user[nN]ame\"\\s*:\\s*\"([^\"]+)\"")
+                    .matcher(argumentsJson);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        } catch (Exception e) {
+            // Fallback to default if parsing fails
+        }
+        return defaultUsername;
     }
 }
