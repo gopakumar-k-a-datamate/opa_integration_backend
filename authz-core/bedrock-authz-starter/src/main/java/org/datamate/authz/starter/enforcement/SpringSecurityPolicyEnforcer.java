@@ -49,7 +49,7 @@ public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
     @Override
     public boolean evaluate(Object resource) {
         if (!supports(resource)) {
-            log.debug("Resource {} is not annotated with @PolicyResource. Bypassing OPA evaluation.", 
+            log.debug("Resource {} is not annotated with @PolicyResource. Bypassing policy evaluation.", 
                     resource != null ? resource.getClass().getName() : "null");
             return true;
         }

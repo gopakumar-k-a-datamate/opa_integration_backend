@@ -1,15 +1,15 @@
 package org.datamate.authz.api.policy;
 
 /**
- * Port for triggering OPA policy bundle recompilation.
+ * Port for triggering policy bundle recompilation.
  *
  * <p>Application use cases that modify policies (e.g. {@code SavePoliciesService})
- * depend on this interface rather than the concrete {@code DefaultPolicyCompiler},
+ * depend on this interface rather than a concrete compiler implementation,
  * adhering to the Dependency Inversion Principle.</p>
  *
  * <p>The implementation reads all enabled policies from the database, generates
- * Rego code, packages it as {@code bundle.tar.gz}, and stores it in
- * {@code authz_policy_bundle_cache} for the OPA sidecar to pick up.</p>
+ * the engine-specific code or format, packages it, and makes it available
+ * for the policy engine sidecar or local evaluator to pick up.</p>
  */
 public interface PolicyCompiler {
 
