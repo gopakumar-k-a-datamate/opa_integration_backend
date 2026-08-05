@@ -9,8 +9,7 @@ import org.datamate.authz.jpa.repository.SpringDataConditionFieldRepository;
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.model.policy.entity.ConditionField;
-import org.datamate.authz.jpa.mapper.ConditionFieldPersistenceMapper;
-import org.datamate.authz.jpa.mapper.JsonMapper;
+
 import org.datamate.authz.model.policy.enumtype.FieldStatus;
 import org.springframework.stereotype.Component;
 
@@ -23,8 +22,7 @@ import java.util.Optional;
 public class JpaConditionFieldRepository implements ConditionFieldRepository {
 
     private final SpringDataConditionFieldRepository repository;
-    private final ConditionFieldPersistenceMapper mapper;
-    private final JsonMapper jsonMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public ConditionField upsert(Long id, Long permissionId, String fieldName,
@@ -34,22 +32,22 @@ public class JpaConditionFieldRepository implements ConditionFieldRepository {
                 .findByPermissionIdAndFieldNameAndDeletedAtIsNull(permissionId, fieldName)
                 .orElseGet(ConditionFieldJpaEntity::new);
 
-        mapper.updateEntity(entity, id, permissionId, fieldName, fieldType, displayName, allowedValues, optionsEndpoint);
+        updateEntity(entity, id, permissionId, fieldName, fieldType, displayName, allowedValues, optionsEndpoint);
 
-        return mapper.toDomain(repository.save(entity));
+        return toDomain(repository.save(entity));
     }
 
     @Override
     public List<ConditionField> findActiveByPermissionId(Long permissionId) {
         return repository
                 .findByPermissionIdAndStatusAndDeletedAtIsNull(permissionId, FieldStatus.ACTIVE)
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
     public List<ConditionField> findAllByPermissionId(Long permissionId) {
         return repository.findByPermissionIdAndDeletedAtIsNull(permissionId)
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
@@ -57,13 +55,13 @@ public class JpaConditionFieldRepository implements ConditionFieldRepository {
                                                                         String fieldName) {
         return repository
                 .findByPermissionIdAndFieldNameAndDeletedAtIsNull(permissionId, fieldName)
-                .map(mapper::toDomain);
+                .map(this::toDomain);
     }
 
     @Override
     public List<ConditionField> findAllDeprecated() {
         return repository.findByStatusAndDeletedAtIsNull(FieldStatus.DEPRECATED)
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
@@ -80,6 +78,49 @@ public class JpaConditionFieldRepository implements ConditionFieldRepository {
             entity.setDeletedAt(LocalDateTime.now());
             repository.save(entity);
         });
+    }
+
+    private ConditionField toDomain(ConditionFieldJpaEntity e) {
+        if (e == null) return null;
+        return ConditionField.reconstitute(
+                e.getId(), e.getPermissionId(), e.getFieldName(), e.getFieldType(),
+                e.getDisplayName(), deserializeList(e.getAllowedValues()),
+                e.getOptionsEndpoint(), e.getStatus(),
+                e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt()
+        );
+    }
+
+    private void updateEntity(ConditionFieldJpaEntity entity, Long id, Long permissionId, String fieldName,
+                             FieldType fieldType, String displayName, List<String> allowedValues, String optionsEndpoint) {
+        if (entity.getId() == null) {
+            entity.setId(id);
+        }
+        entity.setPermissionId(permissionId);
+        entity.setFieldName(fieldName);
+        entity.setFieldType(fieldType);
+        entity.setDisplayName(displayName);
+        entity.setAllowedValues(serializeList(allowedValues));
+        entity.setOptionsEndpoint(optionsEndpoint);
+        entity.setStatus(FieldStatus.ACTIVE);
+        entity.setDeletedAt(null);
+    }
+
+    private String serializeList(List<String> list) {
+        if (list == null || list.isEmpty()) return null;
+        try {
+            return objectMapper.writeValueAsString(list);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private List<String> deserializeList(String json) {
+        if (json == null || json.isBlank()) return List.of();
+        try {
+            return objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 }
 

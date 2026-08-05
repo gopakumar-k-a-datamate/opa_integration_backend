@@ -1,6 +1,7 @@
 package org.datamate.authz.rest.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.datamate.authz.enforcement.AuthorizationContext;
 import org.datamate.authz.dto.policy.EvaluationPayload;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +50,19 @@ public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
     }
 
     @Override
-    public boolean evaluate(String namespace, EvaluationPayload payload) {
+    public boolean evaluate(String namespace, AuthorizationContext context) {
+        // Map the generic AuthorizationContext into OPA's specific input payload format
+        EvaluationPayload payload = EvaluationPayload.builder()
+                .input(EvaluationPayload.Input.builder()
+                        .user(EvaluationPayload.User.builder()
+                                .id(context.userId())
+                                .roles(context.roles())
+                                .build())
+                        .permission(context.permissionCode())
+                        .resource(context.resourceData())
+                        .build())
+                .build();
+
         String url = String.format(evaluationUrl, namespace);
         try {
             log.debug("Sending evaluation request to OPA at URL: {}", url);

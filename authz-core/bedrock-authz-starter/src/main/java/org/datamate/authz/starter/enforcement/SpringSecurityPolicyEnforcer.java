@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.authz.dto.policy.EvaluationPayload;
+import org.datamate.authz.enforcement.AuthorizationContext;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
@@ -117,21 +117,12 @@ public class SpringSecurityPolicyEnforcer implements PolicyEnforcer {
             }
         }
 
-        // 4. Construct Payload
-        EvaluationPayload payload = EvaluationPayload.builder()
-                .input(EvaluationPayload.Input.builder()
-                        .user(EvaluationPayload.User.builder()
-                                .id(userId)
-                                .roles(roles)
-                                .build())
-                        .permission(permissionCode)
-                        .resource(resourceContext)
-                        .build())
-                .build();
+        // 4. Construct generic AuthorizationContext (engine-agnostic)
+        AuthorizationContext context = AuthorizationContext.of(userId, roles, permissionCode, resourceContext);
 
-        // 5. Evaluate Policy against OPA
+        // 5. Evaluate Policy via the engine adapter
         log.debug("Evaluating policy for permission: {}", permissionCode);
-        return policyEvaluationClient.evaluate(resourceAnnotation.namespace(), payload);
+        return policyEvaluationClient.evaluate(resourceAnnotation.namespace(), context);
     }
 
     @Override

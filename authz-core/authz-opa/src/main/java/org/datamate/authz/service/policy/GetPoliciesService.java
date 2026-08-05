@@ -3,8 +3,8 @@ package org.datamate.authz.service.policy;
 import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.dto.policy.mapper.PolicyDtoMapper;
-import org.datamate.authz.service.policy.GetPoliciesService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.datamate.authz.api.policy.PermissionRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.ResourceRepository;
@@ -34,8 +34,7 @@ public class GetPoliciesService {
     private final PermissionRepository permissionPort;
     private final ResourceRepository resourcePort;
     private final PolicyRepository policyPort;
-    private final PolicyDtoMapper policyDtoMapper;
-
+    private final ObjectMapper objectMapper;
     
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace) {
         // Build resource lookup map filtered by namespace
@@ -58,12 +57,47 @@ public class GetPoliciesService {
         for (Permission permission : permissions) {
             Resource resource = resourcesById.get(permission.getResourceId());
             if (resource == null) continue;
-
             Policy policy = policyByPermissionId.get(permission.getId());
-            result.add(policyDtoMapper.toDto(permission, resource, policy));
+            result.add(toDto(permission, resource, policy));
         }
 
         return result;
+    }
+
+    private PolicyGridItemDto toDto(Permission permission, Resource resource, Policy policy) {
+        if (policy == null) {
+            return new PolicyGridItemDto(
+                    permission.getCode(),
+                    permission.getAction(),
+                    resource.getNamespace(),
+                    resource.getName(),
+                    null, null, null, false, null, null, false
+            );
+        }
+
+        JsonNode expressionNode = parseJson(policy.getExpressionJson());
+        return new PolicyGridItemDto(
+                permission.getCode(),
+                permission.getAction(),
+                resource.getNamespace(),
+                resource.getName(),
+                policy.getId(),
+                policy.getEffect(),
+                expressionNode,
+                policy.isEnabled(),
+                policy.getDisabledReason(),
+                policy.getDeletedReason(),
+                policy.isDeprecated()
+        );
+    }
+
+    private JsonNode parseJson(String json) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readTree(json);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
 

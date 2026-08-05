@@ -6,7 +6,7 @@ import org.datamate.authz.jpa.entity.PermissionJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPermissionRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
 import org.datamate.authz.model.policy.entity.Permission;
-import org.datamate.authz.jpa.mapper.PermissionPersistenceMapper;
+import org.datamate.authz.model.policy.enumtype.Status;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,7 +17,6 @@ import java.util.Optional;
 public class JpaPermissionRepository implements PermissionRepository {
 
     private final SpringDataPermissionRepository repository;
-    private final PermissionPersistenceMapper mapper;
 
     @Override
     public Permission upsert(Long id, Long resourceId, String action, String code,
@@ -26,19 +25,39 @@ public class JpaPermissionRepository implements PermissionRepository {
                 .findByResourceIdAndActionAndDeletedAtIsNull(resourceId, action)
                 .orElseGet(PermissionJpaEntity::new);
 
-        mapper.updateEntity(entity, id, resourceId, action, code, description);
+        updateEntity(entity, id, resourceId, action, code, description);
 
-        return mapper.toDomain(repository.save(entity));
+        return toDomain(repository.save(entity));
     }
 
     @Override
     public Optional<Permission> findByCode(String code) {
-        return repository.findByCodeAndDeletedAtIsNull(code).map(mapper::toDomain);
+        return repository.findByCodeAndDeletedAtIsNull(code).map(this::toDomain);
     }
 
     @Override
     public List<Permission> findAllActive() {
-        return repository.findAllByDeletedAtIsNull().stream().map(mapper::toDomain).toList();
+        return repository.findAllByDeletedAtIsNull().stream().map(this::toDomain).toList();
+    }
+
+    private Permission toDomain(PermissionJpaEntity e) {
+        if (e == null) return null;
+        return Permission.reconstitute(e.getId(), e.getResourceId(), e.getAction(), e.getCode(),
+                e.getDescription(), e.getStatus(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt());
+    }
+
+    private void updateEntity(PermissionJpaEntity entity, Long id, Long resourceId, String action, String code, String description) {
+        if (entity.getId() == null) {
+            entity.setId(id);
+        }
+        entity.setResourceId(resourceId);
+        entity.setAction(action);
+        entity.setCode(code);
+        entity.setDescription(description);
+        if (entity.getStatus() == null) {
+            entity.setStatus(Status.ACTIVE);
+        }
+        entity.setDeletedAt(null);
     }
 
 }

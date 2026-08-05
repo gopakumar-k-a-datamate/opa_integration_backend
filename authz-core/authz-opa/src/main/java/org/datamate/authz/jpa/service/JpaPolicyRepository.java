@@ -6,7 +6,7 @@ import org.datamate.authz.jpa.entity.PolicyJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPolicyRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.model.policy.entity.Policy;
-import org.datamate.authz.jpa.mapper.PolicyPersistenceMapper;
+
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.datamate.authz.exception.StaleDataException;
@@ -22,31 +22,30 @@ import java.util.Optional;
 public class JpaPolicyRepository implements PolicyRepository {
 
     private final SpringDataPolicyRepository repository;
-    private final PolicyPersistenceMapper mapper;
 
     @Override
     public List<Policy> findAllEnabled() {
         return repository.findAllByEnabledTrueAndDeletedAtIsNull()
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
     public List<Policy> findAllActive() {
         return repository.findAllByDeletedAtIsNull()
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
     public List<Policy> findBySubject(SubjectType subjectType, String subjectId) {
         return repository
                 .findBySubjectTypeAndSubjectIdAndDeletedAtIsNull(subjectType, subjectId)
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
     public List<Policy> findEnabledReferencingField(Long permissionId, String fieldName) {
         return repository.findEnabledReferencingField(permissionId, fieldName)
-                .stream().map(mapper::toDomain).toList();
+                .stream().map(this::toDomain).toList();
     }
 
     @Override
@@ -58,10 +57,10 @@ public class JpaPolicyRepository implements PolicyRepository {
                         permissionId, subjectType, subjectId)
                 .orElseGet(PolicyJpaEntity::new);
 
-        mapper.updateEntity(entity, id, permissionId, subjectType, subjectId, effect, expressionJson, enabled, disabledReason);
+        updateEntity(entity, id, permissionId, subjectType, subjectId, effect, expressionJson, enabled, disabledReason);
 
         try {
-            return mapper.toDomain(repository.save(entity));
+            return toDomain(repository.save(entity));
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new StaleDataException("The policy has been modified by another user. Please refresh and try again.");
         }
@@ -91,6 +90,30 @@ public class JpaPolicyRepository implements PolicyRepository {
             entity.setDisabledReason(reason);
             repository.save(entity);
         });
+    }
+
+    private Policy toDomain(PolicyJpaEntity e) {
+        if (e == null) return null;
+        return Policy.reconstitute(
+                e.getId(), e.getPermissionId(), e.getSubjectType(), e.getSubjectId(),
+                e.getEffect(), e.getExpressionJson(), e.isEnabled(), e.getDisabledReason(),
+                e.isDeprecated(), e.getVersion(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt(), e.getDeletedReason()
+        );
+    }
+
+    private void updateEntity(PolicyJpaEntity entity, Long id, Long permissionId, SubjectType subjectType, String subjectId,
+                             PolicyEffect effect, String expressionJson, boolean enabled, String disabledReason) {
+        if (entity.getId() == null) {
+            entity.setId(id);
+        }
+        entity.setPermissionId(permissionId);
+        entity.setSubjectType(subjectType);
+        entity.setSubjectId(subjectId);
+        entity.setEffect(effect);
+        entity.setExpressionJson(expressionJson);
+        entity.setEnabled(enabled);
+        entity.setDisabledReason(disabledReason);
+        entity.setDeletedAt(null);
     }
 }
 

@@ -9,7 +9,7 @@ import org.datamate.authz.model.policy.entity.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.datamate.authz.dto.policy.mapper.ConditionFieldDtoMapper;
+import org.datamate.authz.model.policy.entity.ConditionField;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +24,6 @@ public class GetConditionFieldsService {
 
     private final PermissionRepository permissionPort;
     private final ConditionFieldRepository conditionFieldPort;
-    private final ConditionFieldDtoMapper conditionFieldDtoMapper;
 
     
     public List<ConditionFieldDto> getFields(String permissionCode) {
@@ -35,8 +34,20 @@ public class GetConditionFieldsService {
 
         return conditionFieldPort.findAllByPermissionId(permission.get().getId())
                 .stream()
-                .map(conditionFieldDtoMapper::toDto)
+                .map(this::toDto)
                 .toList();
+    }
+
+    private ConditionFieldDto toDto(ConditionField field) {
+        if (field == null) return null;
+        return new ConditionFieldDto(
+                field.getFieldName(),
+                field.getFieldType(),
+                field.getDisplayName(),
+                field.getAllowedValues(),
+                field.getOptionsEndpoint(),
+                field.getStatus()
+        );
     }
 }
 

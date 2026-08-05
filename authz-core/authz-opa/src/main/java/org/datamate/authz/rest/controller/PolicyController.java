@@ -9,6 +9,7 @@ import org.datamate.authz.service.policy.SavePoliciesService;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 @RestController
+@ConditionalOnProperty(name = "datamate.authz.admin.enabled", havingValue = "true")
 @RequestMapping("/internal/authz/policies")
 public class PolicyController {
 

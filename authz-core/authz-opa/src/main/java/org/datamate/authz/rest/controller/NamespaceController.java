@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @RestController
+@ConditionalOnProperty(name = "datamate.authz.admin.enabled", havingValue = "true")
 @RequestMapping("/internal/authz/namespaces")
 public class NamespaceController {
 

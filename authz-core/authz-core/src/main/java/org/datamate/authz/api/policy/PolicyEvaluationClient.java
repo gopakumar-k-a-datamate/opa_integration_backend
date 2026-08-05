@@ -1,14 +1,18 @@
 package org.datamate.authz.api.policy;
 
-import org.datamate.authz.dto.policy.EvaluationPayload;
+import org.datamate.authz.enforcement.AuthorizationContext;
 
 public interface PolicyEvaluationClient {
     /**
-     * Evaluates the given input payload against the specified namespace's OPA bundle.
+     * Evaluates the given authorization context against the policy engine.
+     *
+     * <p>Implementations are responsible for translating the generic
+     * {@link AuthorizationContext} into the engine-specific request format
+     * (e.g. OPA's {@code input} JSON payload).
      *
      * @param namespace The namespace of the resource (e.g. "finance").
-     * @param payload   The input payload containing user, permission, and resource context.
-     * @return true if OPA allows the request, false otherwise.
+     * @param context   The generic authorization context (user, roles, permission, resource).
+     * @return true if the policy engine allows the request, false otherwise.
      */
-    boolean evaluate(String namespace, EvaluationPayload payload);
+    boolean evaluate(String namespace, AuthorizationContext context);
 }

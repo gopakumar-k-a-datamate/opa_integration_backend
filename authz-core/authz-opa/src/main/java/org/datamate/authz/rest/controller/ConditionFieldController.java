@@ -6,6 +6,7 @@ import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.service.policy.GetConditionFieldsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @RestController
+@ConditionalOnProperty(name = "datamate.authz.admin.enabled", havingValue = "true")
 @RequestMapping("/internal/authz/permissions")
 public class ConditionFieldController {
 
