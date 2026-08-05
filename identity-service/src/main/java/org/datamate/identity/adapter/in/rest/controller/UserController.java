@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
 import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -77,7 +78,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "ACTIVATE_USER", resource = "USER", description = "Activate user account")
     @Operation(summary = "Activate user account", description = "Activates an inactive user account.")
-    public void activateUser(@PathVariable UUID id, java.security.Principal principal) {
+    public void activateUser(@PathVariable UUID id, Principal principal) {
         String adminUsername = principal != null ? principal.getName() : "SYSTEM";
         log.info("Activate user request received for ID: {} by admin: {}", id, adminUsername);
         activateUserUseCase.activateUser(id, adminUsername);
@@ -87,7 +88,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "DEACTIVATE_USER", resource = "USER", description = "Deactivate user account")
     @Operation(summary = "Deactivate user account", description = "Deactivates an active user account.")
-    public void deactivateUser(@PathVariable UUID id, java.security.Principal principal) {
+    public void deactivateUser(@PathVariable UUID id, Principal principal) {
         String adminUsername = principal != null ? principal.getName() : "SYSTEM";
         log.info("Deactivate user request received for ID: {} by admin: {}", id, adminUsername);
         deactivateUserUseCase.deactivateUser(id, adminUsername);
