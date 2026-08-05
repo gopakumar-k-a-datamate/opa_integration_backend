@@ -164,6 +164,58 @@ public class User extends AggregateRoot {
         );
     }
 
+    public User activate(String updatedBy) {
+        if (this.status == UserStatus.ACTIVE) {
+            return this;
+        }
+        return new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.passwordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                UserStatus.ACTIVE,
+                this.roles,
+                this.passwordTemporary,
+                this.version,
+                this.getDomainVersion() + 1,
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+    }
+
+    public User deactivate(String updatedBy) {
+        if (this.status == UserStatus.INACTIVE) {
+            return this;
+        }
+        return new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.passwordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                UserStatus.INACTIVE,
+                this.roles,
+                this.passwordTemporary,
+                this.version,
+                this.getDomainVersion() + 1,
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+    }
+
     private static void validateState(
             String userName,
             String email,
@@ -195,3 +247,4 @@ public class User extends AggregateRoot {
         }
     }
 }
+
