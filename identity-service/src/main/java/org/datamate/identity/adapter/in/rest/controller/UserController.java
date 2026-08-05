@@ -9,6 +9,10 @@ import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
 import org.datamate.identity.application.port.in.user.UserManagementUseCase;
+import org.datamate.identity.application.port.in.user.GetLoginHistoryUseCase;
+import org.datamate.identity.application.dto.user.LoginHistoryDto;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +30,7 @@ public class UserController {
 
     private final UserManagementUseCase userManagementUseCase;
     private final CreateUserUseCase createUserUseCase;
+    private final GetLoginHistoryUseCase getLoginHistoryUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,5 +45,15 @@ public class UserController {
     public ResponseEntity<List<UserDto>> listUsers() {
         log.info("List users request received");
         return ResponseEntity.ok(userManagementUseCase.listUsers());
+    }
+
+    @GetMapping("/login-history")
+    @ResponseStatus(HttpStatus.OK)
+    public Paged<LoginHistoryDto> getLoginHistory(
+            @RequestParam(required = false) String username,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Request received to view login history. filter: {}, page: {}, size: {}", username, page, size);
+        return getLoginHistoryUseCase.getLoginHistory(username, new PageQuery(page - 1, size));
     }
 }

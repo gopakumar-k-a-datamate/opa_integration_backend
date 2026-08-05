@@ -1,5 +1,6 @@
 package org.datamate.identity.adapter.in.rest.controller;
 
+import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.command.LoginCommand;
@@ -17,6 +18,7 @@ public class AuthController {
     private final LoginUseCase loginUseCase;
 
     @PostMapping("/login")
+    @AuditLog(action = "USER_LOGIN", resource = "AUTH", description = "User login attempt")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginCommand command = new LoginCommand(request.userName(), request.password());
         AuthResponse response = loginUseCase.login(command);
@@ -24,6 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @AuditLog(action = "USER_LOGOUT", resource = "AUTH", description = "User logout")
     public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         loginUseCase.logout(authHeader);
         return ResponseEntity.ok().build();
