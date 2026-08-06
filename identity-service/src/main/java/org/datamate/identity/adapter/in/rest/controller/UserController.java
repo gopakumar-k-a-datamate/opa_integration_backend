@@ -10,6 +10,9 @@ import org.datamate.identity.application.dto.user.ResetPasswordRequest;
 import org.datamate.identity.application.dto.user.ChangePasswordRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.datamate.identity.application.port.in.user.UserManagementUseCase;
+import org.datamate.identity.application.port.in.user.GetLoginHistoryUseCase;
+import org.datamate.identity.application.dto.user.LoginHistoryDto;
 import org.datamate.identity.application.port.in.user.ResetPasswordUseCase;
 import org.datamate.identity.application.port.in.user.ChangePasswordUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
@@ -25,6 +28,9 @@ import org.springframework.web.bind.annotation.*;
 import org.datamate.identity.application.port.in.user.UpdateUserUseCase;
 import org.datamate.identity.application.dto.user.UpdateUserRequest;
 
+import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
+import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
+
 import java.security.Principal;
 import java.util.UUID;
 
@@ -37,7 +43,10 @@ public class UserController {
     private Logger log;
     private final ListUserUseCase listUserUseCase;
     private final CreateUserUseCase createUserUseCase;
+    private final GetLoginHistoryUseCase getLoginHistoryUseCase;
     private final GetUserUseCase getUserUseCase;
+    private final ActivateUserUseCase activateUserUseCase;
+    private final DeactivateUserUseCase deactivateUserUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
     private final UpdateUserUseCase updateUserUseCase;
@@ -77,6 +86,25 @@ public class UserController {
         return result;
     }
 
+    @PostMapping("/{id}/activate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "ACTIVATE_USER", resource = "USER", description = "Activate user account")
+    @Operation(summary = "Activate user account", description = "Activates an inactive user account.")
+    public void activateUser(@PathVariable UUID id, Principal principal) {
+        String adminUsername = principal != null ? principal.getName() : "SYSTEM";
+        log.info("Activate user request received for ID: {} by admin: {}", id, adminUsername);
+        activateUserUseCase.activateUser(id, adminUsername);
+    }
+
+    @PostMapping("/{id}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "DEACTIVATE_USER", resource = "USER", description = "Deactivate user account")
+    @Operation(summary = "Deactivate user account", description = "Deactivates an active user account.")
+    public void deactivateUser(@PathVariable UUID id, Principal principal) {
+        String adminUsername = principal != null ? principal.getName() : "SYSTEM";
+        log.info("Deactivate user request received for ID: {} by admin: {}", id, adminUsername);
+        deactivateUserUseCase.deactivateUser(id, adminUsername);
+    }
     @PostMapping("/{id}/reset-password")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "RESET_USER_PASSWORD", resource = "USER", description = "Administrator reset user password")
@@ -107,5 +135,15 @@ public class UserController {
         String adminUsername = principal != null ? principal.getName() : "SYSTEM";
         log.info("Update user request received for ID: {} by admin: {}", id, adminUsername);
         return updateUserUseCase.updateUser(id, request, adminUsername);
+    }
+    
+    @GetMapping("/login-history")
+    @ResponseStatus(HttpStatus.OK)
+    public Paged<LoginHistoryDto> getLoginHistory(
+            @RequestParam(required = false) String username,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Request received to view login history. filter: {}, page: {}, size: {}", username, page, size);
+        return getLoginHistoryUseCase.getLoginHistory(username, new PageQuery(page - 1, size));
     }
 }

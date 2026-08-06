@@ -21,9 +21,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
+import com.datamate.bedrock.framework.common.security.config.SecurityProperties;
+import com.datamate.bedrock.framework.common.security.jwt.service.JwtTokenService;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Import;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(SecurityProperties.class)
+@Import(JwtTokenService.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -41,8 +48,8 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/roles", "/api/v1/users").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/roles", "/api/v1/users", "/api/v1/users/login-history").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
                 .anyRequest().permitAll()
             )
