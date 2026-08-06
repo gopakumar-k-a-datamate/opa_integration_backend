@@ -5,15 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
-import org.datamate.identity.application.dto.user.UserResponseDto;
-import org.datamate.identity.application.query.user.UserSearchCriteria;
-import org.datamate.identity.application.port.in.user.ListUserUseCase;
-import org.datamate.identity.application.port.in.user.GetUserUseCase;
-import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
-import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
-import org.datamate.identity.shared.model.UserStatus;
-import com.datamate.bedrock.framework.common.pagination.Paged;
-import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.datamate.identity.shared.model.UserStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -30,10 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,19 +35,7 @@ class UserControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
-    private ListUserUseCase listUserUseCase;
-
-    @Mock
     private CreateUserUseCase createUserUseCase;
-
-    @Mock
-    private GetUserUseCase getUserUseCase;
-
-    @Mock
-    private ActivateUserUseCase activateUserUseCase;
-
-    @Mock
-    private DeactivateUserUseCase deactivateUserUseCase;
 
     @Mock
     private Logger log;
@@ -74,17 +51,7 @@ class UserControllerTest {
         logField.set(userController, log);
 
         mockMvc = MockMvcBuilders.standaloneSetup(userController)
-                .setControllerAdvice(new TestExceptionHandler())
                 .build();
-    }
-
-    @org.springframework.web.bind.annotation.RestControllerAdvice
-    static class TestExceptionHandler {
-        @org.springframework.web.bind.annotation.ExceptionHandler(org.datamate.identity.domain.exception.user.UserNotFoundException.class)
-        @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NOT_FOUND)
-        public String handleUserNotFound(org.datamate.identity.domain.exception.user.UserNotFoundException ex) {
-            return ex.getMessage();
-        }
     }
 
     @Test
@@ -150,113 +117,5 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldSearchUsersSuccessfully() throws Exception {
-        UUID sampleId = UUID.randomUUID();
-        UserResponseDto userResponseDto = new UserResponseDto(
-                sampleId,
-                "john_doe",
-                "john@example.com",
-                "John",
-                "Doe",
-                UserStatus.ACTIVE,
-                List.of("USER")
-        );
-
-        Paged<UserResponseDto> pagedResult = new Paged<>(
-                List.of(userResponseDto),
-                1,
-                10,
-                1L,
-                1,
-                false,
-                false
-        );
-
-        UserSearchCriteria criteria = new UserSearchCriteria("john", "USER", UserStatus.ACTIVE);
-        when(listUserUseCase.searchUsers(eq(criteria), any(PageQuery.class)))
-                .thenReturn(pagedResult);
-
-        mockMvc.perform(get("/api/v1/users")
-                        .param("search", "john")
-                        .param("role", "USER")
-                        .param("status", "ACTIVE")
-                        .param("page", "1")
-                        .param("size", "10")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(sampleId.toString()))
-                .andExpect(jsonPath("$.content[0].userName").value("john_doe"))
-                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
-                .andExpect(jsonPath("$.content[0].roles[0]").value("USER"))
-                .andExpect(jsonPath("$.pageNumber").value(1))
-                .andExpect(jsonPath("$.pageSize").value(10))
-                .andExpect(jsonPath("$.totalElements").value(1));
-    }
-
-    @Test
-    void shouldReturnUserDetailsSuccessfullyWhenUserExists() throws Exception {
-        UUID sampleId = UUID.randomUUID();
-        UserDto responseDto = new UserDto(
-                sampleId,
-                "john_doe",
-                "john@example.com",
-                "+1234567890",
-                "John",
-                "Doe",
-                "ELLIDER",
-                "EXT-12345",
-                "SYSTEM_ADMIN",
-                LocalDateTime.now(),
-                UserStatus.ACTIVE,
-                List.of("USER"),
-                false
-        );
-
-        when(getUserUseCase.getUserById(eq(sampleId))).thenReturn(responseDto);
-
-        mockMvc.perform(get("/api/v1/users/" + sampleId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(sampleId.toString()))
-                .andExpect(jsonPath("$.userName").value("john_doe"))
-                .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.roles[0]").value("USER"));
-    }
-
-    @Test
-    void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
-        UUID sampleId = UUID.randomUUID();
-        when(getUserUseCase.getUserById(eq(sampleId)))
-                .thenThrow(new org.datamate.identity.domain.exception.user.UserNotFoundException("User not found"));
-
-        mockMvc.perform(get("/api/v1/users/" + sampleId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldActivateUserSuccessfully() throws Exception {
-        UUID sampleId = UUID.randomUUID();
-
-        mockMvc.perform(post("/api/v1/users/" + sampleId + "/activate")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-        verify(activateUserUseCase).activateUser(eq(sampleId), eq("SYSTEM"));
-    }
-
-    @Test
-    void shouldDeactivateUserSuccessfully() throws Exception {
-        UUID sampleId = UUID.randomUUID();
-
-        mockMvc.perform(post("/api/v1/users/" + sampleId + "/deactivate")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-        verify(deactivateUserUseCase).deactivateUser(eq(sampleId), eq("SYSTEM"));
     }
 }

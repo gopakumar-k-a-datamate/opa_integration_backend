@@ -8,18 +8,18 @@ import org.datamate.identity.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.SecurityContextPort;
-import org.datamate.identity.application.port.in.user.GetUserUseCase;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.domain.exception.user.UserNotFoundException;
+import org.datamate.identity.domain.exception.user.UserAlreadyExistsException;
 import org.datamate.identity.domain.model.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class GetUserService implements GetUserUseCase {
+public class UserService implements UserManagementUseCase {
 
     @EnableLogger
     private Logger log;
@@ -29,15 +29,11 @@ public class GetUserService implements GetUserUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDto getUserById(UUID id) {
-        log.info("Starting retrieval of user details for ID: {}", id);
-        
-        User user = userPort.findById(id).orElseThrow(() -> {
-            log.error("User details retrieval failed. User not found for ID: {}", id);
-            return new UserNotFoundException("User not found with id: " + id);
-        });
-
-        log.info("Successfully retrieved user details for ID: {}", id);
-        return userDtoMapper.toDto(user);
+    public List<UserDto> listUsers() {
+        List<UserDto> users = userPort.findAll().stream()
+                .map(userDtoMapper::toDto)
+                .toList();
+        log.info("Listed {} users", users.size());
+        return users;
     }
 }

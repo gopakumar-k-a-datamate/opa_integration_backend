@@ -7,6 +7,7 @@ import org.datamate.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.SecurityContextPort;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;

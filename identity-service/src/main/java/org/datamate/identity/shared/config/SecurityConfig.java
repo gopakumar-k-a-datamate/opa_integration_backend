@@ -51,7 +51,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/roles", "/api/v1/users", "/api/v1/users/login-history").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(revisionMetadataFilter, UsernamePasswordAuthenticationFilter.class);
