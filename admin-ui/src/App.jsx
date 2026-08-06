@@ -8,7 +8,7 @@ function App() {
   const [subjectType, setSubjectType] = useState('ROLE');
   const [subjectId, setSubjectId] = useState('');
   const [moduleName, setModuleName] = useState('finance');
-  const [availableModules, setAvailableModules] = useState(['finance', 'clinical']);
+  const [availableModules, setAvailableModules] = useState(['finance', 'clinical', 'pharmacy']);
 
   useEffect(() => {
     const loadModules = async () => {

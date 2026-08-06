@@ -10,7 +10,17 @@ import org.datamate.authz.exception.InvalidPayloadException;
 
 public class AstBuilder {
 
+    private static final int MAX_AST_DEPTH = 5;
+
     public AstNode build(JsonNode json) {
+        return build(json, 1);
+    }
+
+    private AstNode build(JsonNode json, int depth) {
+        if (depth > MAX_AST_DEPTH) {
+            throw new InvalidPayloadException("Invalid AST: Condition tree exceeds maximum depth of " + MAX_AST_DEPTH);
+        }
+
         if (json == null || json.isNull()) {
             throw new InvalidPayloadException("Invalid AST: Node cannot be null.");
         }
@@ -35,7 +45,7 @@ public class AstBuilder {
             }
 
             for (JsonNode child : childrenNode) {
-                group.addChild(build(child));
+                group.addChild(build(child, depth + 1));
             }
 
             return group;

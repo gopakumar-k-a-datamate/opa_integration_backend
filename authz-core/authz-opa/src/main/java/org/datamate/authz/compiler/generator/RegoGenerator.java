@@ -27,6 +27,7 @@ public class RegoGenerator {
     public String generate(String namespace, List<Policy> policies, Map<Long, String> permCodeLookup) {
         StringBuilder sb = new StringBuilder();
         sb.append("package app.authz.").append(namespace).append("\n\n");
+        sb.append("import rego.v1\n\n");
         sb.append("default allow := false\n");
         sb.append("default allow_rule := false\n");
         sb.append("default deny_rule := false\n\n");
@@ -47,7 +48,7 @@ public class RegoGenerator {
                 AstNode astRoot = astBuilder.build(rootNode);
 
                 sb.append("# Policy ID: ").append(policy.getId()).append("\n");
-                
+
                 List<List<ConditionNode>> dnfClauses = convertToDNF(astRoot);
                 for (List<ConditionNode> clause : dnfClauses) {
                     generateRuleFromClause(policy, permissionCode, clause, sb);
@@ -62,28 +63,38 @@ public class RegoGenerator {
         sb.append("allow if {\n    allow_rule\n    not deny_rule\n}\n");
         return sb.toString();
     }
-    
+
     private void generateRuleFromClause(Policy policy, String permissionCode, List<ConditionNode> clause, StringBuilder sb) {
         generateRuleHeader(policy, permissionCode, sb);
         for (ConditionNode cond : clause) {
-            sb.append("    input.resource.")
-              .append(cond.getField())
-              .append(" ")
-              .append(cond.getComparison())
-              .append(" ")
-              .append(formatValue(cond.getValue()))
-              .append("\n");
+            String field = cond.getField();
+            String comp = cond.getComparison().toLowerCase();
+            String formattedValue = formatValue(cond.getValue());
+
+            if (comp.equals("in")) {
+                sb.append("    input.resource.").append(field).append(" in ").append(formattedValue).append("\n");
+            } else if (comp.equals("not_in") || comp.equals("not in")) {
+                sb.append("    not input.resource.").append(field).append(" in ").append(formattedValue).append("\n");
+            } else {
+                sb.append("    input.resource.")
+                        .append(field)
+                        .append(" ")
+                        .append(cond.getComparison())
+                        .append(" ")
+                        .append(formattedValue)
+                        .append("\n");
+            }
         }
         sb.append("}\n\n");
     }
-    
+
     private void generateRuleHeader(Policy policy, String permissionCode, StringBuilder sb) {
         if (policy.isDeny()) {
             sb.append("deny_rule if {\n");
         } else {
             sb.append("allow_rule if {\n");
         }
-        
+
         if (policy.isRolePolicy()) {
             sb.append("    \"").append(policy.getSubjectId()).append("\" in input.user.roles\n");
         } else if (policy.isUserPolicy()) {
@@ -97,7 +108,9 @@ public class RegoGenerator {
         }
         sb.append("    input.permission == \"").append(permissionCode).append("\"\n");
     }
-    
+
+    private static final int MAX_DNF_CLAUSES = 50;
+
     private List<List<ConditionNode>> convertToDNF(AstNode node) {
         if (node instanceof ConditionNode) {
             List<List<ConditionNode>> dnf = new ArrayList<>();
@@ -108,23 +121,30 @@ public class RegoGenerator {
         } else if (node instanceof GroupNode) {
             GroupNode group = (GroupNode) node;
             List<List<ConditionNode>> dnf = new ArrayList<>();
-            
+
             if (group.getOperator() == LogicalOperator.OR) {
                 for (AstNode child : group.getChildren()) {
                     dnf.addAll(convertToDNF(child));
+                    if (dnf.size() > MAX_DNF_CLAUSES) {
+                        throw new InvalidPayloadException("Condition produces too many rule combinations. Simplify the expression or use custom Rego.");
+                    }
                 }
             } else if (group.getOperator() == LogicalOperator.AND) {
                 dnf.add(new ArrayList<>());
-                
+
                 for (AstNode child : group.getChildren()) {
                     List<List<ConditionNode>> childDnf = convertToDNF(child);
                     List<List<ConditionNode>> newDnf = new ArrayList<>();
-                    
+
                     for (List<ConditionNode> existingAndClause : dnf) {
                         for (List<ConditionNode> newAndClause : childDnf) {
                             List<ConditionNode> combinedAndClause = new ArrayList<>(existingAndClause);
                             combinedAndClause.addAll(newAndClause);
                             newDnf.add(combinedAndClause);
+
+                            if (newDnf.size() > MAX_DNF_CLAUSES) {
+                                throw new InvalidPayloadException("Condition produces too many rule combinations. Simplify the expression or use custom Rego.");
+                            }
                         }
                     }
                     dnf = newDnf;
@@ -134,11 +154,11 @@ public class RegoGenerator {
         }
         return new ArrayList<>();
     }
-    
+
     private String formatValue(JsonNode value) {
         if (value.isTextual()) {
             return "\"" + value.asText() + "\"";
         }
-        return value.asText();
+        return value.toString();
     }
 }

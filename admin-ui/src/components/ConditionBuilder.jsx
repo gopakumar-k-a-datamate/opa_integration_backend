@@ -5,6 +5,24 @@ const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
   const selectedField = fields.find(f => f.fieldName === rule.field);
 
   const renderValueInput = () => {
+    const isArrayOp = rule.comparison === 'in' || rule.comparison === 'not_in';
+
+    if (isArrayOp) {
+      const displayValue = Array.isArray(rule.value) ? rule.value.join(', ') : String(rule.value || '');
+      return (
+        <input 
+          type="text" 
+          placeholder="value1, value2..." 
+          value={displayValue} 
+          onChange={e => {
+            const arr = e.target.value.split(',').map(s => s.trimLeft());
+            onChange({ ...rule, value: arr });
+          }}
+          style={{ flex: 1, padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+        />
+      );
+    }
+
     if (!selectedField) {
       return (
         <input 
@@ -86,9 +104,18 @@ const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
           <option key={f.fieldName} value={f.fieldName}>{f.displayName}</option>
         ))}
       </select>
-      <select value={rule.comparison || '=='} onChange={e => onChange({ ...rule, comparison: e.target.value })} style={{ padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+      <select value={rule.comparison || '=='} onChange={e => {
+          const newComp = e.target.value;
+          const isArray = newComp === 'in' || newComp === 'not_in';
+          let newVal = rule.value;
+          if (isArray && !Array.isArray(newVal)) newVal = newVal ? [String(newVal)] : [];
+          if (!isArray && Array.isArray(newVal)) newVal = newVal[0] || '';
+          onChange({ ...rule, comparison: newComp, value: newVal });
+        }} style={{ padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
         <option value="==">==</option>
         <option value="!=">!=</option>
+        <option value="in">IN</option>
+        <option value="not_in">NOT IN</option>
         <option value="<=">&lt;=</option>
         <option value=">=">&gt;=</option>
         <option value="<">&lt;</option>
@@ -257,7 +284,8 @@ const generatePreview = (node, fields, depth = 0, isRoot = true) => {
   // It's a rule
   const fieldDisplay = fields.find(f => f.fieldName === node.field)?.displayName || node.field || 'Unknown Field';
   let valStr = '';
-  if (typeof node.value === 'string') valStr = `"${node.value}"`;
+  if (Array.isArray(node.value)) valStr = `[${node.value.filter(v => v !== '').map(v => `"${v}"`).join(', ')}]`;
+  else if (typeof node.value === 'string') valStr = `"${node.value}"`;
   else if (node.value === undefined || node.value === null) valStr = 'null';
   else valStr = String(node.value);
   

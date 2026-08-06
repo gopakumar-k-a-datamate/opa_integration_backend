@@ -72,6 +72,8 @@ public class CompilerTest {
         String expectedRego = """
         package app.authz.finance
         
+        import rego.v1
+        
         default allow := false
         default allow_rule := false
         default deny_rule := false
@@ -147,6 +149,8 @@ public class CompilerTest {
 
         String expectedRego = """
         package app.authz.clinic
+        
+        import rego.v1
         
         default allow := false
         default allow_rule := false
@@ -232,6 +236,8 @@ public class CompilerTest {
         String expectedRego = """
         package app.authz.clinic
         
+        import rego.v1
+        
         default allow := false
         default allow_rule := false
         default deny_rule := false
@@ -267,6 +273,62 @@ public class CompilerTest {
             input.resource.dueDate < "2026-12-31"
             input.resource.insuranceProvider == "MEDICARE"
             input.resource.insuranceProvider == "BLUE_CROSS"
+        }
+        
+        allow if {
+            allow_rule
+            not deny_rule
+        }
+        """.trim();
+
+        assertEquals(expectedRego, actualRego.trim());
+    }
+
+    @Test
+    public void testInAndNotInCompilation() {
+        String json = """
+        {
+          "operator": "AND",
+          "children": [
+            {
+              "field": "status",
+              "comparison": "in",
+              "value": ["ACTIVE", "PENDING"]
+            },
+            {
+              "field": "category",
+              "comparison": "not_in",
+              "value": ["ARCHIVED", "DELETED"]
+            }
+          ]
+        }
+        """;
+
+        Policy policy = Policy.reconstitute(
+                4L, 103L, SubjectType.ROLE, "MANAGER",
+                PolicyEffect.ALLOW, json, true, null, false, 1L,
+                LocalDateTime.now(), LocalDateTime.now(), null, null
+        );
+
+        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper());
+        Map<Long, String> permCodeLookup = Map.of(103L, "system:record:read");
+        String actualRego = generator.generate("system", List.of(policy), permCodeLookup);
+
+        String expectedRego = """
+        package app.authz.system
+        
+        import rego.v1
+        
+        default allow := false
+        default allow_rule := false
+        default deny_rule := false
+        
+        # Policy ID: 4
+        allow_rule if {
+            "MANAGER" in input.user.roles
+            input.permission == "system:record:read"
+            input.resource.status in ["ACTIVE","PENDING"]
+            not input.resource.category in ["ARCHIVED","DELETED"]
         }
         
         allow if {
