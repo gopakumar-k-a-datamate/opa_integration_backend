@@ -1,4 +1,4 @@
-package org.datamate.identity.application.dto;
+package org.datamate.identity.application.dto.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;

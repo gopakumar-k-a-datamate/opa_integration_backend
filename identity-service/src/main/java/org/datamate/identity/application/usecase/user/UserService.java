@@ -5,7 +5,6 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.mapper.user.UserDtoMapper;
-import org.datamate.identity.application.port.in.LoginUseCase;
 import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.SecurityContextPort;

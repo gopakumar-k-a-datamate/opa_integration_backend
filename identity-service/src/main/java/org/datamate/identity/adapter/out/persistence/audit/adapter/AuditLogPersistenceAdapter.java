@@ -16,6 +16,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
@@ -60,7 +62,7 @@ public class AuditLogPersistenceAdapter implements AuditLogPersistencePort {
             return defaultUsername;
         }
         try {
-            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\"user[nN]ame\"\\s*:\\s*\"([^\"]+)\"")
+            Matcher matcher = Pattern.compile("\"user[nN]ame\"\\s*:\\s*\"([^\"]+)\"")
                     .matcher(argumentsJson);
             if (matcher.find()) {
                 return matcher.group(1);

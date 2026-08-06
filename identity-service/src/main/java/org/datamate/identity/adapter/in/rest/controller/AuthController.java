@@ -3,10 +3,9 @@ package org.datamate.identity.adapter.in.rest.controller;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.application.command.LoginCommand;
-import org.datamate.identity.application.dto.AuthResponse;
-import org.datamate.identity.application.dto.LoginRequest;
-import org.datamate.identity.application.port.in.LoginUseCase;
+import org.datamate.identity.application.dto.auth.AuthResponse;
+import org.datamate.identity.application.dto.auth.LoginRequest;
+import org.datamate.identity.application.port.in.auth.LoginUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +19,7 @@ public class AuthController {
     @PostMapping("/login")
     @AuditLog(action = "USER_LOGIN", resource = "AUTH", description = "User login attempt", includeArgs = true)
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginCommand command = new LoginCommand(request.userName(), request.password());
-        AuthResponse response = loginUseCase.login(command);
+        AuthResponse response = loginUseCase.login(request);
         return ResponseEntity.ok(response);
     }
 

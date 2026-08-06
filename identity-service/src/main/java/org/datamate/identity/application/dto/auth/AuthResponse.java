@@ -1,4 +1,4 @@
-package org.datamate.identity.application.dto;
+package org.datamate.identity.application.dto.auth;
 
 public record AuthResponse(
         String accessToken,
