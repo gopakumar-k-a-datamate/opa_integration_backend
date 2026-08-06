@@ -74,6 +74,11 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     }
 
     @Override
+    public boolean existsByUserNameAndIdNot(String userName, UUID id) {
+        return repository.existsByUserNameAndIdNot(userName, id);
+    }
+
+    @Override
     public List<User> findAll() {
         return repository.findAll().stream().map(mapper::mapToDomain).toList();
     }

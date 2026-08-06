@@ -39,12 +39,18 @@ public class UpdateUserService implements UpdateUserUseCase {
         });
 
         // Uniqueness validation
+        if (userPort.existsByUserNameAndIdNot(request.userName(), id)) {
+            log.error("User update failed. Username '{}' is already taken by another user.", request.userName());
+            throw new UserAlreadyExistsException("Username '" + request.userName() + "' is already taken.");
+        }
+
         if (userPort.existsByEmailAndIdNot(request.email(), id)) {
             log.error("User update failed. Email '{}' is already taken by another user.", request.email());
             throw new UserAlreadyExistsException("Email '" + request.email() + "' is already taken.");
         }
 
         User updatedUser = user.updateInformation(
+                request.userName(),
                 request.email(),
                 request.phoneNumber(),
                 request.firstName(),

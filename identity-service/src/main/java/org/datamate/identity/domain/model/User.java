@@ -312,6 +312,7 @@ public class User extends AggregateRoot {
     }
 
     public User updateInformation(
+            String userName,
             String email,
             String phoneNumber,
             String firstName,
@@ -320,11 +321,11 @@ public class User extends AggregateRoot {
             String referenceValue,
             String adminUsername
     ) {
-        validateUpdate(email, firstName, lastName);
+        validateUpdate(userName, email, firstName, lastName);
 
         User updatedUser = new User(
                 this.id,
-                this.userName,
+                userName,
                 email,
                 phoneNumber,
                 this.passwordHash,
@@ -358,7 +359,10 @@ public class User extends AggregateRoot {
         return updatedUser;
     }
 
-    private void validateUpdate(String email, String firstName, String lastName) {
+    private void validateUpdate(String userName, String email, String firstName, String lastName) {
+        if (userName == null || userName.isBlank()) {
+            throw new InvalidUserDataException("Username is required.");
+        }
         if (email == null || email.isBlank()) {
             throw new InvalidUserDataException("Email is required.");
         }

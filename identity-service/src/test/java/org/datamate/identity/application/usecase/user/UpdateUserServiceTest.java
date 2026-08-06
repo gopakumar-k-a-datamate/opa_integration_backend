@@ -56,20 +56,21 @@ class UpdateUserServiceTest {
         );
 
         UpdateUserRequest request = new UpdateUserRequest(
-                "new@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
+                "new_test_user", "new@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userPort.existsByUserNameAndIdNot("new_test_user", userId)).thenReturn(false);
         when(userPort.existsByEmailAndIdNot("new@example.com", userId)).thenReturn(false);
 
         User updatedUser = existingUser.updateInformation(
-                request.email(), request.phoneNumber(), request.firstName(), request.lastName(),
+                request.userName(), request.email(), request.phoneNumber(), request.firstName(), request.lastName(),
                 request.referenceSystem(), request.referenceValue(), "admin_user"
         );
 
         when(userPort.save(any(User.class))).thenReturn(updatedUser);
         UserDto expectedDto = new UserDto(
-                userId, "test_user", "new@example.com", "+54321",
+                userId, "new_test_user", "new@example.com", "+54321",
                 "Jane", "Smith", "ELLIDER", "EXT-2", "creator",
                 LocalDateTime.now(), UserStatus.ACTIVE, new ArrayList<>(), false
         );
@@ -78,6 +79,7 @@ class UpdateUserServiceTest {
         UserDto result = updateUserService.updateUser(userId, request, "admin_user");
 
         assertNotNull(result);
+        assertEquals("new_test_user", result.userName());
         assertEquals("new@example.com", result.email());
         assertEquals("Jane", result.firstName());
         assertEquals("Smith", result.lastName());
@@ -90,12 +92,35 @@ class UpdateUserServiceTest {
     void shouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
         UUID userId = UUID.randomUUID();
         UpdateUserRequest request = new UpdateUserRequest(
-                "new@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
+                "new_test_user", "new@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> updateUserService.updateUser(userId, request, "admin_user"));
+
+        verify(userPort, never()).save(any(User.class));
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void shouldThrowUserAlreadyExistsExceptionWhenUserNameIsTakenByAnotherUser() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.reconstitute(
+                userId, "test_user", "old@example.com", "+12345",
+                "hash", "John", "Doe", "ELLIDER", "EXT-1",
+                UserStatus.ACTIVE, new ArrayList<>(), false, 1L, 1L,
+                "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+        );
+
+        UpdateUserRequest request = new UpdateUserRequest(
+                "taken_user", "new@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userPort.existsByUserNameAndIdNot("taken_user", userId)).thenReturn(true);
+
+        assertThrows(UserAlreadyExistsException.class, () -> updateUserService.updateUser(userId, request, "admin_user"));
 
         verify(userPort, never()).save(any(User.class));
         verify(eventPublisher, never()).publishEvent(any());
@@ -112,10 +137,11 @@ class UpdateUserServiceTest {
         );
 
         UpdateUserRequest request = new UpdateUserRequest(
-                "taken@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
+                "new_test_user", "taken@example.com", "+54321", "Jane", "Smith", "ELLIDER", "EXT-2"
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userPort.existsByUserNameAndIdNot("new_test_user", userId)).thenReturn(false);
         when(userPort.existsByEmailAndIdNot("taken@example.com", userId)).thenReturn(true);
 
         assertThrows(UserAlreadyExistsException.class, () -> updateUserService.updateUser(userId, request, "admin_user"));
