@@ -37,7 +37,11 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     @Override
     public User save(User user) {
         UserJpaEntity entity = repository.findById(user.getId())
-                .orElseGet(UserJpaEntity::new);
+                .orElseGet(() -> {
+                    UserJpaEntity newEntity = new UserJpaEntity();
+                    newEntity.setId(user.getId());
+                    return newEntity;
+                });
         mapper.updateJpaEntity(entity, user);
         UserJpaEntity savedEntity = repository.save(entity);
         log.debug("User '{}' persisted with id {}", savedEntity.getUserName(), savedEntity.getId());
