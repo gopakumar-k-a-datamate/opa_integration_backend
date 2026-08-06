@@ -128,8 +128,31 @@ Fetches the active `authz_condition_field` definitions for a specific permission
     "fieldType": "STRING",
     "displayName": "Bank Account",
     "allowedValues": null,
-    "optionsEndpoint": "/api/finance/banks"
+    "optionsEndpoint": "/internal/authz/options/banks"
   }
+]
+```
+
+### 2.1 Dynamic Options Endpoints (Convention)
+
+When a condition field defines an `optionsEndpoint`, the Admin UI Condition Builder will dynamically fetch its dropdown values from that URL instead of using a static `allowedValues` list. 
+
+**Priority Rule:**
+If a field has both `allowedValues` (static) and an `optionsEndpoint` (dynamic) defined in the database, **the `optionsEndpoint` always wins**. The UI assumes the endpoint provides the most up-to-date live data, and the static list is ignored.
+
+**Critical Design Convention:**
+All `optionsEndpoint` paths **MUST** be defined as internal routes (e.g., `/internal/authz/options/banks`), not public application routes (e.g., `/api/finance/banks`). 
+
+**Why?**
+1. **CORS:** The Admin UI already has Cross-Origin Resource Sharing (CORS) access to the `/internal/authz/**` paths on every microservice. Using this namespace avoids having to configure CORS on public business APIs just for the Admin UI.
+2. **Authentication:** The Admin UI sits within the internal secure network zone (API Gateway). The `/internal/authz/**` paths are protected at the network level and do not require passing JWT bearer tokens. Public business APIs (`/api/v1/...`) would reject the Admin UI's bare `fetch()` requests with a `401 Unauthorized`.
+
+**Response Format:**
+The UI expects dynamic option endpoints to return a JSON array of objects containing an `id` (the underlying value saved in the policy) and a `display` (the human-readable label shown in the dropdown):
+```json
+[
+  { "id": "HDFC", "display": "HDFC Bank" },
+  { "id": "SBI", "display": "State Bank of India" }
 ]
 ```
 
