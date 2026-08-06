@@ -10,6 +10,9 @@ import org.datamate.identity.application.dto.user.ResetPasswordRequest;
 import org.datamate.identity.application.dto.user.ChangePasswordRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
+import org.datamate.identity.application.port.in.user.UserManagementUseCase;
+import org.datamate.identity.application.port.in.user.GetLoginHistoryUseCase;
+import org.datamate.identity.application.dto.user.LoginHistoryDto;
 import org.datamate.identity.application.port.in.user.ResetPasswordUseCase;
 import org.datamate.identity.application.port.in.user.ChangePasswordUseCase;
 import org.datamate.identity.application.dto.user.UserResponseDto;
@@ -38,6 +41,7 @@ public class UserController {
     private Logger log;
     private final ListUserUseCase listUserUseCase;
     private final CreateUserUseCase createUserUseCase;
+    private final GetLoginHistoryUseCase getLoginHistoryUseCase;
     private final GetUserUseCase getUserUseCase;
     private final ActivateUserUseCase activateUserUseCase;
     private final DeactivateUserUseCase deactivateUserUseCase;
@@ -114,5 +118,15 @@ public class UserController {
     public UserDto changePassword(@PathVariable UUID id, @Valid @RequestBody ChangePasswordRequest request) {
         log.info("Change password request received for user ID: {}", id);
         return changePasswordUseCase.changePassword(id, request);
+    }
+
+    @GetMapping("/login-history")
+    @ResponseStatus(HttpStatus.OK)
+    public Paged<LoginHistoryDto> getLoginHistory(
+            @RequestParam(required = false) String username,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Request received to view login history. filter: {}, page: {}, size: {}", username, page, size);
+        return getLoginHistoryUseCase.getLoginHistory(username, new PageQuery(page - 1, size));
     }
 }

@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.datamate.identity.application.port.out.TokenGeneratorPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,9 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private Logger log;
 
     private final SecretKey key;
+    private final TokenGeneratorPort tokenGeneratorPort;
 
-    public JwtAuthenticationFilter(@Value("${app.security.jwt.secret}") String secret) {
+    public JwtAuthenticationFilter(
+            @Value("${app.security.jwt.secret}") String secret,
+            TokenGeneratorPort tokenGeneratorPort) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.tokenGeneratorPort = tokenGeneratorPort;
     }
 
     @Override
@@ -48,6 +53,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
+        if (tokenGeneratorPort != null && tokenGeneratorPort.isBlacklisted(jwt)) {
+            log.warn("Attempt to use blacklisted token");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(key)
