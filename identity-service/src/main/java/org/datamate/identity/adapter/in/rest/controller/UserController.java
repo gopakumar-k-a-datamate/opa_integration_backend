@@ -10,7 +10,6 @@ import org.datamate.identity.application.dto.user.ResetPasswordRequest;
 import org.datamate.identity.application.dto.user.ChangePasswordRequest;
 import org.datamate.identity.application.dto.user.UserDto;
 import org.datamate.identity.application.port.in.user.CreateUserUseCase;
-import org.datamate.identity.application.port.in.user.UserManagementUseCase;
 import org.datamate.identity.application.port.in.user.GetLoginHistoryUseCase;
 import org.datamate.identity.application.dto.user.LoginHistoryDto;
 import org.datamate.identity.application.port.in.user.ResetPasswordUseCase;
