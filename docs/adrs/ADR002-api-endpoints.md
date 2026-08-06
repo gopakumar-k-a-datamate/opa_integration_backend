@@ -14,6 +14,7 @@ Fetches the complete permission matrix for a specific subject (Role or User) wit
 **Query Parameters:**
 - `subjectType` (required): `ROLE` or `USER`
 - `subjectId` (required): e.g., `ACCOUNTANT` or `123`
+- `namespace` (required): The module namespace to fetch policies for (e.g., `finance`)
 
 **Response (`200 OK`):**
 ```json
@@ -62,17 +63,21 @@ Performs a **Full-State Sync** for the specified Subject in this module. Because
 {
   "subjectType": "ROLE",
   "subjectId": "ACCOUNTANT",
+  "namespace": "finance",
   "policies": [
     {
       "permissionCode": "finance:journal:create",
       "effect": "ALLOW",
       "expressionJson": { ... },
       "enabled": true,
-      "isDeleted": false
+      "disabledReason": null,
+      "isDeleted": false,
+      "deletedReason": null
     },
     {
       "permissionCode": "finance:journal:delete",
-      "isDeleted": true
+      "isDeleted": true,
+      "deletedReason": "Policy revoked by admin"
     }
   ]
 }
@@ -83,6 +88,19 @@ Performs a **Full-State Sync** for the specified Subject in this module. Because
 {
   "message": "Policies updated successfully. OPA bundle regenerated."
 }
+```
+
+---
+
+### GET `/internal/authz/namespaces`
+Fetches all unique namespaces registered in this microservice. Used by the UI to dynamically discover which module tabs should be rendered.
+
+**Response (`200 OK`):**
+```json
+[
+  "finance",
+  "payroll"
+]
 ```
 
 ---

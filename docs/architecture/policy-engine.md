@@ -63,13 +63,13 @@ Because this is a federated model, each application service manages its own subs
 
 Any new resource, permission, or condition field is explicitly declared in a Flyway SQL script. This guarantees predictable, version-controlled metadata across all environments and completely avoids the unpredictability of automatic runtime reflection updates.
 
-### Step 2: Code as a Reference (The AOP Interceptor)
+### Step 2: Code as a Reference (The `PolicyEnforcer`)
 
-While the database dictates the available permissions to the Admin UI, the application code must enforce them. The application layer annotates commands strictly as a reference point for the runtime policy enforcement interceptor.
+While the database dictates the available permissions to the Admin UI, the application code must enforce them. The application layer annotates commands as runtime markers for the `SpringSecurityPolicyEnforcer`, which is called **programmatically** by the application service via `policyEnforcer.enforce(command)`.
 
 ```java
 // In the Finance module's Application Layer
-@PolicyResource(namespace = "finance", name = "journal", action = "create")
+@PolicyResource(namespace = "finance", resourceName = "journal", action = "create")
 public record CreateJournalPolicyResource(
     
     @PolicyField(displayName = "Journal Amount", type = FieldType.NUMBER)
@@ -85,10 +85,18 @@ public record CreateJournalPolicyResource(
 ) {}
 ```
 
-The `@PolicyResource` and `@PolicyField` annotations act purely as runtime markers. When a command is invoked, the `PolicyEnforcementAspect`:
-1. Intercepts the method execution and extracts the `namespace`, `name`, and `action` from `@PolicyResource`.
-2. Extracts condition context values dynamically from fields annotated with `@PolicyField`.
-3. Constructs the `OpaInputPayload` and delegates the evaluation to the OPA sidecar.
+The `@PolicyResource` and `@PolicyField` annotations act purely as runtime markers.
+When `policyEnforcer.enforce(command)` is called in the application service,
+`SpringSecurityPolicyEnforcer` (auto-wired from `bedrock-authz-starter`) executes the following:
+
+1. Reads `namespace`, `resourceName`, and `action` from `@PolicyResource` to build the `permissionCode` (e.g., `finance:journal:create`).
+2. Extracts the authenticated user's `id` and `roles` from Spring Security's `SecurityContextHolder` (with a fallback to manually decoding the `Authorization: Bearer` JWT header).
+3. Reflects over fields annotated with `@PolicyField` to build the `resourceData` map.
+4. Assembles an engine-agnostic `AuthorizationContext` record.
+5. Passes it to `RestPolicyEvaluationClient`, which maps it to OPA's `EvaluationPayload` and sends a `POST` to the local OPA sidecar.
+6. If OPA returns `false` (or is unreachable), `enforce()` throws `AccessDeniedException` → HTTP 403.
+
+For full details on identity extraction and OPA payload structure, see [federated-authz-workflow.md](./federated-authz-workflow.md).
 
 ---
 

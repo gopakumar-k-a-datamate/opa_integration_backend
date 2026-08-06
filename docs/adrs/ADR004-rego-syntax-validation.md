@@ -2,7 +2,7 @@
 
 This document describes how to validate custom Rego snippets entered by admins before saving them to the database and compiling them into OPA bundles.
 
-Reference: [07-enhanced-condition-builder-and-custom-rego.md](./07-enhanced-condition-builder-and-custom-rego.md)
+Reference: [ADR003-enhanced-condition-builder-and-custom-rego.md](./ADR003-enhanced-condition-builder-and-custom-rego.md)
 
 ---
 

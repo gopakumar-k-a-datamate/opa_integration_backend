@@ -1,4 +1,4 @@
-# 08 - PEP End-to-End Testing Guide
+# PEP End-to-End Testing Guide
 
 This guide explains how to manually test the **Policy Enforcement Point (PEP)** that was implemented in the Application Layer using Spring AOP.
 
