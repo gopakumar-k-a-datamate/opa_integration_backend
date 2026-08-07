@@ -1,4 +1,4 @@
-package org.datamate.identity.application.port.out;
+package org.datamate.identity.application.port.out.role;
 
 import org.datamate.identity.domain.model.Role;
 import java.util.Optional;

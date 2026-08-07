@@ -1,4 +1,4 @@
-package org.datamate.identity.adapter.out.persistence.entity;
+package org.datamate.identity.adapter.out.persistence.role.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

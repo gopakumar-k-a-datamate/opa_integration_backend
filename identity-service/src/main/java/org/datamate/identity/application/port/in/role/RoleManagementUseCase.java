@@ -1,7 +1,7 @@
-package org.datamate.identity.application.port.in;
+package org.datamate.identity.application.port.in.role;
 
-import org.datamate.identity.application.dto.RoleDto;
-import org.datamate.identity.application.dto.RoleRequest;
+import org.datamate.identity.application.dto.role.RoleDto;
+import org.datamate.identity.application.dto.role.RoleRequest;
 import java.util.List;
 
 public interface RoleManagementUseCase {

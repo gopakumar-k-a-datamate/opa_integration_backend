@@ -1,6 +1,6 @@
-package org.datamate.identity.adapter.out.persistence.mapper;
+package org.datamate.identity.adapter.out.persistence.role.mapper;
 
-import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
+import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.datamate.identity.domain.model.Role;
 import org.springframework.stereotype.Component;
 

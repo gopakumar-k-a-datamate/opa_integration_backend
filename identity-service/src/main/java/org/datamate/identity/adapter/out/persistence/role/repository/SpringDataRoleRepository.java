@@ -1,6 +1,6 @@
-package org.datamate.identity.adapter.out.persistence.repository;
+package org.datamate.identity.adapter.out.persistence.role.repository;
 
-import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
+import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

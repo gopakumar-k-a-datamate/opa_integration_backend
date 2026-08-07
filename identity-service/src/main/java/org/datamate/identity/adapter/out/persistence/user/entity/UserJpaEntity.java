@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
-import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
+import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
