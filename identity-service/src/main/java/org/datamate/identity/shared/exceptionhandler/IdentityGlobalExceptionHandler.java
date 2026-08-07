@@ -222,10 +222,10 @@ public class IdentityGlobalExceptionHandler extends GlobalExceptionHandler {
 
         // LOCKED patterns (concurrent edit lock — RFC 4918)
         if (errorCode.contains(".lock.lockedByOther")) {
-            return HttpStatus.LOCKED;
+            return HttpStatus.LOCKED;   // 423
         }
 
-        // CONFLICT patterns
+        // CONFLICT patterns (already exists, or lock not owned)
         if (errorCode.endsWith(".alreadyExists")
                 || errorCode.endsWith(".lock.notOwner")
                 || errorCode.contains(".ALREADY_EXISTS")
@@ -251,6 +251,7 @@ public class IdentityGlobalExceptionHandler extends GlobalExceptionHandler {
             return HttpStatus.BAD_REQUEST;
         }
 
+        // Default
         return HttpStatus.BAD_REQUEST;
     }
 

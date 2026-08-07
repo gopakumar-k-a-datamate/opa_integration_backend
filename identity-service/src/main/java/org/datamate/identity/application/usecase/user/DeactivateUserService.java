@@ -30,7 +30,7 @@ public class DeactivateUserService implements DeactivateUserUseCase {
 
         User user = userPort.findById(id).orElseThrow(() -> {
             log.error("User deactivation failed. User not found for ID: {}", id);
-            return new UserNotFoundException("User not found with id: " + id);
+            return new UserNotFoundException();
         });
 
         User deactivatedUser = user.deactivate(adminUsername);

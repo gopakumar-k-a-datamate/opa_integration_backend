@@ -37,7 +37,7 @@ public class ResetPasswordService implements ResetPasswordUseCase {
         log.info("Resetting password for user ID: {}", userId);
         
         User user = userPort.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() -> new UserNotFoundException());
 
         String adminUsername = securityContextPort.getCurrentUsername();
         String newPasswordHash = passwordEncoderPort.encode(request.newPassword());

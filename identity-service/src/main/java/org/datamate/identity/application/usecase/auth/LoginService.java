@@ -33,12 +33,12 @@ public class LoginService implements LoginUseCase {
         User user = userPersistencePort.findByUserName(request.userName())
                 .orElseThrow(() -> {
                     log.warn("Login failed: user '{}' not found", request.userName());
-                    return new InvalidCredentialsException("Invalid username or password");
+                    return new InvalidCredentialsException();
                 });
 
         if (!passwordEncoderPort.matches(request.password(), user.getPasswordHash())) {
             log.warn("Login failed: incorrect password for user '{}'", request.userName());
-            throw new InvalidCredentialsException("Invalid username or password");
+            throw new InvalidCredentialsException();
         }
 
         String accessToken = tokenGeneratorPort.generateAccessToken(user);

@@ -29,7 +29,7 @@ public class RoleManagementService implements RoleManagementUseCase {
         log.info("Creating role '{}'", request.name());
         if (rolePort.existsByName(request.name())) {
             log.warn("Role creation failed: role '{}' already exists", request.name());
-            throw new RoleAlreadyExistsException("Role with this name already exists");
+            throw new RoleAlreadyExistsException();
         }
         Role role = Role.create(request.name(), request.description());
         Role saved = rolePort.save(role);
@@ -43,7 +43,7 @@ public class RoleManagementService implements RoleManagementUseCase {
         Role role = rolePort.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Role not found with id {}", id);
-                    return new RoleNotFoundException("Role not found");
+                    return new RoleNotFoundException();
                 });
         return mapToDto(role);
     }

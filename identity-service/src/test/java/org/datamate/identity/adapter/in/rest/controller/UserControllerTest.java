@@ -231,7 +231,7 @@ class UserControllerTest {
     void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
         UUID sampleId = UUID.randomUUID();
         when(getUserUseCase.getUserById(eq(sampleId)))
-                .thenThrow(new org.datamate.identity.domain.exception.user.UserNotFoundException("User not found"));
+                .thenThrow(new org.datamate.identity.domain.exception.user.UserNotFoundException());
 
         mockMvc.perform(get("/api/v1/users/" + sampleId)
                         .contentType(MediaType.APPLICATION_JSON))

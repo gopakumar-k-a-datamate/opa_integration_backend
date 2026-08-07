@@ -37,12 +37,12 @@ public class CreateUserService implements CreateUserUseCase {
         log.info("Creating user '{}'", request.userName());
         if (userPort.existsByUserName(request.userName())) {
             log.warn("User creation failed: username '{}' already exists", request.userName());
-            throw new UserAlreadyExistsException("Username '" + request.userName() + "' already exists");
+            throw new UserAlreadyExistsException();
         }
 
         if (userPort.existsByEmail(request.email())) {
             log.warn("User creation failed: email '{}' already exists", request.email());
-            throw new UserAlreadyExistsException("Email '" + request.email() + "' already exists");
+            throw new UserAlreadyExistsException();
         }
 
         String passwordHash = passwordEncoderPort.encode(request.password());

@@ -35,18 +35,18 @@ public class UpdateUserService implements UpdateUserUseCase {
 
         User user = userPort.findById(id).orElseThrow(() -> {
             log.error("User update failed. User not found for ID: {}", id);
-            return new UserNotFoundException("User not found with id: " + id);
+            return new UserNotFoundException();
         });
 
         // Uniqueness validation
         if (userPort.existsByUserNameAndIdNot(request.userName(), id)) {
             log.error("User update failed. Username '{}' is already taken by another user.", request.userName());
-            throw new UserAlreadyExistsException("Username '" + request.userName() + "' is already taken.");
+            throw new UserAlreadyExistsException();
         }
 
         if (userPort.existsByEmailAndIdNot(request.email(), id)) {
             log.error("User update failed. Email '{}' is already taken by another user.", request.email());
-            throw new UserAlreadyExistsException("Email '" + request.email() + "' is already taken.");
+            throw new UserAlreadyExistsException();
         }
 
         User updatedUser = user.updateInformation(
