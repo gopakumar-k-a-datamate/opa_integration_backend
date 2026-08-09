@@ -1,0 +1,47 @@
+package org.datamate.identity.application.usecase.role;
+
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import lombok.RequiredArgsConstructor;
+import org.datamate.identity.application.dto.role.RoleDto;
+import org.datamate.identity.application.dto.role.RoleRequest;
+import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.out.SecurityContextPort;
+import org.datamate.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.domain.exception.role.RoleAlreadyExistsException;
+import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.application.mapper.role.RoleDtoMapper;
+import org.datamate.identity.shared.model.RoleStatus;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class CreateRoleService implements CreateRoleUseCase {
+
+    @EnableLogger
+    private Logger log;
+
+    private final RolePersistencePort rolePort;
+    private final SecurityContextPort securityContextPort;
+    private final RoleDtoMapper roleDtoMapper;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Override
+    public RoleDto createRole(RoleRequest request) {
+        log.info("Creating role '{}'", request.name());
+        if (rolePort.existsByNameIgnoreCase(request.name())) {
+            log.warn("Role creation failed: role '{}' already exists", request.name());
+            throw new RoleAlreadyExistsException();
+        }
+        String currentUser = securityContextPort.getCurrentUsername();
+        Role role = Role.create(request.name(), request.description(), currentUser);
+        Role saved = rolePort.save(role);
+        
+        // Register the event and publish it
+        saved.publishCreationEvent().pullEvents().forEach(eventPublisher::publishEvent);
+        
+        log.info("Role '{}' created with id {}", saved.getName(), saved.getId());
+        return roleDtoMapper.toDto(saved);
+    }
+}

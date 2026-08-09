@@ -7,9 +7,11 @@ import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.application.port.out.SecurityContextPort;
 import org.datamate.identity.domain.exception.role.RoleAlreadyExistsException;
 import org.datamate.identity.domain.exception.role.RoleNotFoundException;
 import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.application.mapper.role.RoleDtoMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,19 +25,8 @@ public class RoleManagementService implements RoleManagementUseCase {
     private Logger log;
 
     private final RolePersistencePort rolePort;
-
-    @Override
-    public RoleDto createRole(RoleRequest request) {
-        log.info("Creating role '{}'", request.name());
-        if (rolePort.existsByName(request.name())) {
-            log.warn("Role creation failed: role '{}' already exists", request.name());
-            throw new RoleAlreadyExistsException();
-        }
-        Role role = Role.create(request.name(), request.description());
-        Role saved = rolePort.save(role);
-        log.info("Role '{}' created with id {}", saved.getName(), saved.getId());
-        return mapToDto(saved);
-    }
+    private final SecurityContextPort securityContextPort;
+    private final RoleDtoMapper roleDtoMapper;
 
     @Override
     public RoleDto getRole(Long id) {
@@ -45,13 +36,13 @@ public class RoleManagementService implements RoleManagementUseCase {
                     log.warn("Role not found with id {}", id);
                     return new RoleNotFoundException();
                 });
-        return mapToDto(role);
+        return roleDtoMapper.toDto(role);
     }
 
     @Override
     public List<RoleDto> listRoles() {
         List<RoleDto> roles = rolePort.findAll().stream()
-                .map(this::mapToDto)
+                .map(roleDtoMapper::toDto)
                 .collect(Collectors.toList());
         log.info("Listed {} roles", roles.size());
         return roles;
@@ -61,9 +52,5 @@ public class RoleManagementService implements RoleManagementUseCase {
     public void deleteRole(Long id) {
         log.info("Deleting role with id {}", id);
         rolePort.delete(id);
-    }
-
-    private RoleDto mapToDto(Role role) {
-        return new RoleDto(role.getId(), role.getName(), role.getDescription());
     }
 }

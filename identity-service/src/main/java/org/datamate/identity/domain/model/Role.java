@@ -1,21 +1,130 @@
 package org.datamate.identity.domain.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.domain.exception.role.InvalidRoleDataException;
+import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
+
+import java.time.LocalDateTime;
+
+import org.datamate.identity.shared.event.role.RoleCreatedEvent;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class Role {
+public class Role extends AggregateRoot {
     private final Long id;
     private final String name;
     private final String description;
+    private final RoleStatus status;
+    private final String referenceSystem;
+    private final String referenceValue;
+    private final Long version;
+    private final String createdBy;
+    private final LocalDateTime createdDate;
+    private final String lastModifiedBy;
+    private final LocalDateTime lastModifiedDate;
 
-    public static Role create(String name, String description) {
-        return new Role(null, name, description);
+    private Role(
+            Long id,
+            String name,
+            String description,
+            RoleStatus status,
+            String referenceSystem,
+            String referenceValue,
+            Long version,
+            Long domainVersion,
+            String createdBy,
+            LocalDateTime createdDate,
+            String lastModifiedBy,
+            LocalDateTime lastModifiedDate
+    ) {
+        super(domainVersion);
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.referenceSystem = referenceSystem;
+        this.referenceValue = referenceValue;
+        this.version = version;
+        this.createdBy = createdBy;
+        this.createdDate = createdDate;
+        this.lastModifiedBy = lastModifiedBy;
+        this.lastModifiedDate = lastModifiedDate;
     }
 
-    public static Role reconstitute(Long id, String name, String description) {
-        return new Role(id, name, description);
+    public static Role create(
+            String name,
+            String description,
+            String createdBy
+    ) {
+        validateState(name, RoleStatus.INACTIVE, createdBy);
+
+        return new Role(
+                null,
+                name,
+                description,
+                RoleStatus.INACTIVE,
+                null,
+                null,
+                null,
+                0L,
+                createdBy,
+                LocalDateTime.now(),
+                createdBy,
+                LocalDateTime.now()
+        );
+    }
+
+    public static Role reconstitute(
+            Long id,
+            String name,
+            String description,
+            RoleStatus status,
+            String referenceSystem,
+            String referenceValue,
+            Long version,
+            Long domainVersion,
+            String createdBy,
+            LocalDateTime createdDate,
+            String lastModifiedBy,
+            LocalDateTime lastModifiedDate
+    ) {
+        return new Role(
+                id,
+                name,
+                description,
+                status,
+                referenceSystem,
+                referenceValue,
+                version,
+                domainVersion,
+                createdBy,
+                createdDate,
+                lastModifiedBy,
+                lastModifiedDate
+        );
+    }
+
+    private static void validateState(String name, RoleStatus status, String createdBy) {
+        if (name == null || name.isBlank()) {
+            throw new InvalidRoleDataException("role.validation.name.required", "Role name is mandatory.");
+        }
+        if (status == null) {
+            throw new InvalidRoleDataException("role.validation.status.required", "Role status is mandatory.");
+        }
+        if (createdBy == null || createdBy.isBlank()) {
+            throw new InvalidRoleDataException("role.validation.createdBy.required", "Created by reference is required.");
+        }
+    }
+
+    public Role publishCreationEvent() {
+        this.registerEvent(new RoleCreatedEvent(
+                this.id,
+                this.getDomainVersion(),
+                this.name,
+                this.description,
+                this.status,
+                this.createdBy
+        ));
+        return this;
     }
 }

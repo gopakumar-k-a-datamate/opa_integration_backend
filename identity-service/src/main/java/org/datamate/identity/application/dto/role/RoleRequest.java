@@ -1,3 +1,10 @@
 package org.datamate.identity.application.dto.role;
 
-public record RoleRequest(String name, String description) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record RoleRequest(
+        @NotBlank(message = "{role.validation.name.required}")
+        String name,
+
+        String description
+) {}

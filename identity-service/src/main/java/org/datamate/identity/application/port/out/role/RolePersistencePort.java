@@ -11,5 +11,6 @@ public interface RolePersistencePort {
     List<Role> findAll();
     void delete(Long id);
     boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
     List<String> findRoleNamesByUserId(UUID userId);
 }
