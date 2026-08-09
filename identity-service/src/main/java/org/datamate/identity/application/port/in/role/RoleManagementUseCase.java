@@ -7,6 +7,5 @@ import java.util.List;
 public interface RoleManagementUseCase {
 
     RoleDto getRole(Long id);
-    List<RoleDto> listRoles();
     void deleteRole(Long id);
 }

@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.role.mapper.RolePersistenceMapper;
 import org.datamate.identity.adapter.out.persistence.role.repository.SpringDataRoleRepository;
+import org.datamate.identity.adapter.out.persistence.role.specification.RoleSpecification;
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.domain.model.Role;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +43,14 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     @Override
     public List<Role> findAll() {
         return repository.findAll().stream().map(mapper::mapToDomain).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Role> searchRoles(RoleSearchCriteria criteria) {
+        log.debug("Searching roles with criteria: {}", criteria);
+        return repository.findAll(RoleSpecification.filterRoles(criteria)).stream()
+                .map(mapper::mapToDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

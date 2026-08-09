@@ -40,15 +40,6 @@ public class RoleManagementService implements RoleManagementUseCase {
     }
 
     @Override
-    public List<RoleDto> listRoles() {
-        List<RoleDto> roles = rolePort.findAll().stream()
-                .map(roleDtoMapper::toDto)
-                .collect(Collectors.toList());
-        log.info("Listed {} roles", roles.size());
-        return roles;
-    }
-
-    @Override
     public void deleteRole(Long id) {
         log.info("Deleting role with id {}", id);
         rolePort.delete(id);

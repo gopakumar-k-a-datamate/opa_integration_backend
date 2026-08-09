@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
+import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,9 @@ class RoleControllerTest {
 
     @Mock
     private CreateRoleUseCase createRoleUseCase;
+
+    @Mock
+    private ListRolesUseCase listRolesUseCase;
 
     @Mock
     private Logger log;
@@ -100,7 +105,7 @@ class RoleControllerTest {
     @Test
     void shouldListRolesSuccessfully() throws Exception {
         RoleDto responseDto = new RoleDto(1L, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE);
-        when(roleManagementUseCase.listRoles()).thenReturn(List.of(responseDto));
+        when(listRolesUseCase.listRoles(any(RoleSearchCriteria.class))).thenReturn(List.of(responseDto));
 
         mockMvc.perform(get("/api/v1/roles")
                         .contentType(MediaType.APPLICATION_JSON))
