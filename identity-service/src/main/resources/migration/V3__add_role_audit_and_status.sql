@@ -23,3 +23,6 @@ CREATE TABLE IF NOT EXISTS role_aud (
     deleted_at TIMESTAMP,
     CONSTRAINT pk_role_aud PRIMARY KEY (id, rev)
 );
+
+ALTER TABLE role DROP CONSTRAINT IF EXISTS role_name_key;
+CREATE UNIQUE INDEX idx_role_name_active_only ON role (LOWER(name)) WHERE deleted_at IS NULL;
