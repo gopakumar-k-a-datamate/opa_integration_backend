@@ -2,13 +2,14 @@ package org.datamate.identity.adapter.out.persistence.role.repository;
 
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface SpringDataRoleRepository extends JpaRepository<RoleJpaEntity, Long> {
+public interface SpringDataRoleRepository extends JpaRepository<RoleJpaEntity, Long>, JpaSpecificationExecutor<RoleJpaEntity> {
     boolean existsByName(String name);
     boolean existsByNameIgnoreCase(String name);
 

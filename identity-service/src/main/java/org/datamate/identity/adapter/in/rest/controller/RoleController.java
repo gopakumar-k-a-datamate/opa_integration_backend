@@ -6,7 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
+import org.datamate.identity.application.query.role.RoleSearchCriteria;
+import org.datamate.identity.shared.model.RoleStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +29,7 @@ public class RoleController {
 
     private final RoleManagementUseCase roleManagementUseCase;
     private final CreateRoleUseCase createRoleUseCase;
+    private final ListRolesUseCase listRolesUseCase;
 
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
@@ -42,9 +46,14 @@ public class RoleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RoleDto>> listRoles() {
-        log.info("List roles request received");
-        return ResponseEntity.ok(roleManagementUseCase.listRoles());
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "List roles", description = "Retrieves a list of roles, optionally filtered by role name search query and status.")
+    public List<RoleDto> listRoles(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) RoleStatus status) {
+        log.info("List roles request received with search: '{}' and status: {}", search, status);
+        RoleSearchCriteria criteria = new RoleSearchCriteria(search, status);
+        return listRolesUseCase.listRoles(criteria);
     }
 
     @DeleteMapping("/{id}")
