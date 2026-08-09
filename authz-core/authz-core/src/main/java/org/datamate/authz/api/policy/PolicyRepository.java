@@ -24,7 +24,7 @@ public interface PolicyRepository {
     /** Insert or update a policy. */
     Policy upsert(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
-                       String disabledReason);
+                       String disabledReason, boolean useCustomRego, String customRegoSnippet);
 
     /** Update the deprecated status of a policy. */
     void updateDeprecatedStatus(Long id, boolean deprecated);

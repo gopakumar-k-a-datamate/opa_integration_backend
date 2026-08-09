@@ -44,6 +44,12 @@ public class PolicyJpaEntity {
     @Column(name = "expression_json", columnDefinition = "jsonb")
     private String expressionJson;
 
+    @Column(name = "use_custom_rego", nullable = false)
+    private boolean useCustomRego = false;
+
+    @Column(name = "custom_rego_snippet", columnDefinition = "TEXT")
+    private String customRegoSnippet;
+
     @Column(nullable = false)
     private boolean enabled = true;
 

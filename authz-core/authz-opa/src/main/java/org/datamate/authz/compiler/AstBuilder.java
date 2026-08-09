@@ -44,6 +44,12 @@ public class AstBuilder {
                 throw new InvalidPayloadException("Invalid AST: 'children' must be an array.");
             }
 
+            if (operator == LogicalOperator.NOT) {
+                if (childrenNode.size() != 1) {
+                    throw new InvalidPayloadException("Invalid AST: NOT group must have exactly one child.");
+                }
+            }
+
             for (JsonNode child : childrenNode) {
                 group.addChild(build(child, depth + 1));
             }

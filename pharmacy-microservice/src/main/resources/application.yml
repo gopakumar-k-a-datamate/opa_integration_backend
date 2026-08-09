@@ -24,3 +24,11 @@ datamate:
     # Exposing these on a regular microservice is a security risk.
     admin:
       enabled: true
+
+authz:
+  opa:
+    validation:
+      url: http://localhost:8183
+logging:
+  level:
+    org.datamate.authz: DEBUG

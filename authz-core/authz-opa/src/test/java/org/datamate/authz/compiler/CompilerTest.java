@@ -59,7 +59,7 @@ public class CompilerTest {
         // Step 1: Create a dummy Policy entity holding the JSON
         Policy policy = Policy.reconstitute(
                 1L, 100L, SubjectType.ROLE, "ACCOUNTANT",
-                PolicyEffect.ALLOW, json, true, null, false, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -139,7 +139,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 2L, 101L, SubjectType.ROLE, "DOCTOR",
-                PolicyEffect.ALLOW, json, true, null, false, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -225,7 +225,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 3L, 102L, SubjectType.ROLE, "SUPER_ADMIN",
-                PolicyEffect.ALLOW, json, true, null, false, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -306,7 +306,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 4L, 103L, SubjectType.ROLE, "MANAGER",
-                PolicyEffect.ALLOW, json, true, null, false, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -327,8 +327,8 @@ public class CompilerTest {
         allow_rule if {
             "MANAGER" in input.user.roles
             input.permission == "system:record:read"
-            input.resource.status in ["ACTIVE","PENDING"]
-            not input.resource.category in ["ARCHIVED","DELETED"]
+            input.resource.status in {"ACTIVE", "PENDING"}
+            not input.resource.category in {"ARCHIVED", "DELETED"}
         }
         
         allow if {

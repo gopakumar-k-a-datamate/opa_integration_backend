@@ -54,6 +54,9 @@ public class Policy {
     /** System-managed flag indicating if this policy references deprecated fields/permissions. */
     private final boolean deprecated;
 
+    private final boolean useCustomRego;
+    private final String customRegoSnippet;
+
     /** Optimistic locking version. */
     private final Long version;
 
@@ -66,7 +69,8 @@ public class Policy {
 
     private Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
-                       String disabledReason, boolean deprecated, Long version, LocalDateTime createdAt,
+                       String disabledReason, boolean deprecated, boolean useCustomRego, 
+                       String customRegoSnippet, Long version, LocalDateTime createdAt,
                        LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
         this.id = id;
         this.permissionId = permissionId;
@@ -77,6 +81,8 @@ public class Policy {
         this.enabled = enabled;
         this.disabledReason = disabledReason;
         this.deprecated = deprecated;
+        this.useCustomRego = useCustomRego;
+        this.customRegoSnippet = customRegoSnippet;
         this.version = version;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -87,15 +93,20 @@ public class Policy {
     public static Policy create(Long permissionId, SubjectType subjectType, String subjectId,
                                 PolicyEffect effect, String expressionJson) {
         return new Policy(null, permissionId, subjectType, subjectId, effect, 
-                          expressionJson, true, null, false, 0L, LocalDateTime.now(), null, null, null);
+                          expressionJson, true, null, false, false, null, 0L, LocalDateTime.now(), null, null, null);
     }
 
     public static Policy reconstitute(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                                       PolicyEffect effect, String expressionJson, boolean enabled,
-                                      String disabledReason, boolean deprecated, Long version, LocalDateTime createdAt,
+                                      String disabledReason, boolean deprecated, boolean useCustomRego, 
+                                      String customRegoSnippet, Long version, LocalDateTime createdAt,
                                       LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
         return new Policy(id, permissionId, subjectType, subjectId, effect, expressionJson, 
-                          enabled, disabledReason, deprecated, version, createdAt, updatedAt, deletedAt, deletedReason);
+                          enabled, disabledReason, deprecated, useCustomRego, customRegoSnippet, version, createdAt, updatedAt, deletedAt, deletedReason);
+    }
+
+    public boolean hasCustomRego() {
+        return useCustomRego && customRegoSnippet != null && !customRegoSnippet.isBlank();
     }
 
     // ── Domain Behavior ────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ import org.springframework.context.annotation.ComponentScan;
         "org.datamate.authz.service",
         "org.datamate.authz.compiler",
         "org.datamate.authz.dto",
+        "org.datamate.authz.adapter.out.opa",
         "org.datamate.authz.starter.enforcement"
 })
 public class AuthzCoreAutoConfiguration {

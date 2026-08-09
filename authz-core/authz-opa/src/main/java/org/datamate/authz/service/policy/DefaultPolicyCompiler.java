@@ -54,6 +54,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
     private final PermissionRepository permissionPort;
     private final PolicyBundleCacheRepository bundleCachePort;
     private final ConditionFieldRepository conditionFieldPort;
+    private final org.datamate.authz.api.policy.PolicyValidationPort validationPort;
 
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
@@ -82,13 +83,26 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
 
         RegoGenerator generator = new RegoGenerator(objectMapper);
         String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
-        byte[] bundleBytes;
-        try {
-            bundleBytes = bundleBuilder.build(targetNamespace, regoContent);
-        } catch (IOException e) {
-            throw new PolicyCompilationException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
+        
+        org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validationPort.validate(regoContent);
+        if (!result.valid()) {
+            throw new PolicyCompilationException("Generated Rego for namespace '" + targetNamespace + "' has syntax errors. Bundle NOT updated.");
         }
-        bundleCachePort.upsertBundle(targetNamespace, bundleBytes, computeMd5(bundleBytes));
+        
+        String contentHash = computeMd5(regoContent.getBytes());
+        String currentEtag = bundleCachePort.getBundle(targetNamespace)
+                .map(org.datamate.authz.model.policy.entity.PolicyBundleCache::getEtag)
+                .orElse(null);
+                
+        if (!contentHash.equals(currentEtag)) {
+            byte[] bundleBytes;
+            try {
+                bundleBytes = bundleBuilder.build(targetNamespace, regoContent);
+            } catch (IOException e) {
+                throw new PolicyCompilationException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
+            }
+            bundleCachePort.upsertBundle(targetNamespace, bundleBytes, contentHash);
+        }
     }
 
     private String computeMd5(byte[] data) {
@@ -109,19 +123,34 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
         List<Policy> activePolicies = policyPort.findAllActive();
         for (Policy policy : activePolicies) {
             boolean usesDeprecatedField = false;
-            String json = policy.getExpressionJson();
-            if (json != null && !json.trim().isEmpty()) {
-                try {
-                    JsonNode root = objectMapper.readTree(json);
-                    usesDeprecatedField = hasDeprecatedField(root, deprecatedFields);
-                } catch (Exception e) {
-                    // Ignore parse errors here, let RegoGenerator fail or ignore
+            
+            if (policy.hasCustomRego()) {
+                usesDeprecatedField = customRegoMayUseDeprecatedField(policy.getCustomRegoSnippet(), deprecatedFields);
+            } else {
+                String json = policy.getExpressionJson();
+                if (json != null && !json.trim().isEmpty()) {
+                    try {
+                        JsonNode root = objectMapper.readTree(json);
+                        usesDeprecatedField = hasDeprecatedField(root, deprecatedFields);
+                    } catch (Exception e) {
+                        // Ignore parse errors here, let RegoGenerator fail or ignore
+                    }
                 }
             }
             if (policy.isDeprecated() != usesDeprecatedField) {
                 policyPort.updateDeprecatedStatus(policy.getId(), usesDeprecatedField);
             }
         }
+    }
+
+    private boolean customRegoMayUseDeprecatedField(String regoSnippet, Set<String> deprecatedFields) {
+        if (regoSnippet == null) return false;
+        for (String field : deprecatedFields) {
+            if (regoSnippet.contains("input.resource." + field)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasDeprecatedField(JsonNode node, Set<String> deprecatedFields) {

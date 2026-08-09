@@ -23,7 +23,9 @@ public record PolicyItemRequest(
         boolean enabled,
         boolean isDeleted,
         String deletedReason,
-        String disabledReason
+        String disabledReason,
+        boolean useCustomRego,
+        String customRegoSnippet
 ) {}
 
 

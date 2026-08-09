@@ -71,7 +71,7 @@ public class GetPoliciesService {
                     permission.getAction(),
                     resource.getNamespace(),
                     resource.getName(),
-                    null, null, null, false, null, null, false
+                    null, null, null, false, null, null, false, false, null
             );
         }
 
@@ -87,7 +87,9 @@ public class GetPoliciesService {
                 policy.isEnabled(),
                 policy.getDisabledReason(),
                 policy.getDeletedReason(),
-                policy.isDeprecated()
+                policy.isDeprecated(),
+                policy.isUseCustomRego(),
+                policy.getCustomRegoSnippet()
         );
     }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFields } from '../api/apiClient';
+import Editor from '@monaco-editor/react';
 
 const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
   const selectedField = fields.find(f => f.fieldName === rule.field);
@@ -116,6 +117,7 @@ const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
         <option value="!=">!=</option>
         <option value="in">IN</option>
         <option value="not_in">NOT IN</option>
+        <option value="contains">CONTAINS</option>
         <option value="<=">&lt;=</option>
         <option value=">=">&gt;=</option>
         <option value="<">&lt;</option>
@@ -158,8 +160,8 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
     onChange({ ...node, children: newChildren });
   };
 
-  const addGroup = () => {
-    const newGroup = { operator: 'AND', children: [] };
+  const addGroup = (op) => {
+    const newGroup = { operator: op, children: [] };
     const newChildren = [...(node.children || []), newGroup];
     onChange({ ...node, children: newChildren });
   };
@@ -192,8 +194,9 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
             cursor: 'pointer'
           }}
         >
-          <option value="AND">ALL</option>
-          <option value="OR">ANY</option>
+          <option value="AND">ALL (AND)</option>
+          <option value="OR">ANY (OR)</option>
+          <option value="NOT">NONE (NOT)</option>
         </select>
         {!isRoot && (
           <button className="btn" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', marginLeft: 'auto', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5' }} onClick={onRemove}>
@@ -201,6 +204,12 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
           </button>
         )}
       </div>
+
+      {node.operator === 'NOT' && children.length > 1 && (
+        <div style={{ color: '#fca5a5', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+          Warning: NOT group should ideally have only one condition.
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginBottom: groups.length > 0 ? '1.5rem' : '0' }}>
         {rules.map((item) => (
@@ -252,7 +261,8 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
 
       <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
         <button className="btn" style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa' }} onClick={addRule}>+ Add Rule</button>
-        <button className="btn" style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa' }} onClick={addGroup}>+ Add Group</button>
+        <button className="btn" style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa' }} onClick={() => addGroup('AND')}>+ Add Group</button>
+        <button className="btn" style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5' }} onClick={() => addGroup('NOT')}>+ Add NOT Group</button>
       </div>
     </div>
   );
@@ -269,7 +279,10 @@ const generatePreview = (node, fields, depth = 0, isRoot = true) => {
     const childPreviews = node.children.map(c => generatePreview(c, fields, childDepth, false)).filter(Boolean);
     
     if (childPreviews.length === 0) return `${indent}(Empty Group)`;
-    if (childPreviews.length === 1) return generatePreview(node.children[0], fields, depth, isRoot);
+    if (childPreviews.length === 1) {
+      if (node.operator === 'NOT') return `${indent}NOT (${childPreviews[0].trim()})`;
+      return generatePreview(node.children[0], fields, depth, isRoot);
+    }
     
     const childIndent = '  '.repeat(childDepth);
     const joiner = `\n${childIndent}${node.operator}\n`;
@@ -277,6 +290,9 @@ const generatePreview = (node, fields, depth = 0, isRoot = true) => {
     if (isRoot) {
       return childPreviews.join(joiner);
     } else {
+      if (node.operator === 'NOT') {
+        return `${indent}NOT (\n${childPreviews.join(joiner)}\n${indent})`;
+      }
       return `${indent}(\n${childPreviews.join(joiner)}\n${indent})`;
     }
   }
@@ -292,9 +308,16 @@ const generatePreview = (node, fields, depth = 0, isRoot = true) => {
   return `${indent}${fieldDisplay} ${node.comparison || '=='} ${valStr}`;
 };
 
-const ConditionBuilder = ({ permissionCode, existingExpression, onClose, onSave }) => {
+const ConditionBuilder = ({ permissionCode, policy, validationErrors, onClose, onSave }) => {
   const [fields, setFields] = useState([]);
   
+  const existingExpression = policy?.expressionJson;
+  const initUseCustomRego = policy?.useCustomRego || false;
+  const initCustomRegoSnippet = policy?.customRegoSnippet || '';
+
+  const [useCustomRego, setUseCustomRego] = useState(initUseCustomRego);
+  const [customRegoSnippet, setCustomRegoSnippet] = useState(initCustomRegoSnippet);
+
   const [expressionTree, setExpressionTree] = useState(() => {
     if (existingExpression?.operator) {
       return existingExpression;
@@ -312,10 +335,28 @@ const ConditionBuilder = ({ permissionCode, existingExpression, onClose, onSave 
   };
 
   const handleSave = () => {
-    if (!expressionTree.children || expressionTree.children.length === 0) {
-      onSave(permissionCode, null);
+    if (useCustomRego) {
+      onSave(permissionCode, null, true, customRegoSnippet);
     } else {
-      onSave(permissionCode, expressionTree);
+      if (!expressionTree.children || expressionTree.children.length === 0) {
+        onSave(permissionCode, null, false, '');
+      } else {
+        onSave(permissionCode, expressionTree, false, '');
+      }
+    }
+  };
+
+  const handleEditorMount = (editor, monaco) => {
+    if (validationErrors && validationErrors.length > 0) {
+      const markers = validationErrors.map(err => ({
+        severity: monaco.MarkerSeverity.Error,
+        message: err.message,
+        startLineNumber: err.line || 1,
+        startColumn: err.column || 1,
+        endLineNumber: err.line || 1,
+        endColumn: (err.column || 1) + 5,
+      }));
+      monaco.editor.setModelMarkers(editor.getModel(), "owner", markers);
     }
   };
 
@@ -333,52 +374,86 @@ const ConditionBuilder = ({ permissionCode, existingExpression, onClose, onSave 
         `}
       </style>
       <div className="glass-panel modal-content" style={{ margin: 'auto', maxWidth: '1200px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-        <div className="modal-header" style={{ paddingBottom: '1rem' }}>
-          <h3>Condition Builder</h3>
+        <div className="modal-header" style={{ paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h3 style={{ margin: 0 }}>Condition Builder: {permissionCode}</h3>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              <input 
+                type="checkbox" 
+                className="checkbox" 
+                checked={useCustomRego} 
+                onChange={(e) => setUseCustomRego(e.target.checked)} 
+              />
+              Use Custom Rego
+            </label>
+          </div>
           <button className="btn" onClick={onClose}>✕</button>
         </div>
 
-        <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: '1.5rem' }}>
-
-          {/* Left Column: Builder */}
-          <div className="hide-scrollbar" style={{ flex: '1.8', overflowY: 'auto', paddingRight: '0.5rem', paddingBottom: '1rem' }}>
-            {fields.length > 0 ? (
-              <ConditionGroup
-                node={expressionTree}
-                fields={fields}
-                onChange={setExpressionTree}
-                isRoot={true}
+        {useCustomRego ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              Write custom Rego code. You do not need to specify `package` or `allow_rule` / `deny_rule` headers. Just provide helper rules if needed, or directly write logic. Wait, ADR says the snippet is injected verbatim.
+            </p>
+            <div style={{ flex: 1, border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', minHeight: '400px' }}>
+              <Editor
+                height="400px"
+                defaultLanguage="plaintext"
+                theme="vs-dark"
+                value={customRegoSnippet}
+                onChange={setCustomRegoSnippet}
+                onMount={handleEditorMount}
+                options={{
+                  minimap: { enabled: false },
+                  lineNumbers: 'on',
+                  tabSize: 4,
+                  insertSpaces: true
+                }}
               />
-            ) : (
-              <div>Loading fields...</div>
-            )}
-          </div>
-
-          {/* Right Column: Preview */}
-          <div className="hide-scrollbar" style={{
-            flex: '1',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '1.5rem',
-            background: 'rgba(0, 0, 0, 0.2)',
-            borderRadius: '8px',
-            border: '1px solid var(--border-color)',
-            overflowY: 'auto'
-          }}>
-            <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', flexShrink: 0 }}>Preview</h4>
-            <div style={{
-              fontFamily: 'monospace',
-              color: 'var(--text-primary)',
-              fontSize: '0.9rem',
-              lineHeight: '1.5',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              flex: 1
-            }}>
-              {fields.length > 0 ? generatePreview(expressionTree, fields) : 'Loading preview...'}
             </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: '1.5rem' }}>
+            {/* Left Column: Builder */}
+            <div className="hide-scrollbar" style={{ flex: '1.8', overflowY: 'auto', paddingRight: '0.5rem', paddingBottom: '1rem' }}>
+              {fields.length > 0 ? (
+                <ConditionGroup
+                  node={expressionTree}
+                  fields={fields}
+                  onChange={setExpressionTree}
+                  isRoot={true}
+                />
+              ) : (
+                <div>Loading fields...</div>
+              )}
+            </div>
+
+            {/* Right Column: Preview */}
+            <div className="hide-scrollbar" style={{
+              flex: '1',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '1.5rem',
+              background: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              overflowY: 'auto'
+            }}>
+              <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', flexShrink: 0 }}>Preview</h4>
+              <div style={{
+                fontFamily: 'monospace',
+                color: 'var(--text-primary)',
+                fontSize: '0.9rem',
+                lineHeight: '1.5',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                flex: 1
+              }}>
+                {fields.length > 0 ? generatePreview(expressionTree, fields) : 'Loading preview...'}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ padding: '1rem 0 0 0', display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '1rem' }}>
           <button className="btn" onClick={onClose}>Cancel</button>

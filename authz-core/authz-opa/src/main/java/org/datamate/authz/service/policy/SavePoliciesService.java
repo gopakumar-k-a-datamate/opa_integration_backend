@@ -43,6 +43,7 @@ public class SavePoliciesService {
     private final PolicyRepository policyPort;
     private final PermissionRepository permissionPort;
     private final PolicyCompiler compilerPort;
+    private final org.datamate.authz.api.policy.PolicyValidationPort validationPort;
     private final ObjectMapper objectMapper;
 
     
@@ -95,6 +96,13 @@ public class SavePoliciesService {
                     policyPort.softDelete(existingPolicy.getId(), item.deletedReason());
                 }
             } else {
+                if (item.useCustomRego() && item.customRegoSnippet() != null && !item.customRegoSnippet().isBlank()) {
+                    org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validationPort.validate(item.customRegoSnippet());
+                    if (!result.valid()) {
+                        throw new org.datamate.authz.exception.InvalidPolicySyntaxException(item.permissionCode(), result.errors());
+                    }
+                }
+                
                 String expressionJson = serializeJson(item);
                 Long policyId = (existingPolicy != null) ? existingPolicy.getId() : null;
                 policyPort.upsert(
@@ -105,7 +113,9 @@ public class SavePoliciesService {
                         item.effect(),
                         expressionJson,
                         item.enabled(),
-                        item.disabledReason()
+                        item.disabledReason(),
+                        item.useCustomRego(),
+                        item.customRegoSnippet()
                 );
             }
         }

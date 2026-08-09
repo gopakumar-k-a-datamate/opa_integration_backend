@@ -7,6 +7,7 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeConditionPermission, setActiveConditionPermission] = useState(null); // The permissionCode being edited
+  const [validationErrors, setValidationErrors] = useState(null);
 
   useEffect(() => {
     if (subjectId) {
@@ -42,14 +43,32 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
   };
 
   const handleSave = async () => {
-    await savePolicies(subjectType, subjectId, moduleName, policies.filter(p => p.enabled));
-    alert('Policies updated successfully.');
+    setError(null);
+    setValidationErrors(null);
+    try {
+      await savePolicies(subjectType, subjectId, moduleName, policies.filter(p => p.enabled));
+      alert('Policies updated successfully.');
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.errors) {
+        const errInfo = err.response.data;
+        setValidationErrors({
+            permissionCode: errInfo.permissionCode,
+            errors: errInfo.errors
+        });
+        setError(errInfo.message);
+        if (errInfo.permissionCode) {
+            setActiveConditionPermission(errInfo.permissionCode);
+        }
+      } else {
+        setError('Failed to save policies. Please check for syntax errors.');
+      }
+    }
   };
 
-  const handleConditionsSaved = (permissionCode, newExpression) => {
+  const handleConditionsSaved = (permissionCode, newExpression, useCustomRego, customRegoSnippet) => {
     setPolicies(prev => prev.map(p => 
       p.permissionCode === permissionCode 
-        ? { ...p, expressionJson: newExpression, enabled: true, effect: p.effect || 'ALLOW' } 
+        ? { ...p, expressionJson: newExpression, useCustomRego, customRegoSnippet, enabled: true, effect: p.effect || 'ALLOW' } 
         : p
     ));
     setActiveConditionPermission(null);
@@ -57,8 +76,8 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
 
   if (loading) return <div>Loading policies...</div>;
   if (error) return (
-    <div className="glass-panel" style={{ padding: '2rem', color: '#fca5a5', textAlign: 'center', marginTop: '1rem' }}>
-      ⚠️ {error} - The backend for {moduleName} is currently offline.
+    <div className="glass-panel" style={{ padding: '2rem', color: '#fca5a5', textAlign: 'center', marginTop: '1rem', whiteSpace: 'pre-wrap' }}>
+      ⚠️ {error}
     </div>
   );
 
@@ -87,7 +106,7 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
                     onChange={() => handleToggle(p.permissionCode)}
                   />
                   <span style={{ fontWeight: 500, minWidth: '80px' }}>{p.action}</span>
-                  {p.expressionJson && (
+                  {(p.expressionJson || (p.useCustomRego && p.customRegoSnippet)) && (
                     <span className="badge">Has Conditions</span>
                   )}
                   {p.disabledReason && (
@@ -116,7 +135,8 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
       {activeConditionPermission && (
         <ConditionBuilder 
           permissionCode={activeConditionPermission}
-          existingExpression={policies.find(p => p.permissionCode === activeConditionPermission)?.expressionJson}
+          policy={policies.find(p => p.permissionCode === activeConditionPermission)}
+          validationErrors={validationErrors?.permissionCode === activeConditionPermission ? validationErrors.errors : null}
           onClose={() => setActiveConditionPermission(null)}
           onSave={handleConditionsSaved}
         />

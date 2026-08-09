@@ -22,7 +22,9 @@ public record PolicyGridItemDto(
         boolean enabled,
         String disabledReason,
         String deletedReason,
-        boolean deprecated
+        boolean deprecated,
+        boolean useCustomRego,
+        String customRegoSnippet
 ) {}
 
 
