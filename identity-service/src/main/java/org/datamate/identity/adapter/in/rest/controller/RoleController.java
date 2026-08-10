@@ -5,9 +5,11 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
+import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
+import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ public class RoleController {
     private final RoleManagementUseCase roleManagementUseCase;
     private final CreateRoleUseCase createRoleUseCase;
     private final ListRolesUseCase listRolesUseCase;
+    private final SelectRolesUseCase selectRolesUseCase;
 
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
@@ -40,6 +43,14 @@ public class RoleController {
     public ResponseEntity<RoleDto> createRole(@Valid @RequestBody RoleRequest request) {
         log.info("Create role request received for '{}'", request.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(createRoleUseCase.createRole(request));
+    }
+
+    @GetMapping("/select")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Select roles", description = "Retrieves a simplified list (id and name) of only active roles, optionally filtered by a search query.")
+    public List<RoleSelectDto> selectRoles(@RequestParam(required = false) String search) {
+        log.info("Get active roles select request received with search: '{}'", search);
+        return selectRolesUseCase.selectRoles(search);
     }
 
     @GetMapping("/{id}")

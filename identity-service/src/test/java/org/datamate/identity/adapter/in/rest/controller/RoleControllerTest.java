@@ -4,9 +4,11 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
+import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
+import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
@@ -49,6 +51,9 @@ class RoleControllerTest {
 
     @Mock
     private ListRolesUseCase listRolesUseCase;
+
+    @Mock
+    private SelectRolesUseCase selectRolesUseCase;
 
     @Mock
     private Logger log;
@@ -129,5 +134,30 @@ class RoleControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(roleManagementUseCase).deleteRole(eq(roleId));
+    }
+
+    @Test
+    void shouldGetActiveRolesSelectSuccessfully() throws Exception {
+        RoleSelectDto selectDto = new RoleSelectDto(roleId, "DENTIST");
+        when(selectRolesUseCase.selectRoles(null)).thenReturn(List.of(selectDto));
+
+        mockMvc.perform(get("/api/v1/roles/select")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(roleId.toString()))
+                .andExpect(jsonPath("$[0].name").value("DENTIST"));
+    }
+
+    @Test
+    void shouldGetActiveRolesSelectWithSearchSuccessfully() throws Exception {
+        RoleSelectDto selectDto = new RoleSelectDto(roleId, "DENTIST");
+        when(selectRolesUseCase.selectRoles("DEN")).thenReturn(List.of(selectDto));
+
+        mockMvc.perform(get("/api/v1/roles/select")
+                        .param("search", "DEN")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(roleId.toString()))
+                .andExpect(jsonPath("$[0].name").value("DENTIST"));
     }
 }

@@ -1,6 +1,7 @@
 package org.datamate.identity.application.mapper.role;
 
 import org.datamate.identity.application.dto.role.RoleDto;
+import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.domain.model.Role;
 
 import com.datamate.bedrock.framework.common.pagination.Paged;
@@ -12,6 +13,11 @@ public class RoleDtoMapper {
     public RoleDto toDto(Role role) {
         if (role == null) return null;
         return new RoleDto(role.getId(), role.getName(), role.getDescription(), role.getStatus());
+    }
+
+    public RoleSelectDto toSelectDto(Role role) {
+        if (role == null) return null;
+        return new RoleSelectDto(role.getId(), role.getName());
     }
 
     public Paged<RoleDto> toPaged(Paged<Role> paged) {

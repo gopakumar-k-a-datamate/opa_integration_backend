@@ -10,6 +10,7 @@ import org.datamate.identity.adapter.out.persistence.role.specification.RoleSpec
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.shared.model.RoleStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.springframework.data.domain.Page;
@@ -64,6 +65,16 @@ public class RolePersistenceAdapter implements RolePersistencePort {
         Paged<Role> result = toPaged(entityPage.map(mapper::mapToDomain));
         log.debug("Search roles query returned {} of {} roles", result.content().size(), result.totalElements());
         return result;
+    }
+
+    @Override
+    public List<Role> findActiveRoles(String search) {
+        log.debug("Finding active roles with search query: '{}'", search);
+        RoleSearchCriteria criteria = new RoleSearchCriteria(search, RoleStatus.ACTIVE);
+        return repository.findAll(RoleSpecification.filterRoles(criteria))
+                .stream()
+                .map(mapper::mapToDomain)
+                .collect(Collectors.toList());
     }
 
     @Override
