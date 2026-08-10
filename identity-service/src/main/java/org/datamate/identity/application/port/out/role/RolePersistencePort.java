@@ -1,5 +1,7 @@
 package org.datamate.identity.application.port.out.role;
 
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.datamate.identity.domain.model.Role;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import java.util.Optional;
@@ -10,7 +12,7 @@ public interface RolePersistencePort {
     Role save(Role role);
     Optional<Role> findById(Long id);
     List<Role> findAll();
-    List<Role> searchRoles(RoleSearchCriteria criteria);
+    Paged<Role> searchRoles(RoleSearchCriteria criteria, PageQuery pageQuery);
     void delete(Long id);
     boolean existsByName(String name);
     boolean existsByNameIgnoreCase(String name);

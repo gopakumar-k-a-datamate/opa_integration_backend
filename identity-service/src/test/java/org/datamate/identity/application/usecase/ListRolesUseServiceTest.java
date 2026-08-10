@@ -8,6 +8,8 @@ import org.datamate.identity.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.application.usecase.role.ListRolesUseService;
 import org.datamate.identity.domain.model.Role;
 import org.datamate.identity.shared.model.RoleStatus;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +45,7 @@ class ListRolesUseServiceTest {
     void shouldListRolesSuccessfully() {
         // Arrange
         RoleSearchCriteria criteria = new RoleSearchCriteria("admin", RoleStatus.ACTIVE);
+        PageQuery pageQuery = new PageQuery(1, 10);
         Role sampleRole = Role.reconstitute(
                 1L,
                 "ADMIN",
@@ -58,20 +61,21 @@ class ListRolesUseServiceTest {
                 LocalDateTime.now()
         );
 
-        when(rolePort.searchRoles(criteria)).thenReturn(List.of(sampleRole));
+        Paged<Role> pagedRole = new Paged<>(List.of(sampleRole), 1, 10, 1L, 1, false, false);
+        when(rolePort.searchRoles(eq(criteria), any(PageQuery.class))).thenReturn(pagedRole);
 
         // Act
-        List<RoleDto> result = listRolesUseService.listRoles(criteria);
+        Paged<RoleDto> result = listRolesUseService.listRoles(criteria, pageQuery);
 
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.size());
-        RoleDto dto = result.get(0);
+        assertEquals(1, result.content().size());
+        RoleDto dto = result.content().get(0);
         assertEquals(1L, dto.id());
         assertEquals("ADMIN", dto.name());
         assertEquals("Administrator Role", dto.description());
         assertEquals(RoleStatus.ACTIVE, dto.status());
 
-        verify(rolePort).searchRoles(criteria);
+        verify(rolePort).searchRoles(eq(criteria), any(PageQuery.class));
     }
 }

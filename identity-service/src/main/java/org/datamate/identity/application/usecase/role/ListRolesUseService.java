@@ -8,11 +8,12 @@ import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.application.mapper.role.RoleDtoMapper;
+import org.datamate.identity.domain.model.Role;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.PaginationHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,12 +27,15 @@ public class ListRolesUseService implements ListRolesUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoleDto> listRoles(RoleSearchCriteria criteria) {
-        log.info("Listing roles with criteria: {}", criteria);
-        List<RoleDto> roles = rolePort.searchRoles(criteria).stream()
-                .map(roleDtoMapper::toDto)
-                .collect(Collectors.toList());
-        log.info("Successfully fetched {} roles", roles.size());
-        return roles;
+    public Paged<RoleDto> listRoles(RoleSearchCriteria criteria, PageQuery pageQuery) {
+        log.info("Listing roles with criteria: {} and page query: {}", criteria, pageQuery);
+        int validatedPage = PaginationHelper.validatePageNumber(pageQuery.page());
+        int validatedSize = PaginationHelper.validateLimit(pageQuery.size());
+        PageQuery validatedPageQuery = new PageQuery(validatedPage, validatedSize);
+
+        Paged<Role> rolePaged = rolePort.searchRoles(criteria, validatedPageQuery);
+        Paged<RoleDto> result = roleDtoMapper.toPaged(rolePaged);
+        log.info("Successfully fetched {} roles of {} total", result.content().size(), result.totalElements());
+        return result;
     }
 }

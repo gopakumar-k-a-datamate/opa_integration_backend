@@ -9,6 +9,8 @@ import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,13 +107,17 @@ class RoleControllerTest {
     @Test
     void shouldListRolesSuccessfully() throws Exception {
         RoleDto responseDto = new RoleDto(1L, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE);
-        when(listRolesUseCase.listRoles(any(RoleSearchCriteria.class))).thenReturn(List.of(responseDto));
+        Paged<RoleDto> pagedResult = new Paged<>(List.of(responseDto), 1, 10, 1L, 1, false, false);
+        when(listRolesUseCase.listRoles(any(RoleSearchCriteria.class), any(PageQuery.class))).thenReturn(pagedResult);
 
         mockMvc.perform(get("/api/v1/roles")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("DENTIST"));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("DENTIST"))
+                .andExpect(jsonPath("$.pageNumber").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
