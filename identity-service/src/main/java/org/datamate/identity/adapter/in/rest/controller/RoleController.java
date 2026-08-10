@@ -7,6 +7,7 @@ import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
@@ -36,6 +37,7 @@ public class RoleController {
     private final CreateRoleUseCase createRoleUseCase;
     private final ListRolesUseCase listRolesUseCase;
     private final SelectRolesUseCase selectRolesUseCase;
+    private final GetRoleUseCase getRoleUseCase;
 
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
@@ -54,9 +56,11 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleDto> getRole(@PathVariable UUID id) {
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get role details", description = "Retrieve a role's detailed information by their unique ID.")
+    public RoleDto getRole(@PathVariable UUID id) {
         log.info("Get role request received for id {}", id);
-        return ResponseEntity.ok(roleManagementUseCase.getRole(id));
+        return getRoleUseCase.getRoleById(id);
     }
 
     @GetMapping

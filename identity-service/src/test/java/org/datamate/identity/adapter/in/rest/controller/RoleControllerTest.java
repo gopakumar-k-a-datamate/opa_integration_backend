@@ -6,6 +6,7 @@ import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
@@ -56,6 +57,9 @@ class RoleControllerTest {
     private SelectRolesUseCase selectRolesUseCase;
 
     @Mock
+    private GetRoleUseCase getRoleUseCase;
+
+    @Mock
     private Logger log;
 
     @InjectMocks
@@ -102,7 +106,7 @@ class RoleControllerTest {
     @Test
     void shouldGetRoleSuccessfully() throws Exception {
         RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE);
-        when(roleManagementUseCase.getRole(eq(roleId))).thenReturn(responseDto);
+        when(getRoleUseCase.getRoleById(eq(roleId))).thenReturn(responseDto);
 
         mockMvc.perform(get("/api/v1/roles/" + roleId)
                         .contentType(MediaType.APPLICATION_JSON))
