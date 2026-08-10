@@ -13,6 +13,7 @@ public interface RolePersistencePort {
     Optional<Role> findById(UUID id);
     List<Role> findAll();
     Paged<Role> searchRoles(RoleSearchCriteria criteria, PageQuery pageQuery);
+    List<Role> findActiveRoles(String search);
     void delete(UUID id);
     boolean existsByName(String name);
     boolean existsByNameIgnoreCase(String name);
