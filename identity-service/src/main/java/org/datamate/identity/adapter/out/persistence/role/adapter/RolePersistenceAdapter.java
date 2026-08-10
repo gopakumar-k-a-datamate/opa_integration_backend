@@ -44,7 +44,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public Optional<Role> findById(Long id) {
+    public Optional<Role> findById(UUID id) {
         return repository.findById(id).map(mapper::mapToDomain);
     }
 
@@ -67,7 +67,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(UUID id) {
         log.debug("Deleting role with id {}", id);
         repository.deleteById(id);
     }

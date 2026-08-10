@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.UUID;
 
-public interface SpringDataRoleRepository extends JpaRepository<RoleJpaEntity, Long>, JpaSpecificationExecutor<RoleJpaEntity> {
+public interface SpringDataRoleRepository extends JpaRepository<RoleJpaEntity, UUID>, JpaSpecificationExecutor<RoleJpaEntity> {
     boolean existsByName(String name);
     boolean existsByNameIgnoreCase(String name);
 

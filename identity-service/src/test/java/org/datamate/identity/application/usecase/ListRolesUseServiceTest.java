@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -44,10 +45,11 @@ class ListRolesUseServiceTest {
     @Test
     void shouldListRolesSuccessfully() {
         // Arrange
+        UUID roleId = UUID.randomUUID();
         RoleSearchCriteria criteria = new RoleSearchCriteria("admin", RoleStatus.ACTIVE);
         PageQuery pageQuery = new PageQuery(1, 10);
         Role sampleRole = Role.reconstitute(
-                1L,
+                roleId,
                 "ADMIN",
                 "Administrator Role",
                 RoleStatus.ACTIVE,
@@ -71,7 +73,7 @@ class ListRolesUseServiceTest {
         assertNotNull(result);
         assertEquals(1, result.content().size());
         RoleDto dto = result.content().get(0);
-        assertEquals(1L, dto.id());
+        assertEquals(roleId, dto.id());
         assertEquals("ADMIN", dto.name());
         assertEquals("Administrator Role", dto.description());
         assertEquals(RoleStatus.ACTIVE, dto.status());

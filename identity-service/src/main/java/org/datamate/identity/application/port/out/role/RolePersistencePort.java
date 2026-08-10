@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public interface RolePersistencePort {
     Role save(Role role);
-    Optional<Role> findById(Long id);
+    Optional<Role> findById(UUID id);
     List<Role> findAll();
     Paged<Role> searchRoles(RoleSearchCriteria criteria, PageQuery pageQuery);
-    void delete(Long id);
+    void delete(UUID id);
     boolean existsByName(String name);
     boolean existsByNameIgnoreCase(String name);
     List<String> findRoleNamesByUserId(UUID userId);
