@@ -16,6 +16,7 @@ import org.hibernate.annotations.SQLRestriction;
 import org.datamate.identity.shared.model.RoleStatus;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
@@ -28,8 +29,8 @@ import jakarta.persistence.GenerationType;
 @Setter
 public class RoleJpaEntity extends BaseAuditableEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String name;

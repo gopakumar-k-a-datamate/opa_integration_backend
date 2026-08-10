@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/roles")
@@ -42,7 +43,7 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleDto> getRole(@PathVariable Long id) {
+    public ResponseEntity<RoleDto> getRole(@PathVariable UUID id) {
         log.info("Get role request received for id {}", id);
         return ResponseEntity.ok(roleManagementUseCase.getRole(id));
     }
@@ -62,7 +63,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
         log.info("Delete role request received for id {}", id);
         roleManagementUseCase.deleteRole(id);
         return ResponseEntity.noContent().build();

@@ -32,22 +32,22 @@ public class UserStagingSeeder {
         UUID supportId = insertUser("support@123.com", commonPassword, "System", "Support");
 
         if (adminId != null) {
-            insertUserRole(adminId, 1L); // ADMIN
-            insertUserRole(adminId, 2L); // USER
+            insertUserRole(adminId, RoleStagingSeeder.ADMIN_ID); // ADMIN
+            insertUserRole(adminId, RoleStagingSeeder.USER_ID); // USER
         }
         if (userId != null) {
-            insertUserRole(userId, 2L); // USER
+            insertUserRole(userId, RoleStagingSeeder.USER_ID); // USER
         }
         if (managerId != null) {
-            insertUserRole(managerId, 3L); // MANAGER
-            insertUserRole(managerId, 2L); // USER
+            insertUserRole(managerId, RoleStagingSeeder.MANAGER_ID); // MANAGER
+            insertUserRole(managerId, RoleStagingSeeder.USER_ID); // USER
         }
         if (auditorId != null) {
-            insertUserRole(auditorId, 4L); // AUDITOR
+            insertUserRole(auditorId, RoleStagingSeeder.AUDITOR_ID); // AUDITOR
         }
         if (supportId != null) {
-            insertUserRole(supportId, 5L); // SUPPORT
-            insertUserRole(supportId, 2L); // USER
+            insertUserRole(supportId, RoleStagingSeeder.SUPPORT_ID); // SUPPORT
+            insertUserRole(supportId, RoleStagingSeeder.USER_ID); // USER
         }
     }
 
@@ -69,7 +69,7 @@ public class UserStagingSeeder {
         return newId;
     }
 
-    private void insertUserRole(UUID userId, Long roleId) {
+    private void insertUserRole(UUID userId, UUID roleId) {
         String checkSql = "SELECT COUNT(*) FROM user_roles WHERE user_id = ? AND role_id = ?";
         Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, roleId);
         if (count != null && count > 0) {
