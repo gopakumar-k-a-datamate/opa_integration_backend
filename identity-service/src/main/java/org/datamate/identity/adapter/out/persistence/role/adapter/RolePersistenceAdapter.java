@@ -10,12 +10,20 @@ import org.datamate.identity.adapter.out.persistence.role.specification.RoleSpec
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.domain.model.Role;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.datamate.identity.shared.pagination.PaginationHelperMethods.toPageable;
+import static org.datamate.identity.shared.pagination.PaginationHelperMethods.toPaged;
 
 @Component
 @RequiredArgsConstructor
@@ -46,11 +54,16 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public List<Role> searchRoles(RoleSearchCriteria criteria) {
-        log.debug("Searching roles with criteria: {}", criteria);
-        return repository.findAll(RoleSpecification.filterRoles(criteria)).stream()
-                .map(mapper::mapToDomain)
-                .collect(Collectors.toList());
+    public Paged<Role> searchRoles(RoleSearchCriteria criteria, PageQuery pageQuery) {
+        log.debug("Searching roles with criteria: {} and page query: {}", criteria, pageQuery);
+        Pageable pageable = toPageable(pageQuery, Sort.by(Sort.Direction.DESC, "id"));
+        Page<RoleJpaEntity> entityPage = repository.findAll(
+                RoleSpecification.filterRoles(criteria),
+                pageable
+        );
+        Paged<Role> result = toPaged(entityPage.map(mapper::mapToDomain));
+        log.debug("Search roles query returned {} of {} roles", result.content().size(), result.totalElements());
+        return result;
     }
 
     @Override

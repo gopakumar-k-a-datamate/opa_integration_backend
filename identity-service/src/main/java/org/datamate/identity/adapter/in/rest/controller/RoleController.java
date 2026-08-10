@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
@@ -47,13 +49,16 @@ public class RoleController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "List roles", description = "Retrieves a list of roles, optionally filtered by role name search query and status.")
-    public List<RoleDto> listRoles(
+    @Operation(summary = "List roles", description = "Retrieves a list of roles, optionally filtered by role name search query and status, with support for pagination.")
+    public Paged<RoleDto> listRoles(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) RoleStatus status) {
-        log.info("List roles request received with search: '{}' and status: {}", search, status);
+            @RequestParam(required = false) RoleStatus status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("List roles request received with search: '{}', status: {}, page: {}, size: {}", search, status, page, size);
         RoleSearchCriteria criteria = new RoleSearchCriteria(search, status);
-        return listRolesUseCase.listRoles(criteria);
+        PageQuery pageQuery = new PageQuery(page, size);
+        return listRolesUseCase.listRoles(criteria, pageQuery);
     }
 
     @DeleteMapping("/{id}")
