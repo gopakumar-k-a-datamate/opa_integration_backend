@@ -11,6 +11,7 @@ import org.datamate.identity.application.port.in.user.ListUserUseCase;
 import org.datamate.identity.application.port.in.user.GetUserUseCase;
 import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
 import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
+import org.datamate.identity.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
@@ -20,9 +21,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -78,11 +83,11 @@ class UserControllerTest {
                 .build();
     }
 
-    @org.springframework.web.bind.annotation.RestControllerAdvice
+    @RestControllerAdvice
     static class TestExceptionHandler {
-        @org.springframework.web.bind.annotation.ExceptionHandler(org.datamate.identity.domain.exception.user.UserNotFoundException.class)
-        @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NOT_FOUND)
-        public String handleUserNotFound(org.datamate.identity.domain.exception.user.UserNotFoundException ex) {
+        @ExceptionHandler(UserNotFoundException.class)
+        @ResponseStatus(HttpStatus.NOT_FOUND)
+        public String handleUserNotFound(UserNotFoundException ex) {
             return ex.getMessage();
         }
     }
@@ -231,7 +236,7 @@ class UserControllerTest {
     void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
         UUID sampleId = UUID.randomUUID();
         when(getUserUseCase.getUserById(eq(sampleId)))
-                .thenThrow(new org.datamate.identity.domain.exception.user.UserNotFoundException("User not found"));
+                .thenThrow(new UserNotFoundException());
 
         mockMvc.perform(get("/api/v1/users/" + sampleId)
                         .contentType(MediaType.APPLICATION_JSON))

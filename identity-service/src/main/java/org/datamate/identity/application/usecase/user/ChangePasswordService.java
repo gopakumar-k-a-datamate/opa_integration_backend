@@ -39,19 +39,19 @@ public class ChangePasswordService implements ChangePasswordUseCase {
         log.info("Changing password for user ID: {}", userId);
 
         User user = userPort.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() -> new UserNotFoundException());
 
         // Security check: Verify logged in UUID matches the target userId
         String loggedInUserId = securityContextPort.getCurrentUsername();
         if (!user.getId().toString().equals(loggedInUserId)) {
             log.warn("Access Denied: User ID '{}' tried to change password for User ID '{}'", loggedInUserId, user.getId());
-            throw new UserAccessDeniedException("You can only change your own password.");
+            throw new UserAccessDeniedException();
         }
 
         // Verify old password
         if (!passwordEncoderPort.matches(request.oldPassword(), user.getPasswordHash())) {
             log.warn("Change password failed: old password does not match for user '{}'", user.getUserName());
-            throw new PasswordMismatchException("Old password does not match.");
+            throw new PasswordMismatchException();
         }
 
         String username = user.getUserName();

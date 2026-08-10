@@ -30,7 +30,7 @@ public class ActivateUserService implements ActivateUserUseCase {
 
         User user = userPort.findById(id).orElseThrow(() -> {
             log.error("User activation failed. User not found for ID: {}", id);
-            return new UserNotFoundException("User not found with id: " + id);
+            return new UserNotFoundException();
         });
 
         User activatedUser = user.activate(adminUsername);

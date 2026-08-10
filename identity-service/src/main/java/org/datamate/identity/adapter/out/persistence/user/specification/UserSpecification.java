@@ -3,9 +3,8 @@ package org.datamate.identity.adapter.out.persistence.user.specification;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.common.logging.util.LoggerManager;
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
-import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
+import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
 import org.datamate.identity.application.query.user.UserSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -53,6 +52,7 @@ public class UserSpecification {
                 predicates.add(cb.equal(cb.lower(rolesJoin.get("name")), criteria.role().toLowerCase()));
             }
 
+            assert query != null;
             query.distinct(true);
 
             return cb.and(predicates.toArray(new Predicate[0]));

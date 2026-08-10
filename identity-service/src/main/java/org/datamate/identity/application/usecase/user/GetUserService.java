@@ -31,7 +31,7 @@ public class GetUserService implements GetUserUseCase {
         
         User user = userPort.findById(id).orElseThrow(() -> {
             log.error("User details retrieval failed. User not found for ID: {}", id);
-            return new UserNotFoundException("User not found with id: " + id);
+            return new UserNotFoundException();
         });
 
         log.info("Successfully retrieved user details for ID: {}", id);

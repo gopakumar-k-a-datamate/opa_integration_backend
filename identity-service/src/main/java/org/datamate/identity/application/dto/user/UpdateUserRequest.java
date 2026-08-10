@@ -5,20 +5,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UpdateUserRequest(
-        @NotBlank(message = "Username is mandatory")
-        @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+        @NotBlank(message = "{user.validation.username.required}")
+        @Size(min = 3, max = 50, message = "{user.validation.username.size}")
         String userName,
 
-        @NotBlank(message = "Email is mandatory")
-        @Email(message = "Invalid email format")
+        @NotBlank(message = "{user.validation.email.required}")
+        @Email(message = "{user.validation.email.invalid}")
         String email,
 
         String phoneNumber,
 
-        @NotBlank(message = "First name is mandatory")
+        @NotBlank(message = "{user.validation.firstName.required}")
         String firstName,
 
-        @NotBlank(message = "Last name is mandatory")
+        @NotBlank(message = "{user.validation.lastName.required}")
         String lastName,
 
         String referenceSystem,

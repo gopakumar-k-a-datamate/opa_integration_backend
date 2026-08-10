@@ -361,19 +361,19 @@ public class User extends AggregateRoot {
 
     private void validateUpdate(String userName, String email, String firstName, String lastName) {
         if (userName == null || userName.isBlank()) {
-            throw new InvalidUserDataException("Username is required.");
+            throw new InvalidUserDataException("user.validation.username.required", "Username is required.");
         }
         if (email == null || email.isBlank()) {
-            throw new InvalidUserDataException("Email is required.");
+            throw new InvalidUserDataException("user.validation.email.required", "Email is required.");
         }
         if (!email.contains("@")) {
-            throw new InvalidUserDataException("Email must be valid.");
+            throw new InvalidUserDataException("user.validation.email.invalid", "Email must be valid.");
         }
         if (firstName == null || firstName.isBlank()) {
-            throw new InvalidUserDataException("First name is required.");
+            throw new InvalidUserDataException("user.validation.firstName.required", "First name is required.");
         }
         if (lastName == null || lastName.isBlank()) {
-            throw new InvalidUserDataException("Last name is required.");
+            throw new InvalidUserDataException("user.validation.lastName.required", "Last name is required.");
         }
     }
 
@@ -386,25 +386,25 @@ public class User extends AggregateRoot {
             String createdBy
     ) {
         if (userName == null || userName.isBlank()) {
-            throw new InvalidUserDataException("Username is required.");
+            throw new InvalidUserDataException("user.validation.username.required", "Username is required.");
         }
         if (email == null || email.isBlank()) {
-            throw new InvalidUserDataException("Email is required.");
+            throw new InvalidUserDataException("user.validation.email.required", "Email is required.");
         }
         if (!email.contains("@")) {
-            throw new InvalidUserDataException("Email must be valid.");
+            throw new InvalidUserDataException("user.validation.email.invalid", "Email must be valid.");
         }
         if (passwordHash == null || passwordHash.isBlank()) {
-            throw new InvalidUserDataException("Password hash is required.");
+            throw new InvalidUserDataException("user.validation.passwordHash.required", "Password hash is required.");
         }
         if (firstName == null || firstName.isBlank()) {
-            throw new InvalidUserDataException("First name is required.");
+            throw new InvalidUserDataException("user.validation.firstName.required", "First name is required.");
         }
         if (lastName == null || lastName.isBlank()) {
-            throw new InvalidUserDataException("Last name is required.");
+            throw new InvalidUserDataException("user.validation.lastName.required", "Last name is required.");
         }
         if (createdBy == null || createdBy.isBlank()) {
-            throw new InvalidUserDataException("Created by reference is required.");
+            throw new InvalidUserDataException("user.validation.createdBy.required", "Created by reference is required.");
         }
     }
 }

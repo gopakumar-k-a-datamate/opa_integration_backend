@@ -1,12 +1,12 @@
-package org.datamate.identity.adapter.out.persistence.adapter;
+package org.datamate.identity.adapter.out.persistence.role.adapter;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.adapter.out.persistence.entity.RoleJpaEntity;
-import org.datamate.identity.adapter.out.persistence.mapper.RolePersistenceMapper;
-import org.datamate.identity.adapter.out.persistence.repository.SpringDataRoleRepository;
-import org.datamate.identity.application.port.out.RolePersistencePort;
+import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
+import org.datamate.identity.adapter.out.persistence.role.mapper.RolePersistenceMapper;
+import org.datamate.identity.adapter.out.persistence.role.repository.SpringDataRoleRepository;
+import org.datamate.identity.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.domain.model.Role;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +52,11 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     @Override
     public boolean existsByName(String name) {
         return repository.existsByName(name);
+    }
+
+    @Override
+    public boolean existsByNameIgnoreCase(String name) {
+        return repository.existsByNameIgnoreCase(name);
     }
 
     @Override
