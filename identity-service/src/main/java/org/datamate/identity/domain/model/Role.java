@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.datamate.identity.domain.exception.role.InvalidRoleDataException;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,9 +20,9 @@ public class Role extends AggregateRoot {
     private final String referenceSystem;
     private final String referenceValue;
     private final Long version;
-    private final String createdBy;
+    private final EntityReference<UUID> createdBy;
     private final LocalDateTime createdDate;
-    private final String lastModifiedBy;
+    private final EntityReference<UUID> lastModifiedBy;
     private final LocalDateTime lastModifiedDate;
 
     private Role(
@@ -33,9 +34,9 @@ public class Role extends AggregateRoot {
             String referenceValue,
             Long version,
             Long domainVersion,
-            String createdBy,
+            EntityReference<UUID> createdBy,
             LocalDateTime createdDate,
-            String lastModifiedBy,
+            EntityReference<UUID> lastModifiedBy,
             LocalDateTime lastModifiedDate
     ) {
         super(domainVersion);
@@ -55,7 +56,7 @@ public class Role extends AggregateRoot {
     public static Role create(
             String name,
             String description,
-            String createdBy
+            EntityReference<UUID> createdBy
     ) {
         validateState(name, RoleStatus.INACTIVE, createdBy);
 
@@ -84,9 +85,9 @@ public class Role extends AggregateRoot {
             String referenceValue,
             Long version,
             Long domainVersion,
-            String createdBy,
+            EntityReference<UUID> createdBy,
             LocalDateTime createdDate,
-            String lastModifiedBy,
+            EntityReference<UUID> lastModifiedBy,
             LocalDateTime lastModifiedDate
     ) {
         return new Role(
@@ -105,14 +106,14 @@ public class Role extends AggregateRoot {
         );
     }
 
-    private static void validateState(String name, RoleStatus status, String createdBy) {
+    private static void validateState(String name, RoleStatus status, EntityReference<UUID> createdBy) {
         if (name == null || name.isBlank()) {
             throw new InvalidRoleDataException("role.validation.name.required", "Role name is mandatory.");
         }
         if (status == null) {
             throw new InvalidRoleDataException("role.validation.status.required", "Role status is mandatory.");
         }
-        if (createdBy == null || createdBy.isBlank()) {
+        if (createdBy == null) {
             throw new InvalidRoleDataException("role.validation.createdBy.required", "Created by reference is required.");
         }
     }

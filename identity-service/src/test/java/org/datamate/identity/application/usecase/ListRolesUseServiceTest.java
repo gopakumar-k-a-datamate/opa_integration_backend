@@ -1,5 +1,7 @@
 package org.datamate.identity.application.usecase;
 
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
@@ -48,6 +50,10 @@ class ListRolesUseServiceTest {
         UUID roleId = UUID.randomUUID();
         RoleSearchCriteria criteria = new RoleSearchCriteria("admin", RoleStatus.ACTIVE);
         PageQuery pageQuery = new PageQuery(1, 10);
+        EntityReference<UUID> auditRef = new EntityReference<>(
+                null,
+                new ResourceIdentifier("system", "system")
+        );
         Role sampleRole = Role.reconstitute(
                 roleId,
                 "ADMIN",
@@ -57,9 +63,9 @@ class ListRolesUseServiceTest {
                 null,
                 1L,
                 1L,
-                "system",
+                auditRef,
                 LocalDateTime.now(),
-                "system",
+                auditRef,
                 LocalDateTime.now()
         );
 
