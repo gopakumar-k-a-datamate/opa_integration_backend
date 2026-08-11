@@ -86,7 +86,13 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
         
         org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validationPort.validate(regoContent);
         if (!result.valid()) {
-            throw new PolicyCompilationException("Generated Rego for namespace '" + targetNamespace + "' has syntax errors. Bundle NOT updated.");
+            String errorMessage = String.format(
+                "Generated Rego for namespace '%s' has syntax errors. Bundle NOT updated.\nValidation Errors: %s\nGenerated Rego:\n%s", 
+                targetNamespace, 
+                result.errors(), 
+                regoContent
+            );
+            throw new PolicyCompilationException(errorMessage);
         }
         
         String contentHash = computeMd5(regoContent.getBytes());

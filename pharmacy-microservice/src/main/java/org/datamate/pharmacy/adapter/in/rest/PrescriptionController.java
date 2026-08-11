@@ -1,8 +1,9 @@
 package org.datamate.pharmacy.adapter.in.rest;
 
+
+import org.datamate.authz.annotation.ProtectedResource;
 import org.datamate.pharmacy.application.dto.CreatePrescriptionRequest;
 import org.datamate.pharmacy.application.usecase.CreatePrescriptionService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ public class PrescriptionController {
     }
 
 
+    @ProtectedResource("pharmacy:prescription:write")
     @PostMapping("/prescription")
     public String createPrescription(@RequestBody CreatePrescriptionRequest body){
         return createPrescription.createPrescription(body);

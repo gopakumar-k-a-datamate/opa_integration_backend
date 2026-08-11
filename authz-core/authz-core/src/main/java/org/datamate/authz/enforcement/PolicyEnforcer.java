@@ -31,4 +31,20 @@ public interface PolicyEnforcer {
      * @return true if the resource is protected and supported, false otherwise.
      */
     boolean supports(Object resource);
+
+    /**
+     * Evaluates whether the current principal is authorized for the given permission string.
+     *
+     * @param permissionCode The permission string (e.g., "namespace:resource:action").
+     * @return true if OPA policy permits execution, false otherwise.
+     */
+    boolean evaluate(String permissionCode);
+
+    /**
+     * Enforces policy authorization for the given permission string, throwing an 
+     * AccessDeniedException if the current principal is unauthorized.
+     *
+     * @param permissionCode The permission string (e.g., "namespace:resource:action").
+     */
+    void enforce(String permissionCode);
 }
