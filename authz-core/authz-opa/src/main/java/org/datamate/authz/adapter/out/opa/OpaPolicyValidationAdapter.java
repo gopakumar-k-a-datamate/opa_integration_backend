@@ -72,7 +72,8 @@ public class OpaPolicyValidationAdapter implements PolicyValidationPort {
 
     private String buildTemporaryModule(String policyId, String snippet) {
         if (snippet != null && snippet.trim().startsWith("package ")) {
-            return snippet.replaceFirst("package\\s+[a-zA-Z0-9_.]+", "package " + policyId);
+            // Rewrite the package statement to avoid bundle ownership conflicts during validation
+            return snippet.replaceFirst("(?m)^package\\s+[\\w\\.]+", "package " + policyId);
         }
         return "package " + policyId + "\n"
                 + "\n"
