@@ -15,6 +15,7 @@ import org.datamate.identity.application.mapper.role.RoleDtoMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +30,7 @@ public class RoleManagementService implements RoleManagementUseCase {
     private final RoleDtoMapper roleDtoMapper;
 
     @Override
-    public RoleDto getRole(Long id) {
+    public RoleDto getRole(UUID id) {
         log.info("Fetching role with id {}", id);
         Role role = rolePort.findById(id)
                 .orElseThrow(() -> {
@@ -40,16 +41,7 @@ public class RoleManagementService implements RoleManagementUseCase {
     }
 
     @Override
-    public List<RoleDto> listRoles() {
-        List<RoleDto> roles = rolePort.findAll().stream()
-                .map(roleDtoMapper::toDto)
-                .collect(Collectors.toList());
-        log.info("Listed {} roles", roles.size());
-        return roles;
-    }
-
-    @Override
-    public void deleteRole(Long id) {
+    public void deleteRole(UUID id) {
         log.info("Deleting role with id {}", id);
         rolePort.delete(id);
     }

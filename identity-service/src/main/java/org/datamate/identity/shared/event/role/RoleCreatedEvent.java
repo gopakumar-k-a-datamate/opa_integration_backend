@@ -7,7 +7,7 @@ import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 
 public record RoleCreatedEvent(
         String eventId,
-        Long aggregateId,
+        UUID aggregateId,
         Long domainVersion,
         String schemaVersion,
         Instant occurredOn,
@@ -16,11 +16,11 @@ public record RoleCreatedEvent(
         String description,
         RoleStatus status,
         String createdBy
-) implements VersionedDomainEvent<Long> {
+) implements VersionedDomainEvent<UUID> {
     public static final String SCHEMA_VERSION = "1.0";
 
     public RoleCreatedEvent(
-            Long aggregateId, Long domainVersion, String name, String description,
+            UUID aggregateId, Long domainVersion, String name, String description,
             RoleStatus status, String createdBy
     ) {
         this(
@@ -29,3 +29,4 @@ public record RoleCreatedEvent(
         );
     }
 }
+

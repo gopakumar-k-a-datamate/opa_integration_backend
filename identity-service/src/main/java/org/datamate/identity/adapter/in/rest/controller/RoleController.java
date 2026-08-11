@@ -5,16 +5,24 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
+import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
+import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
+import org.datamate.identity.application.query.role.RoleSearchCriteria;
+import org.datamate.identity.shared.model.RoleStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/roles")
@@ -26,6 +34,8 @@ public class RoleController {
 
     private final RoleManagementUseCase roleManagementUseCase;
     private final CreateRoleUseCase createRoleUseCase;
+    private final ListRolesUseCase listRolesUseCase;
+    private final SelectRolesUseCase selectRolesUseCase;
 
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
@@ -35,20 +45,36 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createRoleUseCase.createRole(request));
     }
 
+    @GetMapping("/select")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Select roles", description = "Retrieves a simplified list (id and name) of only active roles, optionally filtered by a search query.")
+    public List<RoleSelectDto> selectRoles(@RequestParam(required = false) String search) {
+        log.info("Get active roles select request received with search: '{}'", search);
+        return selectRolesUseCase.selectRoles(search);
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<RoleDto> getRole(@PathVariable Long id) {
+    public ResponseEntity<RoleDto> getRole(@PathVariable UUID id) {
         log.info("Get role request received for id {}", id);
         return ResponseEntity.ok(roleManagementUseCase.getRole(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<RoleDto>> listRoles() {
-        log.info("List roles request received");
-        return ResponseEntity.ok(roleManagementUseCase.listRoles());
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "List roles", description = "Retrieves a list of roles, optionally filtered by role name search query and status, with support for pagination.")
+    public Paged<RoleDto> listRoles(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) RoleStatus status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("List roles request received with search: '{}', status: {}, page: {}, size: {}", search, status, page, size);
+        RoleSearchCriteria criteria = new RoleSearchCriteria(search, status);
+        PageQuery pageQuery = new PageQuery(page, size);
+        return listRolesUseCase.listRoles(criteria, pageQuery);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
         log.info("Delete role request received for id {}", id);
         roleManagementUseCase.deleteRole(id);
         return ResponseEntity.noContent().build();

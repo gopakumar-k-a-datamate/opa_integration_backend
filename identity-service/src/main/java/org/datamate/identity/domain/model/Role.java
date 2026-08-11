@@ -6,12 +6,13 @@ import org.datamate.identity.domain.exception.role.InvalidRoleDataException;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.datamate.identity.shared.event.role.RoleCreatedEvent;
 
 @Getter
 public class Role extends AggregateRoot {
-    private final Long id;
+    private final UUID id;
     private final String name;
     private final String description;
     private final RoleStatus status;
@@ -24,7 +25,7 @@ public class Role extends AggregateRoot {
     private final LocalDateTime lastModifiedDate;
 
     private Role(
-            Long id,
+            UUID id,
             String name,
             String description,
             RoleStatus status,
@@ -75,7 +76,7 @@ public class Role extends AggregateRoot {
     }
 
     public static Role reconstitute(
-            Long id,
+            UUID id,
             String name,
             String description,
             RoleStatus status,

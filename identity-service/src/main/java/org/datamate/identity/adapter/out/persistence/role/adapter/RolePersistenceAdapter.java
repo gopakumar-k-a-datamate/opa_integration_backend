@@ -6,14 +6,25 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.role.mapper.RolePersistenceMapper;
 import org.datamate.identity.adapter.out.persistence.role.repository.SpringDataRoleRepository;
+import org.datamate.identity.adapter.out.persistence.role.specification.RoleSpecification;
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.shared.model.RoleStatus;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.datamate.identity.shared.pagination.PaginationHelperMethods.toPageable;
+import static org.datamate.identity.shared.pagination.PaginationHelperMethods.toPaged;
 
 @Component
 @RequiredArgsConstructor
@@ -34,7 +45,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public Optional<Role> findById(Long id) {
+    public Optional<Role> findById(UUID id) {
         return repository.findById(id).map(mapper::mapToDomain);
     }
 
@@ -44,7 +55,30 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
-    public void delete(Long id) {
+    public Paged<Role> searchRoles(RoleSearchCriteria criteria, PageQuery pageQuery) {
+        log.debug("Searching roles with criteria: {} and page query: {}", criteria, pageQuery);
+        Pageable pageable = toPageable(pageQuery, Sort.by(Sort.Direction.DESC, "id"));
+        Page<RoleJpaEntity> entityPage = repository.findAll(
+                RoleSpecification.filterRoles(criteria),
+                pageable
+        );
+        Paged<Role> result = toPaged(entityPage.map(mapper::mapToDomain));
+        log.debug("Search roles query returned {} of {} roles", result.content().size(), result.totalElements());
+        return result;
+    }
+
+    @Override
+    public List<Role> findActiveRoles(String search) {
+        log.debug("Finding active roles with search query: '{}'", search);
+        RoleSearchCriteria criteria = new RoleSearchCriteria(search, RoleStatus.ACTIVE);
+        return repository.findAll(RoleSpecification.filterRoles(criteria))
+                .stream()
+                .map(mapper::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void delete(UUID id) {
         log.debug("Deleting role with id {}", id);
         repository.deleteById(id);
     }
