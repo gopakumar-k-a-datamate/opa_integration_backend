@@ -20,6 +20,7 @@ import javax.sql.DataSource;
  * <p>Can be disabled by setting {@code authz.jpa.enabled=false}.</p>
  */
 @AutoConfiguration(after = AuthzCoreAutoConfiguration.class, before = FlywayAutoConfiguration.class)
+@ConditionalOnClass(name = "org.datamate.authz.jpa.entity.PolicyJpaEntity")
 @ConditionalOnProperty(prefix = "authz.jpa", name = "enabled", matchIfMissing = true)
 @EnableJpaRepositories(basePackages = "org.datamate.authz.jpa.repository")
 @EntityScan(basePackages = "org.datamate.authz.jpa.entity")
