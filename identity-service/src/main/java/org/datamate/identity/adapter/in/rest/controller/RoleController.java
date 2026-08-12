@@ -13,6 +13,7 @@ import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
 import org.datamate.identity.application.port.in.role.UpdateRoleUseCase;
 import org.datamate.identity.application.port.in.role.ActivateRoleUseCase;
+import org.datamate.identity.application.port.in.role.DeactivateRoleUseCase;
 import org.datamate.identity.application.dto.role.UpdateRoleRequest;
 import org.datamate.identity.application.service.role.AuditActorResolver;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
@@ -46,6 +47,7 @@ public class RoleController {
     private final GetRoleUseCase getRoleUseCase;
     private final UpdateRoleUseCase updateRoleUseCase;
     private final ActivateRoleUseCase activateRoleUseCase;
+    private final DeactivateRoleUseCase deactivateRoleUseCase;
     private final AuditActorResolver auditActorResolver;
 
     @PostMapping
@@ -110,6 +112,17 @@ public class RoleController {
         EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
         log.info("Activate role request received for ID: {} by admin: {}", id, username);
         activateRoleUseCase.activateRole(id, adminUserRef);
+    }
+
+    @PostMapping("/{id}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "DEACTIVATE_ROLE", resource = "ROLE", description = "Deactivate role")
+    @Operation(summary = "Deactivate role", description = "Deactivates a role by its ID.")
+    public void deactivateRole(@PathVariable UUID id, Principal principal) {
+        String username = principal != null ? principal.getName() : "SYSTEM";
+        EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
+        log.info("Deactivate role request received for ID: {} by admin: {}", id, username);
+        deactivateRoleUseCase.deactivateRole(id, adminUserRef);
     }
 
     @DeleteMapping("/{id}")

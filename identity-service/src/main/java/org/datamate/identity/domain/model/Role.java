@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.datamate.identity.shared.event.role.RoleCreatedEvent;
 import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
 import org.datamate.identity.shared.event.role.RoleActivatedEvent;
+import org.datamate.identity.shared.event.role.RoleDeactivatedEvent;
 
 @Getter
 public class Role extends AggregateRoot {
@@ -163,7 +164,7 @@ public class Role extends AggregateRoot {
 
     public Role activate(EntityReference<UUID> updatedBy) {
         if (this.status == RoleStatus.ACTIVE) {
-            return this;
+            throw new InvalidRoleDataException("role.validation.already.active", "Role is already active.");
         }
         Role updatedRole = new Role(
                 this.id,
@@ -181,6 +182,35 @@ public class Role extends AggregateRoot {
         );
 
         updatedRole.registerEvent(new RoleActivatedEvent(
+                this.id,
+                updatedRole.getDomainVersion() + 1,
+                this.name,
+                updatedBy
+        ));
+
+        return updatedRole;
+    }
+
+    public Role deactivate(EntityReference<UUID> updatedBy) {
+        if (this.status == RoleStatus.INACTIVE) {
+            throw new InvalidRoleDataException("role.validation.already.inactive", "Role is already inactive.");
+        }
+        Role updatedRole = new Role(
+                this.id,
+                this.name,
+                this.description,
+                RoleStatus.INACTIVE,
+                this.referenceSystem,
+                this.referenceValue,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+
+        updatedRole.registerEvent(new RoleDeactivatedEvent(
                 this.id,
                 updatedRole.getDomainVersion() + 1,
                 this.name,
