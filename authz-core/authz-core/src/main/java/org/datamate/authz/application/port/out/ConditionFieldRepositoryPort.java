@@ -1,4 +1,4 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /** Persistence operations for {@code authz_condition_field}. */
-public interface ConditionFieldRepository {
+public interface ConditionFieldRepositoryPort {
 
     /** Insert or update a field identified by {@code (permissionId, fieldName)}. */
     ConditionField upsert(Long id, Long permissionId, String fieldName, FieldType fieldType,

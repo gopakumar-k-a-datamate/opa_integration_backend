@@ -1,4 +1,4 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 import org.datamate.authz.model.policy.entity.Permission;
 
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 /** Persistence operations for {@code authz_permission}. */
-public interface PermissionRepository {
+public interface PermissionRepositoryPort {
 
     /** Insert or update a permission identified by {@code (resourceId, action)}. */
     Permission upsert(Long id, Long resourceId, String action, String code, String description);

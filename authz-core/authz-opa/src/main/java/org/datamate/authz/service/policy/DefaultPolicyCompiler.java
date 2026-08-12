@@ -2,11 +2,11 @@ package org.datamate.authz.service.policy;
 
 import lombok.RequiredArgsConstructor;
 
-import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.api.policy.PolicyRepository;
-import org.datamate.authz.api.policy.PolicyBundleCacheRepository;
-import org.datamate.authz.api.policy.PolicyCompiler;
-import org.datamate.authz.api.policy.ConditionFieldRepository;
+import org.datamate.authz.application.port.out.PermissionRepositoryPort;
+import org.datamate.authz.application.port.out.PolicyRepositoryPort;
+import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
+import org.datamate.authz.application.port.out.PolicyCompilerPort;
+import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 /**
  * Application use case that orchestrates the OPA policy compilation pipeline.
  *
- * <p>Implements {@link PolicyCompiler} so that dependent use cases
+ * <p>Implements {@link PolicyCompilerPort} so that dependent use cases
  * (e.g. {@link SavePoliciesService}, {@link org.datamate.authz.rest.startup.StartupScanner})
  * depend only on the port interface, not this concrete class.</p>
  *
  * <h3>Pipeline</h3>
  * <ol>
  *   <li>Load all enabled, non-deleted policies from {@code authz_policy}.</li>
- *   <li>Build a {@code permissionId → code} lookup map (one query, not N).</li>
+ *   <li>Build a {@code permissionId â†’ code} lookup map (one query, not N).</li>
  *   <li>Parse JSON AST and generate Rego via {@link AstBuilder} and {@link RegoGenerator}.</li>
  *   <li>Package as {@code bundle.tar.gz} via {@link TarGzBundleService} (domain service).</li>
  *   <li>Compute MD5 ETag and upsert into {@code authz_policy_bundle_cache}.</li>
@@ -48,13 +48,13 @@ import java.util.stream.Collectors;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultPolicyCompiler implements PolicyCompiler {
+public class DefaultPolicyCompiler implements PolicyCompilerPort {
 
-    private final PolicyRepository policyPort;
-    private final PermissionRepository permissionPort;
-    private final PolicyBundleCacheRepository bundleCachePort;
-    private final ConditionFieldRepository conditionFieldPort;
-    private final org.datamate.authz.api.policy.PolicyValidationPort validationPort;
+    private final PolicyRepositoryPort policyPort;
+    private final PermissionRepositoryPort permissionPort;
+    private final PolicyBundleCacheRepositoryPort bundleCachePort;
+    private final ConditionFieldRepositoryPort conditionFieldPort;
+    private final org.datamate.authz.application.port.out.PolicyValidationPort validationPort;
 
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
@@ -66,7 +66,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
 
         List<Policy> allEnabledPolicies = policyPort.findAllEnabled();
 
-        // Build permissionId → code lookup (single query — no N+1)
+        // Build permissionId â†’ code lookup (single query â€” no N+1)
         Map<Long, String> permCodeLookup = permissionPort.findAllActive()
                 .stream()
                 .filter(p -> p.getStatus() == Status.ACTIVE)

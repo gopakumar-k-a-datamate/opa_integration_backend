@@ -3,10 +3,11 @@ package org.datamate.authz.service.policy;
 import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.ConditionFieldDto;
-import org.datamate.authz.api.policy.ConditionFieldRepository;
-import org.datamate.authz.api.policy.PermissionRepository;
+import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
+import org.datamate.authz.application.port.out.PermissionRepositoryPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.springframework.stereotype.Service;
+import org.datamate.authz.application.port.in.GetConditionFieldsUseCase;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -20,10 +21,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
-public class GetConditionFieldsService {
+public class GetConditionFieldsService implements GetConditionFieldsUseCase {
 
-    private final PermissionRepository permissionPort;
-    private final ConditionFieldRepository conditionFieldPort;
+    private final PermissionRepositoryPort permissionPort;
+    private final ConditionFieldRepositoryPort conditionFieldPort;
 
     
     public List<ConditionFieldDto> getFields(String permissionCode) {

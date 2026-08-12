@@ -1,11 +1,11 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 
 import java.util.Optional;
 
 /** Persistence operations for {@code authz_policy_bundle_cache}. */
-public interface PolicyBundleCacheRepository {
+public interface PolicyBundleCacheRepositoryPort {
 
     /**
      * Returns the current compiled bundle.

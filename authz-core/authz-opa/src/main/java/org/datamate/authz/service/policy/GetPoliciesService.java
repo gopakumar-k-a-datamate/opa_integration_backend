@@ -5,14 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.api.policy.PolicyRepository;
-import org.datamate.authz.api.policy.ResourceRepository;
+import org.datamate.authz.application.port.out.PermissionRepositoryPort;
+import org.datamate.authz.application.port.out.PolicyRepositoryPort;
+import org.datamate.authz.application.port.out.ResourceRepositoryPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.Resource;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.springframework.stereotype.Service;
+import org.datamate.authz.application.port.in.GetPoliciesUseCase;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -29,11 +30,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
-public class GetPoliciesService {
+public class GetPoliciesService implements GetPoliciesUseCase {
 
-    private final PermissionRepository permissionPort;
-    private final ResourceRepository resourcePort;
-    private final PolicyRepository policyPort;
+    private final PermissionRepositoryPort permissionPort;
+    private final ResourceRepositoryPort resourcePort;
+    private final PolicyRepositoryPort policyPort;
     private final ObjectMapper objectMapper;
     
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace) {

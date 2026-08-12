@@ -1,4 +1,4 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 

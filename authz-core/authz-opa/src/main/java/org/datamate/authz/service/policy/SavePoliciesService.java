@@ -6,13 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.dto.policy.PolicyItemRequest;
 import org.datamate.authz.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.service.policy.SavePoliciesService;
-import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.api.policy.PolicyRepository;
-import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.application.port.out.PermissionRepositoryPort;
+import org.datamate.authz.application.port.out.PolicyRepositoryPort;
+import org.datamate.authz.application.port.out.PolicyCompilerPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.springframework.stereotype.Service;
+import org.datamate.authz.application.port.in.SavePoliciesUseCase;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -29,21 +30,21 @@ import org.datamate.authz.exception.InvalidPayloadException;
  * <p>Algorithm:
  * <ol>
  *   <li>Load all existing non-deleted policies for this subject.</li>
- *   <li>For each incoming item with {@code isDeleted=true} → soft-delete the matching policy.</li>
- *   <li>For each other incoming item → upsert the policy (insert or update).</li>
+ *   <li>For each incoming item with {@code isDeleted=true} Ã¢â€ â€™ soft-delete the matching policy.</li>
+ *   <li>For each other incoming item Ã¢â€ â€™ upsert the policy (insert or update).</li>
  *   <li>Soft-delete any existing DB policies whose permissionCode is absent from the payload.</li>
- *   <li>Trigger the {@link PolicyCompiler} to regenerate the OPA bundle.</li>
+ *   <li>Trigger the {@link PolicyCompilerPort} to regenerate the OPA bundle.</li>
  * </ol>
  * </p>
  */
 @RequiredArgsConstructor
 @Service
-public class SavePoliciesService {
+public class SavePoliciesService implements SavePoliciesUseCase {
 
-    private final PolicyRepository policyPort;
-    private final PermissionRepository permissionPort;
-    private final PolicyCompiler compilerPort;
-    private final org.datamate.authz.api.policy.PolicyValidationPort validationPort;
+    private final PolicyRepositoryPort policyPort;
+    private final PermissionRepositoryPort permissionPort;
+    private final PolicyCompilerPort compilerPort;
+    private final org.datamate.authz.application.port.out.PolicyValidationPort validationPort;
     private final ObjectMapper objectMapper;
 
     
@@ -88,7 +89,7 @@ public class SavePoliciesService {
             }
 
             Permission permission = permissionByCode.get(item.permissionCode());
-            if (permission == null) continue; // unknown permission code — skip
+            if (permission == null) continue; // unknown permission code Ã¢â‚¬â€ skip
             Policy existingPolicy = existingByPermissionId.get(permission.getId());
 
             if (item.isDeleted()) {

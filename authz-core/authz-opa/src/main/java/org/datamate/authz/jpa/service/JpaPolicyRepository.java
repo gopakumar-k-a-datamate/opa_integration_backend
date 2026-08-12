@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.jpa.entity.PolicyJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPolicyRepository;
-import org.datamate.authz.api.policy.PolicyRepository;
+import org.datamate.authz.application.port.out.PolicyRepositoryPort;
 import org.datamate.authz.model.policy.entity.Policy;
 
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
-public class JpaPolicyRepository implements PolicyRepository {
+public class JpaPolicyRepository implements PolicyRepositoryPort {
 
     private final SpringDataPolicyRepository repository;
 

@@ -1,8 +1,8 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 import org.datamate.authz.enforcement.AuthorizationContext;
 
-public interface PolicyEvaluationClient {
+public interface PolicyEvaluationClientPort {
     /**
      * Evaluates the given authorization context against the policy engine.
      *

@@ -3,7 +3,7 @@ package org.datamate.authz.adapter.out.opa;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.datamate.authz.api.policy.PolicyValidationPort;
+import org.datamate.authz.application.port.out.PolicyValidationPort;
 import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.springframework.beans.factory.annotation.Value;

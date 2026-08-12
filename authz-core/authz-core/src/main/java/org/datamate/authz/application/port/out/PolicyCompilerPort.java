@@ -1,4 +1,4 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 /**
  * Port for triggering policy bundle recompilation.
@@ -11,7 +11,7 @@ package org.datamate.authz.api.policy;
  * the engine-specific code or format, packages it, and makes it available
  * for the policy engine sidecar or local evaluator to pick up.</p>
  */
-public interface PolicyCompiler {
+public interface PolicyCompilerPort {
 
     /**
      * Recompiles the OPA bundle from the current state of {@code authz_policy} for a specific namespace.

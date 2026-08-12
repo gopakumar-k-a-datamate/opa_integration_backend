@@ -1,4 +1,4 @@
-package org.datamate.authz.api.policy;
+package org.datamate.authz.application.port.out;
 
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -7,7 +7,7 @@ import org.datamate.authz.model.policy.enumtype.SubjectType;
 import java.util.List;
 
 /** Persistence operations for {@code authz_policy}. */
-public interface PolicyRepository {
+public interface PolicyRepositoryPort {
 
     /** All active (non-deleted, enabled) policies — used by the compiler. */
     List<Policy> findAllEnabled();

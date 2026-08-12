@@ -4,7 +4,7 @@ package org.datamate.authz.starter.enforcement;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.enforcement.AuthorizationContext;
-import org.datamate.authz.api.policy.PolicyEvaluationClient;
+import org.datamate.authz.application.port.out.PolicyEvaluationClientPort;
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.springframework.context.annotation.Lazy;
@@ -19,17 +19,17 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@ConditionalOnBean(PolicyEvaluationClient.class)
+@ConditionalOnBean(PolicyEvaluationClientPort.class)
 public class PolicyEnforcer implements org.datamate.authz.enforcement.PolicyEnforcer {
 
     @EnableLogger
     private Logger log;
 
-    private final PolicyEvaluationClient policyEvaluationClient;
+    private final PolicyEvaluationClientPort PolicyEvaluationClientPort;
     private final PrincipalProvider principalProvider;
 
-    public PolicyEnforcer(@Lazy PolicyEvaluationClient policyEvaluationClient, PrincipalProvider principalProvider) {
-        this.policyEvaluationClient = policyEvaluationClient;
+    public PolicyEnforcer(@Lazy PolicyEvaluationClientPort PolicyEvaluationClientPort, PrincipalProvider principalProvider) {
+        this.PolicyEvaluationClientPort = PolicyEvaluationClientPort;
         this.principalProvider = principalProvider;
     }
 
@@ -80,7 +80,7 @@ public class PolicyEnforcer implements org.datamate.authz.enforcement.PolicyEnfo
 
         // 5. Evaluate Policy via the engine adapter
         log.debug("Evaluating policy for permission: {}", permissionCode);
-        return policyEvaluationClient.evaluate(resourceAnnotation.namespace(), context);
+        return PolicyEvaluationClientPort.evaluate(resourceAnnotation.namespace(), context);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class PolicyEnforcer implements org.datamate.authz.enforcement.PolicyEnfo
         
         AuthorizationContext context = buildContext(permissionCode, new HashMap<>());
         log.debug("Evaluating RBAC policy for permission: {}", permissionCode);
-        return policyEvaluationClient.evaluate(parts[0], context);
+        return PolicyEvaluationClientPort.evaluate(parts[0], context);
     }
 
     @Override

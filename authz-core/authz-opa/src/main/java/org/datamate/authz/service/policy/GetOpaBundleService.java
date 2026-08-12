@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.BundleResult;
 import org.datamate.authz.service.policy.GetOpaBundleService;
-import org.datamate.authz.api.policy.PolicyBundleCacheRepository;
+import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
 import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.application.port.out.PolicyCompilerPort;
 
 /**
  * Fetches the current compiled OPA bundle from the local {@code authz_policy_bundle_cache} table.
@@ -22,8 +22,8 @@ import org.datamate.authz.api.policy.PolicyCompiler;
 @Transactional(readOnly = true)
 public class GetOpaBundleService {
 
-    private final PolicyBundleCacheRepository bundleCachePort;
-    private final PolicyCompiler compilerPort;
+    private final PolicyBundleCacheRepositoryPort bundleCachePort;
+    private final PolicyCompilerPort compilerPort;
     
     private final ReentrantLock lock = new ReentrantLock();
 
