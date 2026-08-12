@@ -11,6 +11,11 @@ import org.datamate.identity.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
+import org.datamate.identity.application.port.in.role.UpdateRoleUseCase;
+import org.datamate.identity.application.dto.role.UpdateRoleRequest;
+import org.datamate.identity.application.service.role.AuditActorResolver;
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import java.security.Principal;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.springframework.http.HttpStatus;
@@ -38,6 +43,8 @@ public class RoleController {
     private final ListRolesUseCase listRolesUseCase;
     private final SelectRolesUseCase selectRolesUseCase;
     private final GetRoleUseCase getRoleUseCase;
+    private final UpdateRoleUseCase updateRoleUseCase;
+    private final AuditActorResolver auditActorResolver;
 
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
@@ -75,6 +82,21 @@ public class RoleController {
         RoleSearchCriteria criteria = new RoleSearchCriteria(search, status);
         PageQuery pageQuery = new PageQuery(page, size);
         return listRolesUseCase.listRoles(criteria, pageQuery);
+    }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "UPDATE_ROLE", resource = "ROLE", description = "Update role details")
+    @Operation(summary = "Update role details", description = "Edits the name and description of an existing role.")
+    public RoleDto updateRole(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateRoleRequest request,
+            Principal principal
+    ) {
+        String username = principal != null ? principal.getName() : "SYSTEM";
+        EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
+        log.info("Update role request received for ID: {} by admin: {}", id, username);
+        return updateRoleUseCase.updateRole(id, request, adminUserRef);
     }
 
     @DeleteMapping("/{id}")

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.datamate.identity.shared.event.role.RoleCreatedEvent;
+import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
 
 @Getter
 public class Role extends AggregateRoot {
@@ -128,5 +129,43 @@ public class Role extends AggregateRoot {
                 this.createdBy
         ));
         return this;
+    }
+
+    public Role updateInformation(String name, String description, EntityReference<UUID> lastModifiedBy) {
+        validateUpdate(name, lastModifiedBy);
+
+        Role updatedRole = new Role(
+                this.id,
+                name,
+                description,
+                this.status,
+                this.referenceSystem,
+                this.referenceValue,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                lastModifiedBy,
+                LocalDateTime.now()
+        );
+
+        updatedRole.registerEvent(new RoleUpdatedEvent(
+                this.id,
+                updatedRole.getDomainVersion() + 1,
+                name,
+                description,
+                lastModifiedBy
+        ));
+
+        return updatedRole;
+    }
+
+    private void validateUpdate(String name, EntityReference<UUID> lastModifiedBy) {
+        if (name == null || name.isBlank()) {
+            throw new InvalidRoleDataException("role.validation.name.required", "Role name is mandatory.");
+        }
+        if (lastModifiedBy == null) {
+            throw new InvalidRoleDataException("role.validation.updatedBy.required", "Updated by reference is required.");
+        }
     }
 }
