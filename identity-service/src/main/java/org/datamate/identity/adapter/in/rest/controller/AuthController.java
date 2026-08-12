@@ -5,7 +5,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.dto.auth.AuthResponse;
 import org.datamate.identity.application.dto.auth.LoginRequest;
+import org.datamate.identity.application.dto.auth.RefreshTokenRequest;
 import org.datamate.identity.application.port.in.auth.LoginUseCase;
+import org.datamate.identity.application.port.in.auth.RefreshTokenUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final LoginUseCase loginUseCase;
+    private final RefreshTokenUseCase refreshTokenUseCase;
 
     @PostMapping("/login")
     @AuditLog(action = "USER_LOGIN", resource = "AUTH", description = "User login attempt", includeArgs = true)
@@ -28,5 +31,12 @@ public class AuthController {
     public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         loginUseCase.logout(authHeader);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh")
+    @AuditLog(action = "TOKEN_REFRESH", resource = "AUTH", description = "Refresh access token")
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse response = refreshTokenUseCase.refreshToken(request);
+        return ResponseEntity.ok(response);
     }
 }
