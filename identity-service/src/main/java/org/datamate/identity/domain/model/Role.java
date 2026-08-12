@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.datamate.identity.shared.event.role.RoleCreatedEvent;
 import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
+import org.datamate.identity.shared.event.role.RoleActivatedEvent;
 
 @Getter
 public class Role extends AggregateRoot {
@@ -155,6 +156,35 @@ public class Role extends AggregateRoot {
                 name,
                 description,
                 lastModifiedBy
+        ));
+
+        return updatedRole;
+    }
+
+    public Role activate(EntityReference<UUID> updatedBy) {
+        if (this.status == RoleStatus.ACTIVE) {
+            return this;
+        }
+        Role updatedRole = new Role(
+                this.id,
+                this.name,
+                this.description,
+                RoleStatus.ACTIVE,
+                this.referenceSystem,
+                this.referenceValue,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+
+        updatedRole.registerEvent(new RoleActivatedEvent(
+                this.id,
+                updatedRole.getDomainVersion() + 1,
+                this.name,
+                updatedBy
         ));
 
         return updatedRole;
