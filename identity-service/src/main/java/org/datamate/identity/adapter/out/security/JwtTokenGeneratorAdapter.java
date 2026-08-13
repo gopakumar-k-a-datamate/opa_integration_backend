@@ -49,4 +49,19 @@ public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
     public boolean isBlacklisted(String token) {
         return tokenBlacklist.containsKey(token);
     }
+
+    @Override
+    public boolean validateToken(String token) {
+        return jwtTokenService.validateToken(token).isValid();
+    }
+
+    @Override
+    public String getUsernameFromToken(String token) {
+        return jwtTokenService.getUsernameFromToken(token);
+    }
+
+    @Override
+    public String getTokenType(String token) {
+        return jwtTokenService.getTokenType(token);
+    }
 }
