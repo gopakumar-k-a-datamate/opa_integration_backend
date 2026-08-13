@@ -7,4 +7,7 @@ public interface TokenGeneratorPort {
     String generateRefreshToken(User user);
     void invalidateToken(String token);
     boolean isBlacklisted(String token);
+    boolean validateToken(String token);
+    String getUsernameFromToken(String token);
+    String getTokenType(String token);
 }
