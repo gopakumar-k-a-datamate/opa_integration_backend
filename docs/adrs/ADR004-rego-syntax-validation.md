@@ -2,7 +2,7 @@
 
 This document describes how to validate custom Rego snippets entered by admins before saving them to the database and compiling them into OPA bundles.
 
-Reference: [07-enhanced-condition-builder-and-custom-rego.md](./07-enhanced-condition-builder-and-custom-rego.md)
+Reference: [ADR003-enhanced-condition-builder-and-custom-rego.md](./ADR003-enhanced-condition-builder-and-custom-rego.md)
 
 ---
 
@@ -219,9 +219,8 @@ public class OpaPolicyValidationAdapter implements PolicyValidationPort {
 
     @Override
     public RegoValidationResult validate(String regoSnippet) {
-        // 1. Use a single static ID to entirely prevent memory leaks.
-        //    Concurrent validations will safely overwrite the same policy.
-        String policyId = "_validation_temp_policy";
+        // 1. Generate unique policy ID to prevent collisions
+        String policyId = "_validation_" + UUID.randomUUID().toString().replace("-", "");
 
         // 2. Wrap snippet in a temporary package
         //    This package name will never match real queries (app.authz.*)
@@ -344,10 +343,9 @@ public class OpaPolicyValidationAdapter implements PolicyValidationPort {
     private void cleanupTemporaryPolicy(String url) {
         try {
             restTemplate.delete(url);
-        } catch (HttpClientErrorException.NotFound e) {
-            // Expected if a concurrent validation request already deleted the static ID
         } catch (RestClientException e) {
-            log.warn("Failed to cleanup temporary OPA policy at {}. Non-fatal.", url, e);
+            log.warn("Failed to cleanup temporary OPA policy at {}. "
+                    + "Policy uses unreachable package name, so this is non-fatal.", url, e);
         }
     }
 }
@@ -523,19 +521,19 @@ Admin types Rego in UI code editor
 │   │   │
 │   │   ├── validationPort.validate(snippet)
 │   │   │   │
-│   │   │   ├── Use static ID: _validation_temp_policy
+│   │   │   ├── Generate UUID: _validation_a1b2c3d4...
 │   │   │   │
 │   │   │   ├── Wrap in temp module:
-│   │   │   │   package _validation_temp_policy
+│   │   │   │   package _validation_a1b2c3d4...
 │   │   │   │   import rego.v1
 │   │   │   │   <snippet>
 │   │   │   │
-│   │   │   ├── PUT /v1/policies/_validation_temp_policy
+│   │   │   ├── PUT /v1/policies/_validation_a1b2c3d4...
 │   │   │   │   │
 │   │   │   │   ├── 200 OK → syntax valid ✅
 │   │   │   │   └── 400 Bad Request → parse errors → extract line/col
 │   │   │   │
-│   │   │   └── finally: DELETE /v1/policies/_validation_temp_policy
+│   │   │   └── finally: DELETE /v1/policies/_validation_a1b2c3d4...
 │   │   │
 │   │   ├── ✅ Valid → proceed to DB save
 │   │   └── ❌ Invalid → throw InvalidPolicySyntaxException

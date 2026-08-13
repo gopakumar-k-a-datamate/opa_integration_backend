@@ -89,7 +89,7 @@ if (depth > MAX_AST_DEPTH) {
 }
 ```
 
-> **Why the depth limit?** DNF expansion is combinatorial. `(A OR B) AND (C OR D) AND ... (N times)` produces `2^N` rules. Without a limit, a deeply nested tree causes CPU spikes or `OutOfMemoryError`. See [08-custom-rego-edge-cases-and-challenges.md](./08-custom-rego-edge-cases-and-challenges.md#26-dnf-combinatorial-explosion-phase-1-) for details.
+> **Why the depth limit?** DNF expansion is combinatorial. `(A OR B) AND (C OR D) AND ... (N times)` produces `2^N` rules. Without a limit, a deeply nested tree causes CPU spikes or `OutOfMemoryError`. See [custom-rego-edge-cases-and-challenges.md](./custom-rego-edge-cases-and-challenges.md#26-dnf-combinatorial-explosion-phase-1-) for details.
 
 #### No changes to `ConditionNode.java`
 
@@ -112,7 +112,7 @@ sb.append("package app.authz.").append(namespace).append("\n\n");
 sb.append("import rego.v1\n\n");  // enables: in, if, every, contains keywords
 ```
 
-> **Why?** Without `import rego.v1` (or `import future.keywords.in`), OPA treats `in` as an undefined reference and the entire bundle fails. See [08-custom-rego-edge-cases-and-challenges.md](./08-custom-rego-edge-cases-and-challenges.md#31-rego-in-keyword-requires-import-) for details.
+> **Why?** Without `import rego.v1` (or `import future.keywords.in`), OPA treats `in` as an undefined reference and the entire bundle fails. See [custom-rego-edge-cases-and-challenges.md](./custom-rego-edge-cases-and-challenges.md#31-rego-in-keyword-requires-import-) for details.
 
 **B. New `generateCondition()` method — handle special comparison operators**
 
@@ -578,7 +578,7 @@ for (String imp : collectedImports) {
 sb.append("\n");
 ```
 
-> **Why?** If an admin writes `import future.keywords.every` inside their snippet, OPA throws a syntax error because imports can't appear mid-file. See [08-custom-rego-edge-cases-and-challenges.md](./08-custom-rego-edge-cases-and-challenges.md#32-import-statements-in-custom-rego-snippets-) for details.
+> **Why?** If an admin writes `import future.keywords.every` inside their snippet, OPA throws a syntax error because imports can't appear mid-file. See [custom-rego-edge-cases-and-challenges.md](./custom-rego-edge-cases-and-challenges.md#32-import-statements-in-custom-rego-snippets-) for details.
 
 **B. Update the main loop in `generate()`**
 
@@ -760,7 +760,7 @@ private void validateCustomRego(PolicyItemRequest item, String expectedPermCode)
 }
 ```
 
-> **Critical:** Rego syntax validation (step 5) MUST happen **before** the `@Transactional` block to avoid holding DB connections during I/O. See [08-custom-rego-edge-cases-and-challenges.md](./08-custom-rego-edge-cases-and-challenges.md) for all edge cases.
+> **Critical:** Rego syntax validation (step 5) MUST happen **before** the `@Transactional` block to avoid holding DB connections during I/O. See [custom-rego-edge-cases-and-challenges.md](./custom-rego-edge-cases-and-challenges.md) for all edge cases.
 
 ---
 
@@ -835,7 +835,7 @@ EvaluationPayload.User.builder()
 
 Custom Rego references user attributes via: `input.user.attributes.department`
 
-> **Why?** The current `EvaluationPayload.User` only has `id` and `roles`. Custom Rego referencing `input.user.department` (field-to-field comparison — a primary use case for custom Rego) silently fails because the field is never in the OPA input. See [08-custom-rego-edge-cases-and-challenges.md](./08-custom-rego-edge-cases-and-challenges.md#41-inputuser-is-hardcoded--only-id-and-roles-) for details.
+> **Why?** The current `EvaluationPayload.User` only has `id` and `roles`. Custom Rego referencing `input.user.department` (field-to-field comparison — a primary use case for custom Rego) silently fails because the field is never in the OPA input. See [custom-rego-edge-cases-and-challenges.md](./custom-rego-edge-cases-and-challenges.md#41-inputuser-is-hardcoded--only-id-and-roles-) for details.
 
 #### [MODIFY] `PolicyField.java` annotation
 

@@ -1,4 +1,4 @@
-# 10. OPA Sidecar Connectivity (Evaluation URL)
+# OPA Sidecar Connectivity (Evaluation URL)
 
 ## Context & Purpose
 Our authorization architecture uses Open Policy Agent (OPA) deployed as a sidecar alongside each microservice. To evaluate permissions, the application must query this sidecar via HTTP REST calls. 

@@ -90,8 +90,9 @@ erDiagram
 
 | Document | Contents |
 |---|---|
-| [02-database-schema.md](file:///Users/apple/Documents/opa_integration_backend/02-database-schema.md) | Identity Schema vs. Library Schema with column definitions |
-| [03-policy-engine.md](file:///Users/apple/Documents/opa_integration_backend/03-policy-engine.md) | Condition engine, local field registry, local deprecation handling |
-| [04-opa-integration.md](file:///Users/apple/Documents/opa_integration_backend/04-opa-integration.md) | Local compiler pipeline, Rego generation, OPA deployment |
-| [05-admin-ui-workflow.md](file:///Users/apple/Documents/opa_integration_backend/05-admin-ui-workflow.md) | Modular Role-permission grid, condition builder |
-| [06-api-endpoints.md](file:///Users/apple/Documents/opa_integration_backend/06-api-endpoints.md) | REST APIs exposed by the authz-core library |
+| [authz-core-architecture.md](./authz-core-architecture.md) | Internal library architecture: Bedrock 3-layer model, module structure, port interfaces, design decisions |
+| [database-schema.md](./database-schema.md) | Identity Schema vs. Library Schema with column definitions |
+| [policy-engine.md](./policy-engine.md) | Condition engine, local field registry, local deprecation handling |
+| [opa-integration.md](./opa-integration.md) | Local compiler pipeline, Rego generation, OPA deployment |
+| [ADR001-admin-ui-workflow.md](../adrs/ADR001-admin-ui-workflow.md) | Modular Role-permission grid, condition builder |
+| [ADR002-api-endpoints.md](../adrs/ADR002-api-endpoints.md) | REST APIs exposed by the authz-core library |

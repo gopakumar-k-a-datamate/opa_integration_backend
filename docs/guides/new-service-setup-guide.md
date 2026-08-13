@@ -1,4 +1,4 @@
-# 11. New Service Setup Guide
+# New Service Setup Guide
 
 ## Context & Purpose
 Our authorization framework is decentralized. When establishing a new microservice or modulith, the service is entirely responsible for hosting its own authorization database tables, bundle compilation cache, and OPA sidecar. 
@@ -9,7 +9,7 @@ This guide serves as a checklist and baseline reference for the foundational set
 
 ## 1. Project Dependencies
 
-To leverage the core authorization logic, AOP interceptors, and database adapters, you must include the bedrock authorization starter in your project's build file.
+To leverage the core authorization logic, the programmatic `PolicyEnforcer`, and database adapters, you must include the bedrock authorization starter in your project's build file.
 
 **`pom.xml`:**
 ```xml
@@ -27,13 +27,13 @@ To leverage the core authorization logic, AOP interceptors, and database adapter
 Because we follow a **Database-First** paradigm, your new service must physically own and manage its authorization schema.
 
 1. **Base Tables:** Copy or include the initial Flyway migration script (e.g., `V1__create_authz_tables.sql`) to create the `authz_resource`, `authz_permission`, `authz_condition_field`, and `authz_policy` tables.
-2. **Populate Data:** Create subsequent migration scripts (e.g., `V2__insert_domain_resources.sql`) to register your specific domain resources, permissions, and condition fields. (Refer to the `09-database-first-migration-guide.md` for specific SQL examples).
+2. **Populate Data:** Create subsequent migration scripts (e.g., `V2__insert_domain_resources.sql`) to register your specific domain resources, permissions, and condition fields. (Refer to the `database-first-migration-guide.md` for specific SQL examples).
 
 ---
 
 ## 3. OPA Sidecar Configuration (`opa-config.yaml`)
 
-You must create an `opa-config.yaml` file at the root of your project. This single file is used both by the OPA container to configure bundle polling, and by the Java application (`OpaRestTemplateAdapter`) to locate the sidecar.
+You must create an `opa-config.yaml` file at the root of your project. This single file is used both by the OPA container to configure bundle polling, and by the Java application (`RestPolicyEvaluationClient`) to locate the sidecar.
 
 ```yaml
 # 1. OPA Agent Configuration
@@ -84,12 +84,13 @@ For local development and eventual deployment, the Open Policy Agent must be orc
 
 ---
 
-## 5. Application Code (Annotations)
+## 5. Application Code & Enforcement
 
-Finally, link your application's domain commands to the database schema. Annotate the commands that pass through your application layer to trigger the AOP policy interceptor.
+Finally, link your application's domain commands to the database schema by annotating them, and explicitly trigger enforcement in your application services.
 
+### 1. Annotate the Command
 ```java
-@PolicyResource(namespace = "<your_namespace>", name = "my_resource", action = "read")
+@PolicyResource(namespace = "<your_namespace>", resourceName = "my_resource", action = "read")
 public record MyDomainCommand(
     
     @PolicyField(displayName = "Context Field", type = FieldType.STRING)
@@ -97,4 +98,25 @@ public record MyDomainCommand(
 
 ) {}
 ```
-Remember: These annotations act **purely as runtime markers** to extract data for the OPA evaluation payload. They do not auto-register anything in the database!
+
+### 2. Enforce Programmatically
+
+Inject the `PolicyEnforcer` into your application service and call `enforce()` before executing business logic.
+
+```java
+@Service
+@RequiredArgsConstructor
+public class MyDomainService {
+
+    private final PolicyEnforcer policyEnforcer;
+
+    public void processCommand(MyDomainCommand command) {
+        // Throws AccessDeniedException (HTTP 403) if OPA denies access
+        policyEnforcer.enforce(command);
+        
+        // ... proceed with business logic
+    }
+}
+```
+
+Remember: The `@PolicyResource` and `@PolicyField` annotations act **purely as runtime markers** to extract data for the OPA evaluation payload. They do not auto-register anything in the database!

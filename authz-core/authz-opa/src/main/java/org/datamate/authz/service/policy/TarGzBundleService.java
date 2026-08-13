@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 
 /**
  * Domain service that packages Rego policy text into an OPA-compatible
@@ -24,11 +26,11 @@ import java.util.zip.GZIPOutputStream;
  * </ol>
  * The archive ends with two consecutive 512-byte zero blocks.
  */
-/* Todo- check exception management
-logger if needed
- */
 @Component
 public class TarGzBundleService {
+
+    @EnableLogger
+    private Logger log;
 
     private static final int BLOCK = 512;
     private static final String REGO_ENTRY = "authz/policy.rego";
@@ -40,6 +42,7 @@ public class TarGzBundleService {
      * @return binary {@code bundle.tar.gz} content
      */
     public byte[] build(String namespace, String regoContent) throws IOException {
+        log.info("Starting compression of OPA rego policy bundle");
         byte[] regoBytes = regoContent.getBytes(StandardCharsets.UTF_8);
         String manifestContent = "{\"roots\": [\"app/authz/" + namespace + "\"]}";
         byte[] manifestBytes = manifestContent.getBytes(StandardCharsets.UTF_8);
