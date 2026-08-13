@@ -1,6 +1,5 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
@@ -18,7 +17,11 @@ import java.util.Optional;
 /**
  * Returns ACTIVE condition fields for a permission code, used by the Condition Builder UI.
  */
-@RequiredArgsConstructor
+/* Todo- check exception management
+separation of concern
+logger if needed
+necessity of transaction
+ */
 @Service
 @Transactional(readOnly = true)
 public class GetConditionFieldsService implements GetConditionFieldsUseCase {
@@ -51,7 +54,3 @@ public class GetConditionFieldsService implements GetConditionFieldsUseCase {
         );
     }
 }
-
-
-
-

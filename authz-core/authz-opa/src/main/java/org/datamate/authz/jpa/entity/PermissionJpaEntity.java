@@ -1,9 +1,6 @@
 package org.datamate.authz.jpa.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.datamate.authz.model.policy.enumtype.Status;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -16,9 +13,6 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(columnNames = {"resource_id", "action"}),
                 @UniqueConstraint(columnNames = {"code"})
         })
-@Getter
-@Setter
-@NoArgsConstructor
 public class PermissionJpaEntity {
 
     @Id
@@ -52,5 +46,80 @@ public class PermissionJpaEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-}
 
+    public PermissionJpaEntity() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getResourceId() {
+        return resourceId;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setResourceId(Long resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+}

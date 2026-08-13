@@ -24,6 +24,9 @@ import java.util.zip.GZIPOutputStream;
  * </ol>
  * The archive ends with two consecutive 512-byte zero blocks.
  */
+/* Todo- check exception management
+logger if needed
+ */
 @Component
 public class TarGzBundleService {
 

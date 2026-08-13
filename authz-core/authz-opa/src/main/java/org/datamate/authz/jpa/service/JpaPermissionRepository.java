@@ -1,6 +1,5 @@
 package org.datamate.authz.jpa.service;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.jpa.entity.PermissionJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPermissionRepository;
@@ -12,9 +11,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Component
 public class JpaPermissionRepository implements PermissionRepositoryPort {
+
+    public JpaPermissionRepository(SpringDataPermissionRepository repository) {
+        this.repository = repository;
+    }
 
     private final SpringDataPermissionRepository repository;
 
@@ -61,6 +63,3 @@ public class JpaPermissionRepository implements PermissionRepositoryPort {
     }
 
 }
-
-
-

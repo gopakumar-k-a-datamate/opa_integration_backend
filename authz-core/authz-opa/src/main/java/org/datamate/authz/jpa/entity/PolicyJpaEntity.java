@@ -1,9 +1,6 @@
 package org.datamate.authz.jpa.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,9 +12,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "authz_policy")
-@Getter
-@Setter
-@NoArgsConstructor
 public class PolicyJpaEntity {
 
     @Id
@@ -97,6 +91,116 @@ public class PolicyJpaEntity {
         this.disabledReason = disabledReason;
     }
 
+
+    public PolicyJpaEntity() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getPermissionId() {
+        return permissionId;
+    }
+
+    public SubjectType getSubjectType() {
+        return subjectType;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public PolicyEffect getEffect() {
+        return effect;
+    }
+
+    public String getExpressionJson() {
+        return expressionJson;
+    }
+
+    public boolean isUseCustomRego() {
+        return useCustomRego;
+    }
+
+    public String getCustomRegoSnippet() {
+        return customRegoSnippet;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public String getDisabledReason() {
+        return disabledReason;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public String getDeletedReason() {
+        return deletedReason;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setPermissionId(Long permissionId) {
+        this.permissionId = permissionId;
+    }
+
+    public void setSubjectType(SubjectType subjectType) {
+        this.subjectType = subjectType;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public void setEffect(PolicyEffect effect) {
+        this.effect = effect;
+    }
+
+    public void setExpressionJson(String expressionJson) {
+        this.expressionJson = expressionJson;
+    }
+
+    public void setUseCustomRego(boolean useCustomRego) {
+        this.useCustomRego = useCustomRego;
+    }
+
+    public void setCustomRegoSnippet(String customRegoSnippet) {
+        this.customRegoSnippet = customRegoSnippet;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 }
-
-

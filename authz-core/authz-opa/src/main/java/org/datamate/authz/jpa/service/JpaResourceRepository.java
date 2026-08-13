@@ -1,6 +1,5 @@
 package org.datamate.authz.jpa.service;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.jpa.entity.ResourceJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataResourceRepository;
@@ -12,9 +11,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Component
 public class JpaResourceRepository implements ResourceRepositoryPort {
+
+    public JpaResourceRepository(SpringDataResourceRepository repository) {
+        this.repository = repository;
+    }
 
     private final SpringDataResourceRepository repository;
 
@@ -59,6 +61,3 @@ public class JpaResourceRepository implements ResourceRepositoryPort {
         entity.setDeletedAt(null);
     }
 }
-
-
-

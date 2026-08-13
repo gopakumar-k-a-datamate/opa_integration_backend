@@ -1,6 +1,5 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +26,11 @@ import java.util.stream.Collectors;
  * existing policies for the given subject. A permission with no policy row
  * appears in the grid as unchecked (enabled=false, no effect, no condition).
  */
-@RequiredArgsConstructor
+/* Todo- check exception management
+separation of concern
+logger if needed
+necessity of transaction
+ */
 @Service
 @Transactional(readOnly = true)
 public class GetPoliciesService implements GetPoliciesUseCase {
@@ -103,7 +106,3 @@ public class GetPoliciesService implements GetPoliciesUseCase {
         }
     }
 }
-
-
-
-

@@ -1,8 +1,11 @@
 package org.datamate.authz.adapter.out.opa;
+// TODO:- update path. Follow standards
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+//import org.datamate.authz.api.policy.PolicyValidationPort;
 import org.datamate.authz.application.port.out.PolicyValidationPort;
 import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
@@ -16,16 +19,18 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Component
 public class OpaPolicyValidationAdapter implements PolicyValidationPort {
 
+    @EnableLogger
+    Logger log;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final String opaPolicyBaseUrl;
 
     private static final int WRAPPER_LINE_OFFSET = 4;
 
+    // Todo: Don't set url as hardcoded in adapter layer
     public OpaPolicyValidationAdapter(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,

@@ -1,6 +1,5 @@
 package org.datamate.authz.model.policy.entity;
 
-import lombok.Getter;
 
 import org.datamate.authz.model.policy.enumtype.Status;
 
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
  *
  * <p>Example: {@code namespace="finance", name="journal"}</p>
  */
-@Getter
 public class Resource {
     private final Long id;
     private final String namespace;
@@ -47,6 +45,37 @@ public class Resource {
     public boolean isActive() {
         return deletedAt == null;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
 }
-
-

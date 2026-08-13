@@ -1,6 +1,5 @@
 package org.datamate.authz.jpa.service;
 
-import lombok.RequiredArgsConstructor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,9 +16,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Component
 public class JpaConditionFieldRepository implements ConditionFieldRepositoryPort {
+
+    public JpaConditionFieldRepository(SpringDataConditionFieldRepository repository,
+                                       ObjectMapper objectMapper) {
+        this.repository = repository;
+        this.objectMapper = objectMapper;
+    }
 
     private final SpringDataConditionFieldRepository repository;
     private final ObjectMapper objectMapper;
@@ -122,7 +126,5 @@ public class JpaConditionFieldRepository implements ConditionFieldRepositoryPort
             return List.of();
         }
     }
+
 }
-
-
-

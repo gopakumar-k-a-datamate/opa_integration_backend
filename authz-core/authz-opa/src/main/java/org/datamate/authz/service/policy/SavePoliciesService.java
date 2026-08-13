@@ -1,8 +1,10 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.datamate.authz.api.policy.PolicyValidationPort;
 import org.datamate.authz.dto.policy.PolicyItemRequest;
 import org.datamate.authz.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.service.policy.SavePoliciesService;
@@ -37,7 +39,11 @@ import org.datamate.authz.exception.InvalidPayloadException;
  * </ol>
  * </p>
  */
-@RequiredArgsConstructor
+/* Todo- check exception management
+separation of concern
+logger if needed
+necessity of transaction
+ */
 @Service
 public class SavePoliciesService implements SavePoliciesUseCase {
 
@@ -47,12 +53,17 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     private final org.datamate.authz.application.port.out.PolicyValidationPort validationPort;
     private final ObjectMapper objectMapper;
 
-    
+    @EnableLogger
+    private Logger log;
+
+
     @Transactional
     public void savePolicies(SavePoliciesRequest request) {
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();
         String targetNamespace = request.namespace();
+
+        log.info("Processing SavePoliciesRequest for Subject: [{} {}], Namespace: '{}'", subjectType, subjectId, targetNamespace);
 
         // Load existing active policies for this subject
         List<Policy> allExisting = policyPort.findBySubject(subjectType, subjectId);
@@ -94,6 +105,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
 
             if (item.isDeleted()) {
                 if (existingPolicy != null) {
+                    log.info("Soft-deleting policy for permissionCode: {} (ID: {}) due to explicit deletion request", item.permissionCode(), existingPolicy.getId());
                     policyPort.softDelete(existingPolicy.getId(), item.deletedReason());
                 }
             } else {
@@ -106,6 +118,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
                 
                 String expressionJson = serializeJson(item);
                 Long policyId = (existingPolicy != null) ? existingPolicy.getId() : null;
+                log.debug("Upserting policy for permissionCode: {} (ID: {})", item.permissionCode(), policyId);
                 policyPort.upsert(
                         policyId,
                         permission.getId(),
@@ -126,6 +139,7 @@ public class SavePoliciesService implements SavePoliciesUseCase {
             String code = permissionCodeById.get(entry.getKey());
             boolean notInPayload = code == null || !handledCodes.contains(code);
             if (notInPayload) {
+                log.info("Soft-deleting existing policy for permissionCode: {} (ID: {}) because it is absent from the incoming payload", code, entry.getValue().getId());
                 policyPort.softDelete(entry.getValue().getId(), "Removed policy in state sync.");
             }
         }
@@ -145,6 +159,6 @@ public class SavePoliciesService implements SavePoliciesUseCase {
 }
 
 
-
-
-
+// Todo- Why do we need two migration folder authz-migration and db.authz-migration?
+// Todo: Fix the issue and consolidate into a single one
+// Todo: Add more tests that related logic

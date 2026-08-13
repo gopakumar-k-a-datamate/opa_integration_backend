@@ -1,6 +1,5 @@
 package org.datamate.authz.jpa.service;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.jpa.entity.PolicyBundleCacheJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPolicyBundleCacheRepository;
@@ -11,9 +10,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Component
 public class JpaPolicyBundleCacheRepository implements PolicyBundleCacheRepositoryPort {
+
+    public JpaPolicyBundleCacheRepository(SpringDataPolicyBundleCacheRepository repository) {
+        this.repository = repository;
+    }
 
     private final SpringDataPolicyBundleCacheRepository repository;
 
@@ -48,6 +50,3 @@ public class JpaPolicyBundleCacheRepository implements PolicyBundleCacheReposito
     }
 
 }
-
-
-

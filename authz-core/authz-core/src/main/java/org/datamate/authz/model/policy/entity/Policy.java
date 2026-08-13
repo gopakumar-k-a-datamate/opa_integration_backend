@@ -1,6 +1,5 @@
 package org.datamate.authz.model.policy.entity;
 
-import lombok.Getter;
 
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -29,7 +28,6 @@ import java.time.LocalDateTime;
  *   <li>{@link #isEffective()} — policy is active and has runtime impact.</li>
  * </ul>
  */
-@Getter
 public class Policy {
     private final Long id;
     private final Long permissionId;
@@ -148,6 +146,69 @@ public class Policy {
     public boolean isUserPolicy() {
         return subjectType == SubjectType.USER;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getPermissionId() {
+        return permissionId;
+    }
+
+    public SubjectType getSubjectType() {
+        return subjectType;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public PolicyEffect getEffect() {
+        return effect;
+    }
+
+    public String getExpressionJson() {
+        return expressionJson;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public String getDisabledReason() {
+        return disabledReason;
+    }
+
+    public boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public boolean isUseCustomRego() {
+        return useCustomRego;
+    }
+
+    public String getCustomRegoSnippet() {
+        return customRegoSnippet;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public String getDeletedReason() {
+        return deletedReason;
+    }
+
 }
-
-

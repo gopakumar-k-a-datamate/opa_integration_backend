@@ -1,18 +1,19 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
-
 import org.datamate.authz.application.port.out.PermissionRepositoryPort;
 import org.datamate.authz.application.port.out.PolicyRepositoryPort;
 import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
 import org.datamate.authz.application.port.out.PolicyCompilerPort;
 import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
+import org.datamate.authz.api.policy.*;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.ConditionField;
 import org.datamate.authz.model.policy.enumtype.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.exception.PolicyCompilationException;
 
 import org.datamate.authz.compiler.generator.RegoGenerator;
@@ -46,7 +47,11 @@ import java.util.stream.Collectors;
  *   <li>Compute MD5 ETag and upsert into {@code authz_policy_bundle_cache}.</li>
  * </ol>
  */
-@RequiredArgsConstructor
+
+/* Todo- check exception management
+separation of concern
+logger if needed
+ */
 @Service
 public class DefaultPolicyCompiler implements PolicyCompilerPort {
 
@@ -56,12 +61,16 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
     private final ConditionFieldRepositoryPort conditionFieldPort;
     private final org.datamate.authz.application.port.out.PolicyValidationPort validationPort;
 
+
+    @EnableLogger
+    private Logger log;
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public synchronized void recompile(String targetNamespace) {
+        log.info("Initiating OPA policy recompilation for namespace: {}", targetNamespace);
         synchronizeDeprecatedPolicies();
 
         List<Policy> allEnabledPolicies = policyPort.findAllEnabled();
@@ -92,6 +101,7 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
                 result.errors(), 
                 regoContent
             );
+            log.error("Generated Rego for namespace '{}' has syntax errors. Validation Errors: {}", targetNamespace, result.errors());
             throw new PolicyCompilationException(errorMessage);
         }
         
@@ -101,13 +111,18 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
                 .orElse(null);
                 
         if (!contentHash.equals(currentEtag)) {
+            log.info("Changes detected in generated Rego. Building and caching new OPA bundle for namespace: {}", targetNamespace);
             byte[] bundleBytes;
             try {
                 bundleBytes = bundleBuilder.build(targetNamespace, regoContent);
             } catch (IOException e) {
+                log.error("Failed to build OPA policy bundle for namespace {}", targetNamespace, e);
                 throw new PolicyCompilationException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
             }
             bundleCachePort.upsertBundle(targetNamespace, bundleBytes, contentHash);
+            log.info("Successfully updated OPA bundle cache for namespace: {}", targetNamespace);
+        } else {
+            log.debug("Generated Rego matches cached version (ETag: {}). No bundle update necessary.", currentEtag);
         }
     }
 

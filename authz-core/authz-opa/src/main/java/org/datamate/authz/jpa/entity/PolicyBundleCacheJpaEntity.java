@@ -1,9 +1,6 @@
 package org.datamate.authz.jpa.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -11,9 +8,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "authz_policy_bundle_cache")
-@Getter
-@Setter
-@NoArgsConstructor
 public class PolicyBundleCacheJpaEntity {
 
     @Id
@@ -38,5 +32,56 @@ public class PolicyBundleCacheJpaEntity {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-}
 
+    public PolicyBundleCacheJpaEntity() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public byte[] getBundleData() {
+        return bundleData;
+    }
+
+    public String getEtag() {
+        return etag;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public void setBundleData(byte[] bundleData) {
+        this.bundleData = bundleData;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+}
