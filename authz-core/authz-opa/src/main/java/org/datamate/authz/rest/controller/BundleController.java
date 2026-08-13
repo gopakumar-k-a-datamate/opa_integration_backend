@@ -1,5 +1,6 @@
 package org.datamate.authz.rest.controller;
 
+import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import org.datamate.authz.dto.policy.BundleResult;
 import org.datamate.authz.service.policy.GetOpaBundleService;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,7 @@ public class BundleController {
 
     @Operation(summary = "Download OPA Bundle", description = "Returns the compiled bundle.tar.gz for OPA.")
     @GetMapping(value = "/bundle/{namespace}", produces = "application/gzip")
+    @AuditLog(action = "BUNDLE_PUBLISHED", resource = "BUNDLE", resourceId = "#namespace", description = "Serve compiled OPA bundle")
     public ResponseEntity<byte[]> getBundle(
             @PathVariable("namespace") String namespace,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {

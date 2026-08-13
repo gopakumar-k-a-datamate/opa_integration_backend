@@ -8,10 +8,15 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.AuditTable;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "authz_policy")
+@Audited
+@AuditTable(value = "authz_policy_audit")
 public class PolicyJpaEntity {
 
     @Id

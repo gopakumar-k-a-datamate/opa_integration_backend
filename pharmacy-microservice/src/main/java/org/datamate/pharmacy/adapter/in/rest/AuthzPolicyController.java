@@ -1,10 +1,9 @@
 package org.datamate.pharmacy.adapter.in.rest;
 
-import lombok.RequiredArgsConstructor;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.datamate.authz.rest.dto.SavePoliciesRequest;
 import org.datamate.pharmacy.application.service.PharmacyAuthzService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

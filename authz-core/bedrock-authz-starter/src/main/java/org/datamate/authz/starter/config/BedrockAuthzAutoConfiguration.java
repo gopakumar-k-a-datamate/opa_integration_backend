@@ -19,14 +19,7 @@ import javax.sql.DataSource;
  */
 @AutoConfiguration(before = FlywayAutoConfiguration.class)
 @EnableAspectJAutoProxy
-@ComponentScan(basePackages = {
-        "org.datamate.authz.service",
-        "org.datamate.authz.compiler",
-        "org.datamate.authz.dto",
-        "org.datamate.authz.adapter.out.opa",
-        "org.datamate.authz.enforcement",
-        "org.datamate.authz.adapter.in.rest.bundle"
-})
+@ComponentScan(basePackages = "org.datamate.authz")
 public class BedrockAuthzAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)

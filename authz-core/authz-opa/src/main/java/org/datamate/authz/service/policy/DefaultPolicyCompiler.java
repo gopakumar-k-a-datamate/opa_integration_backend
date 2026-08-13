@@ -1,5 +1,6 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import org.datamate.authz.api.policy.PermissionRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
@@ -79,6 +80,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @AuditLog(action = "POLICY_COMPILED", resource = "NAMESPACE", resourceId = "#targetNamespace", description = "Recompile OPA policy for namespace")
     public synchronized void recompile(String targetNamespace) {
         log.info("Initiating OPA policy recompilation for namespace: {}", targetNamespace);
         synchronizeDeprecatedPolicies();

@@ -1,5 +1,6 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -169,6 +170,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
 
     @Override
     @Transactional
+    @AuditLog(action = "SAVE_POLICIES", resource = "POLICY", includeArgs = true, description = "Save bulk policies")
     public void savePolicies(SavePoliciesRequest request) {
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();

@@ -5,6 +5,9 @@ import org.datamate.authz.model.policy.enumtype.Status;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.AuditTable;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,6 +16,8 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(columnNames = {"resource_id", "action"}),
                 @UniqueConstraint(columnNames = {"code"})
         })
+@Audited
+@AuditTable(value = "authz_permission_audit")
 public class PermissionJpaEntity {
 
     @Id

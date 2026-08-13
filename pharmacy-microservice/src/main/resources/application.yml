@@ -23,7 +23,7 @@ datamate:
     # Set to true ONLY on the designated admin/identity service that manages policies.
     # Exposing these on a regular microservice is a security risk.
     admin:
-      enabled: true
+      enabled: false
 
 authz:
   opa:
