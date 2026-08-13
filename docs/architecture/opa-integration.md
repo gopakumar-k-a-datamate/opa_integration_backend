@@ -12,7 +12,7 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 
 | Field | Type | Source | Description |
 |---|---|---|---|
-| `input.user.id` | Number | JWT / Session | The authenticated user's ID |
+| `input.user.id` | String | JWT / Session | The authenticated user's ID. Numeric IDs are passed as strings (e.g., `"42"`). |
 | `input.user.roles` | String[] | JWT / Session | User's assigned role names (issued by IdP) |
 | `input.permission` | String | Application code | The permission code (e.g., `finance:journal:create`) |
 
@@ -27,7 +27,7 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 ```json
 {
   "input": {
-    "user": { "id": 42, "roles": ["ACCOUNTANT", "MANAGER"] },
+    "user": { "id": "42", "roles": ["ACCOUNTANT", "MANAGER"] },
     "permission": "finance:journal:create",
     "resource": {
       "amount": 8500,
@@ -38,15 +38,32 @@ The calling service (**PEP — Policy Enforcement Point**) must construct the fo
 }
 ```
 
-### PEP Responsibility and AOP Enforcement
+### PEP Responsibility
 
-The PEP (middleware or shared library) is responsible for:
-1. Extracting the user and roles from the incoming JWT (issued by the central Identity module).
-2. Constructing the `input` JSON with the resource context.
-3. Sending the query to the local OPA sidecar for the specific namespace (e.g., `POST /v1/data/app/authz/{namespace}/allow`) and enforcing the decision.
+The PEP (`SpringSecurityPolicyEnforcer`, auto-wired from `bedrock-authz-starter`) is responsible for:
+1. Extracting the user `id` and `roles` from Spring Security's `SecurityContextHolder` (with a JWT header fallback for unauthenticated contexts).
+2. Reading `namespace`, `resourceName`, and `action` from `@PolicyResource` to compose the `permissionCode` (e.g., `finance:journal:create`).
+3. Reflecting over `@PolicyField`-annotated fields on the Command to build the `input.resource` map.
+4. Assembling an engine-agnostic `AuthorizationContext` and delegating to `RestPolicyEvaluationClient`.
+5. `RestPolicyEvaluationClient` constructs the `EvaluationPayload` and sends a `POST` to the local OPA sidecar.
 
-**Recommended Implementation:**
-Use an AOP Aspect in the Application Layer to intercept use cases. The aspect inspects the incoming Command object, reads the `@PolicyResource` annotation to extract the `namespace`, `name`, and `action` (which form `permission`, e.g., `finance:journal:create`), and reads the `@PolicyField` values to build the `input.resource` JSON.
+**How to trigger enforcement in an application service:**
+
+```java
+@Service
+@RequiredArgsConstructor
+public class JournalService {
+
+    private final PolicyEnforcer policyEnforcer;
+
+    public void createJournal(CreateJournalPolicyResource command) {
+        policyEnforcer.enforce(command); // throws AccessDeniedException → HTTP 403 if denied
+        // proceed with business logic...
+    }
+}
+```
+
+> For full identity extraction and class-level details, see [federated-authz-workflow.md](./federated-authz-workflow.md).
 
 ---
 

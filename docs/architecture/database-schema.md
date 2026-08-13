@@ -84,7 +84,7 @@ Represents a specific action that can be performed on a local resource. Populate
 ---
 
 ### 3. Condition Field (`authz_condition_field`)
-Defines attributes that can be used in policies for a specific **Permission**. Populated via SQL migration (see [03-policy-engine.md](./03-policy-engine.md)).
+Defines attributes that can be used in policies for a specific **Permission**. Populated via SQL migration (see [policy-engine.md](./policy-engine.md)).
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|

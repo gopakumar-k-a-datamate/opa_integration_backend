@@ -1,4 +1,4 @@
-# 09. Database-First Migration Guide
+# Database-First Migration Guide
 
 ## Context & Purpose
 Our authorization framework utilizes a **Database-First** paradigm. This means that the local database tables (`authz_resource`, `authz_permission`, `authz_condition_field`) act as the absolute single source of truth for all authorization schemas. 

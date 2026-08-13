@@ -154,7 +154,7 @@ sequenceDiagram
     participant LocalOPA
  
     Admin->>UI: Click Save
-    UI->>FinanceApp: PUT /internal/authz/roles/ACCOUNTANT/policies
+    UI->>FinanceApp: PUT /internal/authz/policies (with SavePoliciesRequest body)
     FinanceApp->>LocalDB: Update/insert/soft-delete policy rows
     FinanceApp->>FinanceApp: Trigger Library Compiler (for affected namespace)
     FinanceApp->>LocalDB: Validate fields, parse AST, generate Rego for namespace
