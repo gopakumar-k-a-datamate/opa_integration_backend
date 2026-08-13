@@ -24,7 +24,6 @@
             <groupId>org.datamate</groupId>
             <artifactId>authz-opa</artifactId>
             <version>${project.version}</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

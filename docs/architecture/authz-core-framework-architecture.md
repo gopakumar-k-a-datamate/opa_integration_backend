@@ -1,4 +1,4 @@
-﻿# Authz Framework Core Architecture
+# Authz Framework Core Architecture
 
 **Date:** August 13, 2026  
 **Context Area:** `authz-core`, `authz-opa`, `bedrock-authz-starter`
@@ -81,10 +81,10 @@ To ensure a professional codebase, we explicitly ban the `Impl` suffix for servi
 To avoid severe code fragmentation, we explicitly reject the Hexagonal pattern of creating a single class/interface for every single CRUD operation.
 - **Rule:** Highly cohesive operations belonging to the same domain must be grouped into a single, unified service interface (e.g., `PolicyManagementService` handling create, read, update, and delete actions for policies).
 
-### Decision 5: Optional Technology Dependencies in the Starter
-To ensure the framework remains decoupled at the auto-configuration level, concrete implementation dependencies must be optional.
-- **Implementation:** In the `bedrock-authz-starter` POM, specific engine dependencies like `authz-opa` must include `<optional>true</optional>`.
-- **Reasoning:** This allows a consuming microservice to include the bedrock starter but intentionally exclude the OPA implementation if they prefer to inject their own policy engine implementation (e.g., an AWS Cedar module), preventing classpath bloat and strict vendor lock-in.
+### Decision 5: The "Exclusion Pattern" for Default Engines in the Starter
+To maximize developer convenience while preserving flexibility, the starter provides a sensible default engine out-of-the-box rather than forcing developers to explicitly configure one.
+- **Implementation:** In the `bedrock-authz-starter` POM, the default engine (`authz-opa`) is included as a standard, non-optional transitive dependency.
+- **Reasoning (Convention over Configuration):** 99% of microservices will use the default OPA engine. By making it a standard dependency, microservice developers only need to import `bedrock-authz-starter` for a fully working setup. If a microservice needs to swap to a different engine in the future (e.g., an AWS Cedar module), they can simply use Maven's `<exclusions>` tag to exclude `authz-opa` from the starter and import their engine of choice. This prevents classpath bloat for edge cases without burdening the majority.
 
 ---
 
