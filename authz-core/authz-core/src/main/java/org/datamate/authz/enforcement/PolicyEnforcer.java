@@ -1,7 +1,7 @@
 package org.datamate.authz.enforcement;
 
 /**
- * Public framework SDK contract for evaluating and enforcing OPA policy rules
+ * Public framework SDK contract for evaluating and enforcing policy rules
  * against domain resource objects annotated with @PolicyResource.
  */
 public interface PolicyEnforcer {
@@ -10,7 +10,7 @@ public interface PolicyEnforcer {
      * Evaluates whether the current principal is authorized to perform the action on the given resource.
      *
      * @param resource The domain resource command or object (should be annotated with @PolicyResource).
-     * @return true if OPA policy permits execution, false otherwise.
+     * @return true if policy permits execution, false otherwise.
      */
     boolean evaluate(Object resource);
 
@@ -36,7 +36,7 @@ public interface PolicyEnforcer {
      * Evaluates whether the current principal is authorized for the given permission string.
      *
      * @param permissionCode The permission string (e.g., "namespace:resource:action").
-     * @return true if OPA policy permits execution, false otherwise.
+     * @return true if policy permits execution, false otherwise.
      */
     boolean evaluate(String permissionCode);
 

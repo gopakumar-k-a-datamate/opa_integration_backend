@@ -1,7 +1,7 @@
 package org.datamate.authz.rest.controller;
 
 import org.datamate.authz.dto.policy.ConditionFieldDto;
-import org.datamate.authz.service.policy.GetConditionFieldsService;
+import org.datamate.authz.service.policy.PolicyManagementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,10 +21,10 @@ import java.util.List;
 @RequestMapping("/internal/authz/permissions")
 public class ConditionFieldController {
 
-    private final GetConditionFieldsService GetConditionFieldsService;
+    private final PolicyManagementService policyManagementService;
 
-    public ConditionFieldController(GetConditionFieldsService getConditionFieldsService) {
-        GetConditionFieldsService = getConditionFieldsService;
+    public ConditionFieldController(PolicyManagementService policyManagementService) {
+        this.policyManagementService = policyManagementService;
     }
 
     /**
@@ -33,7 +33,7 @@ public class ConditionFieldController {
     @GetMapping("/{permissionCode}/fields")
     public ResponseEntity<List<ConditionFieldDto>> getFields(
             @PathVariable String permissionCode) {
-        return ResponseEntity.ok(GetConditionFieldsService.getFields(permissionCode));
+        return ResponseEntity.ok(policyManagementService.getConditionFields(permissionCode));
     }
 }
 

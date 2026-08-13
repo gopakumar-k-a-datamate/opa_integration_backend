@@ -4,7 +4,7 @@ package org.datamate.authz.enforcement;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.authz.api.policy.PolicyEvaluationClientPort;
+import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.springframework.context.annotation.Lazy;
@@ -19,16 +19,16 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@ConditionalOnBean(PolicyEvaluationClientPort.class)
+@ConditionalOnBean(PolicyEvaluationClient.class)
 public class DefaultPolicyEnforcer implements PolicyEnforcer {
 
     @EnableLogger
     private Logger log;
 
-    private final PolicyEvaluationClientPort policyEvaluationClient;
+    private final PolicyEvaluationClient policyEvaluationClient;
     private final PrincipalProvider principalProvider;
 
-    public DefaultPolicyEnforcer(@Lazy PolicyEvaluationClientPort policyEvaluationClient, PrincipalProvider principalProvider) {
+    public DefaultPolicyEnforcer(@Lazy PolicyEvaluationClient policyEvaluationClient, PrincipalProvider principalProvider) {
         this.policyEvaluationClient = policyEvaluationClient;
         this.principalProvider = principalProvider;
     }

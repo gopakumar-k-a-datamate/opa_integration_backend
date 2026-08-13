@@ -2,7 +2,7 @@ package org.datamate.authz.service.policy;
 
 
 import org.datamate.authz.dto.policy.BundleResult;
-import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
+import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.datamate.authz.api.policy.PolicyCompilerPort;
+import org.datamate.authz.api.policy.PolicyCompiler;
 
 /**
  * Fetches the current compiled OPA bundle from the local {@code authz_policy_bundle_cache} table.
@@ -26,33 +26,33 @@ necessity of transaction
 @Transactional(readOnly = true)
 public class GetOpaBundleService {
 
-    private final PolicyBundleCacheRepositoryPort bundleCachePort;
-    private final PolicyCompilerPort compilerPort;
+    private final PolicyBundleCacheRepository bundleCache;
+    private final PolicyCompiler compiler;
     
     private final ReentrantLock lock = new ReentrantLock();
 
     @EnableLogger
     private Logger log;
 
-    public GetOpaBundleService(PolicyBundleCacheRepositoryPort bundleCachePort, PolicyCompilerPort compilerPort) {
-        this.bundleCachePort = bundleCachePort;
-        this.compilerPort = compilerPort;
+    public GetOpaBundleService(PolicyBundleCacheRepository bundleCache, PolicyCompiler compiler) {
+        this.bundleCache = bundleCache;
+        this.compiler = compiler;
     }
 
 
     public BundleResult getBundle(String namespace, String ifNoneMatch) {
         log.debug("Fetching OPA bundle for namespace: {}, If-None-Match: {}", namespace, ifNoneMatch);
-        Optional<PolicyBundleCache> bundleOpt = bundleCachePort.getBundle(namespace);
+        Optional<PolicyBundleCache> bundleOpt = bundleCache.getBundle(namespace);
         
         if (bundleOpt.isEmpty() || bundleOpt.get().getEtag() == null || bundleOpt.get().getBundleData() == null) {
             lock.lock();
             try {
                 // Double-checked locking
-                bundleOpt = bundleCachePort.getBundle(namespace);
+                bundleOpt = bundleCache.getBundle(namespace);
                 if (bundleOpt.isEmpty() || bundleOpt.get().getEtag() == null || bundleOpt.get().getBundleData() == null) {
                     log.info("OPA bundle for namespace '{}' not found or incomplete. Triggering synchronous recompilation.", namespace);
-                    compilerPort.recompile(namespace);
-                    bundleOpt = bundleCachePort.getBundle(namespace);
+                    compiler.recompile(namespace);
+                    bundleOpt = bundleCache.getBundle(namespace);
                 }
             } finally {
                 lock.unlock();

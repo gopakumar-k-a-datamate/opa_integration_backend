@@ -2,8 +2,8 @@ package org.datamate.authz.service.startup;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.authz.api.policy.PolicyCompilerPort;
-import org.datamate.authz.api.policy.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.api.policy.PermissionRepository;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -23,12 +23,12 @@ public class StartupPolicyCompiler implements ApplicationListener<ContextRefresh
     @EnableLogger
     private Logger log;
 
-    private final PermissionRepositoryPort permissionPort;
-    private final PolicyCompilerPort compilerPort;
+    private final PermissionRepository permission;
+    private final PolicyCompiler compiler;
 
-    public StartupPolicyCompiler(PermissionRepositoryPort permissionPort, PolicyCompilerPort compilerPort) {
-        this.permissionPort = permissionPort;
-        this.compilerPort = compilerPort;
+    public StartupPolicyCompiler(PermissionRepository permission, PolicyCompiler compiler) {
+        this.permission = permission;
+        this.compiler = compiler;
     }
 
     private volatile boolean alreadyRan = false;
@@ -41,13 +41,13 @@ public class StartupPolicyCompiler implements ApplicationListener<ContextRefresh
         log.info("Starting OPA Bundle Recompilation from database state...");
 
         try {
-            List<Permission> permissions = permissionPort.findAllActive();
+            List<Permission> permissions = permission.findAllActive();
             Set<String> namespaces = permissions.stream()
                     .map(p -> p.getCode().split(":")[0])
                     .collect(Collectors.toSet());
 
             for (String namespace : namespaces) {
-                compilerPort.recompile(namespace);
+                compiler.recompile(namespace);
                 log.info("Successfully recompiled OPA bundle for namespace: " + namespace);
             }
             

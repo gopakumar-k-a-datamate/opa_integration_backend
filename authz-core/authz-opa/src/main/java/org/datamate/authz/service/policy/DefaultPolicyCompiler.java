@@ -1,10 +1,10 @@
 package org.datamate.authz.service.policy;
 
-import org.datamate.authz.api.policy.PermissionRepositoryPort;
-import org.datamate.authz.api.policy.PolicyRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
-import org.datamate.authz.api.policy.PolicyCompilerPort;
-import org.datamate.authz.api.policy.ConditionFieldRepositoryPort;
+import org.datamate.authz.api.policy.PermissionRepository;
+import org.datamate.authz.api.policy.PolicyRepository;
+import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
+import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.*;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * Application use case that orchestrates the OPA policy compilation pipeline.
  *
- * <p>Implements {@link PolicyCompilerPort} so that dependent use cases
+ * <p>Implements {@link PolicyCompiler} so that dependent use cases
  * (e.g. {@link SavePoliciesService}, {@link org.datamate.authz.rest.startup.StartupScanner})
  * depend only on the port interface, not this concrete class.</p>
  *
@@ -53,13 +53,13 @@ separation of concern
 logger if needed
  */
 @Service
-public class DefaultPolicyCompiler implements PolicyCompilerPort {
+public class DefaultPolicyCompiler implements PolicyCompiler {
 
-    private final PolicyRepositoryPort policyPort;
-    private final PermissionRepositoryPort permissionPort;
-    private final PolicyBundleCacheRepositoryPort bundleCachePort;
-    private final ConditionFieldRepositoryPort conditionFieldPort;
-    private final PolicyValidationPort validationPort;
+    private final PolicyRepository policyRepository;
+    private final PermissionRepository permissionRepository;
+    private final PolicyBundleCacheRepository bundleCacheRepository;
+    private final ConditionFieldRepository conditionFieldRepository;
+    private final PolicyValidation validation;
 
 
     @EnableLogger
@@ -67,12 +67,12 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
 
-    public DefaultPolicyCompiler(PolicyRepositoryPort policyPort, PermissionRepositoryPort permissionPort, PolicyBundleCacheRepositoryPort bundleCachePort, ConditionFieldRepositoryPort conditionFieldPort, PolicyValidationPort validationPort, TarGzBundleService bundleBuilder, ObjectMapper objectMapper) {
-        this.policyPort = policyPort;
-        this.permissionPort = permissionPort;
-        this.bundleCachePort = bundleCachePort;
-        this.conditionFieldPort = conditionFieldPort;
-        this.validationPort = validationPort;
+    public DefaultPolicyCompiler(PolicyRepository policyRepository, PermissionRepository permissionRepository, PolicyBundleCacheRepository bundleCacheRepository, ConditionFieldRepository conditionFieldRepository, PolicyValidation validation, TarGzBundleService bundleBuilder, ObjectMapper objectMapper) {
+        this.policyRepository = policyRepository;
+        this.permissionRepository = permissionRepository;
+        this.bundleCacheRepository = bundleCacheRepository;
+        this.conditionFieldRepository = conditionFieldRepository;
+        this.validation = validation;
         this.bundleBuilder = bundleBuilder;
         this.objectMapper = objectMapper;
     }
@@ -83,16 +83,16 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
         log.info("Initiating OPA policy recompilation for namespace: {}", targetNamespace);
         synchronizeDeprecatedPolicies();
 
-        List<Policy> allEnabledPolicies = policyPort.findAllEnabled();
+        List<Policy> allPolicies = policyRepository.findAllEnabled();
 
         // Build permissionId â†’ code lookup (single query â€” no N+1)
-        Map<Long, String> permCodeLookup = permissionPort.findAllActive()
+        Map<Long, String> permCodeLookup = permissionRepository.findAllActive()
                 .stream()
                 .filter(p -> p.getStatus() == Status.ACTIVE)
                 .collect(Collectors.toMap(Permission::getId, Permission::getCode));
 
         // Filter policies for the specific namespace, excluding deprecated ones
-        List<Policy> namespacePolicies = allEnabledPolicies.stream()
+        List<Policy> namespacePolicies = allPolicies.stream()
                 .filter(p -> !p.isDeprecated())
                 .filter(p -> {
                     String code = permCodeLookup.get(p.getPermissionId());
@@ -103,7 +103,7 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
         RegoGenerator generator = new RegoGenerator(objectMapper);
         String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
         
-        org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validationPort.validate(regoContent);
+        org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validation.validate(regoContent);
         if (!result.valid()) {
             String errorMessage = String.format(
                 "Generated Rego for namespace '%s' has syntax errors. Bundle NOT updated.\nValidation Errors: %s\nGenerated Rego:\n%s", 
@@ -116,7 +116,7 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
         }
         
         String contentHash = computeMd5(regoContent.getBytes());
-        String currentEtag = bundleCachePort.getBundle(targetNamespace)
+        String currentEtag = bundleCacheRepository.getBundle(targetNamespace)
                 .map(org.datamate.authz.model.policy.entity.PolicyBundleCache::getEtag)
                 .orElse(null);
                 
@@ -129,7 +129,7 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
                 log.error("Failed to build OPA policy bundle for namespace {}", targetNamespace, e);
                 throw new PolicyCompilationException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
             }
-            bundleCachePort.upsertBundle(targetNamespace, bundleBytes, contentHash);
+            bundleCacheRepository.upsertBundle(targetNamespace, bundleBytes, contentHash);
             log.info("Successfully updated OPA bundle cache for namespace: {}", targetNamespace);
         } else {
             log.debug("Generated Rego matches cached version (ETag: {}). No bundle update necessary.", currentEtag);
@@ -146,12 +146,12 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
     }
 
     private void synchronizeDeprecatedPolicies() {
-        Set<String> deprecatedFields = conditionFieldPort.findAllDeprecated()
+        Set<String> deprecatedFields = conditionFieldRepository.findAllDeprecated()
                 .stream()
                 .map(ConditionField::getFieldName)
                 .collect(Collectors.toSet());
 
-        List<Policy> activePolicies = policyPort.findAllActive();
+        List<Policy> activePolicies = policyRepository.findAllActive();
         for (Policy policy : activePolicies) {
             boolean usesDeprecatedField = false;
             
@@ -169,7 +169,7 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
                 }
             }
             if (policy.isDeprecated() != usesDeprecatedField) {
-                policyPort.updateDeprecatedStatus(policy.getId(), usesDeprecatedField);
+                policyRepository.updateDeprecatedStatus(policy.getId(), usesDeprecatedField);
             }
         }
     }
