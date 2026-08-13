@@ -1,6 +1,5 @@
 package org.datamate.authz.model.policy.entity;
 
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
  * The {@code etag} is an MD5 hash of the bundle data, used by the OPA sidecar
  * for conditional polling ({@code If-None-Match} header → {@code 304 Not Modified}).</p>
  */
-@Getter
 public class PolicyBundleCache {
     private final Long id;
     private final String namespace;

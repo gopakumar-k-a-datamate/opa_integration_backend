@@ -1,6 +1,5 @@
 package org.datamate.authz.jpa.service;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.jpa.entity.PolicyJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPolicyRepository;
@@ -17,9 +16,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Component
 public class JpaPolicyRepository implements PolicyRepository {
+
+    public JpaPolicyRepository(SpringDataPolicyRepository repository) {
+        this.repository = repository;
+    }
 
     private final SpringDataPolicyRepository repository;
 
@@ -117,8 +119,5 @@ public class JpaPolicyRepository implements PolicyRepository {
         entity.setCustomRegoSnippet(customRegoSnippet);
         entity.setDeletedAt(null);
     }
+
 }
-
-
-
-

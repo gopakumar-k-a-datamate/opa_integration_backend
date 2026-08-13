@@ -1,8 +1,8 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.datamate.authz.api.policy.PolicyValidationPort;
 import org.datamate.authz.dto.policy.PolicyItemRequest;
 import org.datamate.authz.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.service.policy.SavePoliciesService;
@@ -36,14 +36,29 @@ import org.datamate.authz.exception.InvalidPayloadException;
  * </ol>
  * </p>
  */
-@RequiredArgsConstructor
+/* Todo- check exception management
+separation of concern
+logger if needed
+necessity of transaction
+ */
 @Service
 public class SavePoliciesService {
 
+    public SavePoliciesService(PolicyRepository policyPort,
+                               PermissionRepository permissionPort,
+                               PolicyCompiler compilerPort,
+                               ObjectMapper objectMapper,
+                               PolicyValidationPort validationPort) {
+        this.policyPort = policyPort;
+        this.permissionPort = permissionPort;
+        this.compilerPort = compilerPort;
+        this.objectMapper = objectMapper;
+        this.validationPort =   validationPort;
+    }
     private final PolicyRepository policyPort;
     private final PermissionRepository permissionPort;
     private final PolicyCompiler compilerPort;
-    private final org.datamate.authz.api.policy.PolicyValidationPort validationPort;
+    private final PolicyValidationPort validationPort;
     private final ObjectMapper objectMapper;
 
     
@@ -144,6 +159,6 @@ public class SavePoliciesService {
 }
 
 
-
-
-
+// Todo- Why do we need two migration folder authz-migration and db.authz-migration?
+// Todo: Fix the issue and consolidate into a single one
+// Todo: Add more tests that related logic

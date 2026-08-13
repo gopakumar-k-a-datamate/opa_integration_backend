@@ -1,6 +1,5 @@
 package org.datamate.authz.rest.controller;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.BundleResult;
 import org.datamate.authz.service.policy.GetOpaBundleService;
@@ -31,10 +30,13 @@ import org.springframework.web.bind.annotation.*;
  *       max_delay_seconds: 30
  * }</pre>
  */
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/internal/authz")
 public class BundleController {
+
+    public BundleController(GetOpaBundleService GetOpaBundleService) {
+        this.GetOpaBundleService = GetOpaBundleService;
+    }
 
     private final GetOpaBundleService GetOpaBundleService;
 
@@ -68,7 +70,3 @@ public class BundleController {
                 .body(result.data());
     }
 }
-
-
-
-

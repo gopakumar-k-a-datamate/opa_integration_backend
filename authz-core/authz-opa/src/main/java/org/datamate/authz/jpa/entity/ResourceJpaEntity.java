@@ -1,9 +1,6 @@
 package org.datamate.authz.jpa.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.datamate.authz.model.policy.enumtype.Status;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,9 +10,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "authz_resource",
         uniqueConstraints = @UniqueConstraint(columnNames = {"namespace", "name"}))
-@Getter
-@Setter
-@NoArgsConstructor
 public class ResourceJpaEntity {
 
     @Id
@@ -45,5 +39,72 @@ public class ResourceJpaEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-}
 
+    public ResourceJpaEntity() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+}

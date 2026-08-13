@@ -1,9 +1,6 @@
 package org.datamate.authz.jpa.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.model.policy.enumtype.FieldStatus;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,9 +13,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "authz_condition_field",
         uniqueConstraints = @UniqueConstraint(columnNames = {"permission_id", "field_name"}))
-@Getter
-@Setter
-@NoArgsConstructor
 public class ConditionFieldJpaEntity {
 
     @Id
@@ -60,5 +54,96 @@ public class ConditionFieldJpaEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-}
 
+    public ConditionFieldJpaEntity() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getPermissionId() {
+        return permissionId;
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public FieldType getFieldType() {
+        return fieldType;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getAllowedValues() {
+        return allowedValues;
+    }
+
+    public String getOptionsEndpoint() {
+        return optionsEndpoint;
+    }
+
+    public FieldStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setPermissionId(Long permissionId) {
+        this.permissionId = permissionId;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
+    }
+
+    public void setFieldType(FieldType fieldType) {
+        this.fieldType = fieldType;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public void setAllowedValues(String allowedValues) {
+        this.allowedValues = allowedValues;
+    }
+
+    public void setOptionsEndpoint(String optionsEndpoint) {
+        this.optionsEndpoint = optionsEndpoint;
+    }
+
+    public void setStatus(FieldStatus status) {
+        this.status = status;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+}

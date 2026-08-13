@@ -1,6 +1,5 @@
 package org.datamate.authz.rest.controller;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
 import org.datamate.authz.dto.policy.SavePoliciesRequest;
@@ -25,7 +24,6 @@ import java.util.Map;
  *   <li>{@code PUT  /internal/authz/policies} — full-state sync of policies for a subject</li>
  * </ul>
  */
-@RequiredArgsConstructor
 @RestController
 @ConditionalOnProperty(name = "datamate.authz.admin.enabled", havingValue = "true")
 @RequestMapping("/internal/authz/policies")
@@ -58,9 +56,10 @@ public class PolicyController {
         return ResponseEntity.ok(Map.of("message",
                 "Policies updated successfully. OPA bundle regenerated."));
     }
+
+    public PolicyController(GetPoliciesService GetPoliciesService, SavePoliciesService SavePoliciesService) {
+        this.GetPoliciesService = GetPoliciesService;
+        this.SavePoliciesService = SavePoliciesService;
+    }
+
 }
-
-
-
-
-

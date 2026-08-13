@@ -1,12 +1,10 @@
 package org.datamate.authz.rest.client;
 
-import lombok.extern.slf4j.Slf4j;
 import org.datamate.authz.enforcement.AuthorizationContext;
 import org.datamate.authz.dto.policy.EvaluationPayload;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.core.io.ClassPathResource;
 import org.datamate.authz.exception.EngineConfigurationException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +26,8 @@ public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
     private final RestTemplate restTemplate;
     private final String evaluationUrl;
 
+    // Todo : move this configuration if possible
+    // Todo : maintain soc across the code
     public RestPolicyEvaluationClient(RestTemplateBuilder restTemplateBuilder,
                                   @Value("${authz.opa.config.file:classpath:opa-config.yaml}") org.springframework.core.io.Resource opaConfigFile) {
         this.restTemplate = restTemplateBuilder.build();

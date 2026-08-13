@@ -1,6 +1,5 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
 
 import org.datamate.authz.dto.policy.BundleResult;
 import org.datamate.authz.service.policy.GetOpaBundleService;
@@ -17,10 +16,20 @@ import org.datamate.authz.api.policy.PolicyCompiler;
 /**
  * Fetches the current compiled OPA bundle from the local {@code authz_policy_bundle_cache} table.
  */
-@RequiredArgsConstructor
+/* Todo- check exception management
+separation of concern
+logger if needed
+necessity of transaction
+ */
 @Service
 @Transactional(readOnly = true)
 public class GetOpaBundleService {
+
+    public GetOpaBundleService(PolicyBundleCacheRepository bundleCachePort,
+                               PolicyCompiler compilerPort) {
+        this.bundleCachePort = bundleCachePort;
+        this.compilerPort = compilerPort;
+    }
 
     private final PolicyBundleCacheRepository bundleCachePort;
     private final PolicyCompiler compilerPort;

@@ -1,6 +1,5 @@
 package org.datamate.authz.rest.startup;
 
-import lombok.RequiredArgsConstructor;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.api.policy.PolicyCompiler;
@@ -9,7 +8,6 @@ import org.datamate.authz.model.policy.entity.Resource;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -19,9 +17,14 @@ import java.util.stream.Collectors;
  * Ensures OPA bundles are freshly compiled on application boot.
  * This is necessary because Flyway SQL migrations may have added or altered policies.
  */
-@RequiredArgsConstructor
 @Component
 public class StartupPolicyCompiler implements ApplicationListener<ContextRefreshedEvent> {
+
+    public StartupPolicyCompiler(ResourceRepository resourcePort,
+                                 PolicyCompiler compilerPort) {
+        this.resourcePort = resourcePort;
+        this.compilerPort = compilerPort;
+    }
 
     @EnableLogger
     private Logger log;

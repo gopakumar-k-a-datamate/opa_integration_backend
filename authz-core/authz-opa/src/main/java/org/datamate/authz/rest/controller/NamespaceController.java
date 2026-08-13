@@ -1,6 +1,5 @@
 package org.datamate.authz.rest.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.datamate.authz.service.policy.GetNamespacesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +15,6 @@ import java.util.List;
  * <p>Used by the UI to dynamically discover which namespaces (module tabs)
  * are available in the current microservice.</p>
  */
-@RequiredArgsConstructor
 @RestController
 @ConditionalOnProperty(name = "datamate.authz.admin.enabled", havingValue = "true")
 @RequestMapping("/internal/authz/namespaces")
@@ -31,4 +29,9 @@ public class NamespaceController {
     public ResponseEntity<List<String>> getNamespaces() {
         return ResponseEntity.ok(GetNamespacesService.getNamespaces());
     }
+
+    public NamespaceController(GetNamespacesService GetNamespacesService) {
+        this.GetNamespacesService = GetNamespacesService;
+    }
+
 }

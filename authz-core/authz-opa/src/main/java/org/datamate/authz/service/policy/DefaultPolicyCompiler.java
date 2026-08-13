@@ -1,12 +1,7 @@
 package org.datamate.authz.service.policy;
 
-import lombok.RequiredArgsConstructor;
 
-import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.api.policy.PolicyRepository;
-import org.datamate.authz.api.policy.PolicyBundleCacheRepository;
-import org.datamate.authz.api.policy.PolicyCompiler;
-import org.datamate.authz.api.policy.ConditionFieldRepository;
+import org.datamate.authz.api.policy.*;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -46,15 +41,35 @@ import java.util.stream.Collectors;
  *   <li>Compute MD5 ETag and upsert into {@code authz_policy_bundle_cache}.</li>
  * </ol>
  */
-@RequiredArgsConstructor
+
+/* Todo- check exception management
+separation of concern
+logger if needed
+ */
 @Service
 public class DefaultPolicyCompiler implements PolicyCompiler {
+
+    public DefaultPolicyCompiler(PolicyRepository policyPort,
+                                 PermissionRepository permissionPort,
+                                 PolicyBundleCacheRepository bundleCachePort,
+                                 ConditionFieldRepository conditionFieldPort,
+                                 TarGzBundleService bundleBuilder,
+                                 ObjectMapper objectMapper,
+                                 PolicyValidationPort validationPort) {
+        this.policyPort = policyPort;
+        this.permissionPort = permissionPort;
+        this.bundleCachePort = bundleCachePort;
+        this.conditionFieldPort = conditionFieldPort;
+        this.bundleBuilder = bundleBuilder;
+        this.objectMapper = objectMapper;
+        this.validationPort = validationPort;
+    }
 
     private final PolicyRepository policyPort;
     private final PermissionRepository permissionPort;
     private final PolicyBundleCacheRepository bundleCachePort;
     private final ConditionFieldRepository conditionFieldPort;
-    private final org.datamate.authz.api.policy.PolicyValidationPort validationPort;
+    private final PolicyValidationPort validationPort;
 
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
@@ -177,7 +192,3 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
         return false;
     }
 }
-
-
-
-
