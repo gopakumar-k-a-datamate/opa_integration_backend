@@ -4,11 +4,15 @@ import lombok.Getter;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.datamate.identity.domain.exception.role.InvalidRoleDataException;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.datamate.identity.shared.event.role.RoleCreatedEvent;
+import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
+import org.datamate.identity.shared.event.role.RoleActivatedEvent;
+import org.datamate.identity.shared.event.role.RoleDeactivatedEvent;
 
 @Getter
 public class Role extends AggregateRoot {
@@ -19,9 +23,9 @@ public class Role extends AggregateRoot {
     private final String referenceSystem;
     private final String referenceValue;
     private final Long version;
-    private final String createdBy;
+    private final EntityReference<UUID> createdBy;
     private final LocalDateTime createdDate;
-    private final String lastModifiedBy;
+    private final EntityReference<UUID> lastModifiedBy;
     private final LocalDateTime lastModifiedDate;
 
     private Role(
@@ -33,9 +37,9 @@ public class Role extends AggregateRoot {
             String referenceValue,
             Long version,
             Long domainVersion,
-            String createdBy,
+            EntityReference<UUID> createdBy,
             LocalDateTime createdDate,
-            String lastModifiedBy,
+            EntityReference<UUID> lastModifiedBy,
             LocalDateTime lastModifiedDate
     ) {
         super(domainVersion);
@@ -55,7 +59,7 @@ public class Role extends AggregateRoot {
     public static Role create(
             String name,
             String description,
-            String createdBy
+            EntityReference<UUID> createdBy
     ) {
         validateState(name, RoleStatus.INACTIVE, createdBy);
 
@@ -84,9 +88,9 @@ public class Role extends AggregateRoot {
             String referenceValue,
             Long version,
             Long domainVersion,
-            String createdBy,
+            EntityReference<UUID> createdBy,
             LocalDateTime createdDate,
-            String lastModifiedBy,
+            EntityReference<UUID> lastModifiedBy,
             LocalDateTime lastModifiedDate
     ) {
         return new Role(
@@ -105,14 +109,14 @@ public class Role extends AggregateRoot {
         );
     }
 
-    private static void validateState(String name, RoleStatus status, String createdBy) {
+    private static void validateState(String name, RoleStatus status, EntityReference<UUID> createdBy) {
         if (name == null || name.isBlank()) {
             throw new InvalidRoleDataException("role.validation.name.required", "Role name is mandatory.");
         }
         if (status == null) {
             throw new InvalidRoleDataException("role.validation.status.required", "Role status is mandatory.");
         }
-        if (createdBy == null || createdBy.isBlank()) {
+        if (createdBy == null) {
             throw new InvalidRoleDataException("role.validation.createdBy.required", "Created by reference is required.");
         }
     }
@@ -127,5 +131,101 @@ public class Role extends AggregateRoot {
                 this.createdBy
         ));
         return this;
+    }
+
+    public Role updateInformation(String name, String description, EntityReference<UUID> lastModifiedBy) {
+        validateUpdate(name, lastModifiedBy);
+
+        Role updatedRole = new Role(
+                this.id,
+                name,
+                description,
+                this.status,
+                this.referenceSystem,
+                this.referenceValue,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                lastModifiedBy,
+                LocalDateTime.now()
+        );
+
+        updatedRole.registerEvent(new RoleUpdatedEvent(
+                this.id,
+                updatedRole.getDomainVersion() + 1,
+                name,
+                description,
+                lastModifiedBy
+        ));
+
+        return updatedRole;
+    }
+
+    public Role activate(EntityReference<UUID> updatedBy) {
+        if (this.status == RoleStatus.ACTIVE) {
+            throw new InvalidRoleDataException("role.validation.already.active", "Role is already active.");
+        }
+        Role updatedRole = new Role(
+                this.id,
+                this.name,
+                this.description,
+                RoleStatus.ACTIVE,
+                this.referenceSystem,
+                this.referenceValue,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+
+        updatedRole.registerEvent(new RoleActivatedEvent(
+                this.id,
+                updatedRole.getDomainVersion() + 1,
+                this.name,
+                updatedBy
+        ));
+
+        return updatedRole;
+    }
+
+    public Role deactivate(EntityReference<UUID> updatedBy) {
+        if (this.status == RoleStatus.INACTIVE) {
+            throw new InvalidRoleDataException("role.validation.already.inactive", "Role is already inactive.");
+        }
+        Role updatedRole = new Role(
+                this.id,
+                this.name,
+                this.description,
+                RoleStatus.INACTIVE,
+                this.referenceSystem,
+                this.referenceValue,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                updatedBy,
+                LocalDateTime.now()
+        );
+
+        updatedRole.registerEvent(new RoleDeactivatedEvent(
+                this.id,
+                updatedRole.getDomainVersion() + 1,
+                this.name,
+                updatedBy
+        ));
+
+        return updatedRole;
+    }
+
+    private void validateUpdate(String name, EntityReference<UUID> lastModifiedBy) {
+        if (name == null || name.isBlank()) {
+            throw new InvalidRoleDataException("role.validation.name.required", "Role name is mandatory.");
+        }
+        if (lastModifiedBy == null) {
+            throw new InvalidRoleDataException("role.validation.updatedBy.required", "Updated by reference is required.");
+        }
     }
 }
