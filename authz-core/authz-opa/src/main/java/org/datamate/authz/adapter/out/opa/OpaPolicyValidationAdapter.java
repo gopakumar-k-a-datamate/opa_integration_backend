@@ -1,5 +1,6 @@
 package org.datamate.authz.adapter.out.opa;
 // TODO:- update path. Follow standards
+
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -1,6 +1,5 @@
 package org.datamate.authz.model.policy.entity;
 
-import lombok.Getter;
 
 import org.datamate.authz.model.policy.enumtype.Status;
 
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
  * <p>The {@code code} is auto-generated as {@code {namespace}:{resource}:{action}},
  * e.g. {@code "finance:journal:create"}.</p>
  */
-@Getter
 public class Permission {
     private final Long id;
     private final Long resourceId;
@@ -55,6 +53,41 @@ public class Permission {
     public boolean isActive() {
         return deletedAt == null;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getResourceId() {
+        return resourceId;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
 }
-
-

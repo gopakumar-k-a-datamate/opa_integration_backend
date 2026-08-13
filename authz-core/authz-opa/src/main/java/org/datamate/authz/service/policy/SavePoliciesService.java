@@ -1,6 +1,8 @@
 package org.datamate.authz.service.policy;
 
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.PolicyValidationPort;
 import org.datamate.authz.dto.policy.PolicyItemRequest;
@@ -61,12 +63,17 @@ public class SavePoliciesService {
     private final PolicyValidationPort validationPort;
     private final ObjectMapper objectMapper;
 
+    @EnableLogger
+    private Logger log;
+
     
     @Transactional
     public void savePolicies(SavePoliciesRequest request) {
         SubjectType subjectType = request.subjectType();
         String subjectId = request.subjectId();
         String targetNamespace = request.namespace();
+
+        log.info("Processing SavePoliciesRequest for Subject: [{} {}], Namespace: '{}'", subjectType, subjectId, targetNamespace);
 
         // Load existing active policies for this subject
         List<Policy> allExisting = policyPort.findBySubject(subjectType, subjectId);
@@ -108,6 +115,7 @@ public class SavePoliciesService {
 
             if (item.isDeleted()) {
                 if (existingPolicy != null) {
+                    log.info("Soft-deleting policy for permissionCode: {} (ID: {}) due to explicit deletion request", item.permissionCode(), existingPolicy.getId());
                     policyPort.softDelete(existingPolicy.getId(), item.deletedReason());
                 }
             } else {
@@ -120,6 +128,7 @@ public class SavePoliciesService {
                 
                 String expressionJson = serializeJson(item);
                 Long policyId = (existingPolicy != null) ? existingPolicy.getId() : null;
+                log.debug("Upserting policy for permissionCode: {} (ID: {})", item.permissionCode(), policyId);
                 policyPort.upsert(
                         policyId,
                         permission.getId(),
@@ -140,6 +149,7 @@ public class SavePoliciesService {
             String code = permissionCodeById.get(entry.getKey());
             boolean notInPayload = code == null || !handledCodes.contains(code);
             if (notInPayload) {
+                log.info("Soft-deleting existing policy for permissionCode: {} (ID: {}) because it is absent from the incoming payload", code, entry.getValue().getId());
                 policyPort.softDelete(entry.getValue().getId(), "Removed policy in state sync.");
             }
         }

@@ -1,6 +1,5 @@
 package org.datamate.authz.model.policy.entity;
 
-import lombok.Getter;
 
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.model.policy.enumtype.FieldStatus;
@@ -27,7 +26,6 @@ import java.util.List;
  *   <li>No policies reference it → soft-deleted ({@code deleted_at} set).</li>
  * </ul>
  */
-@Getter
 public class ConditionField {
     private final Long id;
     private final Long permissionId;
@@ -103,6 +101,49 @@ public class ConditionField {
     public boolean supportsRangeComparisons() {
         return fieldType == FieldType.NUMBER || fieldType == FieldType.DATE;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getPermissionId() {
+        return permissionId;
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public FieldType getFieldType() {
+        return fieldType;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public List<String> getAllowedValues() {
+        return allowedValues;
+    }
+
+    public String getOptionsEndpoint() {
+        return optionsEndpoint;
+    }
+
+    public FieldStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
 }
-
-

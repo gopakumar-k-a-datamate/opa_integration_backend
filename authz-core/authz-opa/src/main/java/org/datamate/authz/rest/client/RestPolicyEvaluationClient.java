@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 
@@ -52,16 +53,13 @@ public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
     @Override
     public boolean evaluate(String namespace, AuthorizationContext context) {
         // Map the generic AuthorizationContext into OPA's specific input payload format
-        EvaluationPayload payload = EvaluationPayload.builder()
-                .input(EvaluationPayload.Input.builder()
-                        .user(EvaluationPayload.User.builder()
-                                .id(context.userId())
-                                .roles(context.roles())
-                                .build())
-                        .permission(context.permissionCode())
-                        .resource(context.resourceData())
-                        .build())
-                .build();
+        EvaluationPayload payload = EvaluationPayload.of(
+                EvaluationPayload.Input.of(
+                        EvaluationPayload.User.of(
+                                context.userId(),
+                                context.roles()),
+                        context.permissionCode(),
+                        context.resourceData()));
 
         String url = String.format(evaluationUrl, namespace);
         try {

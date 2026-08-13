@@ -8,6 +8,8 @@ import org.datamate.authz.model.policy.entity.ConditionField;
 import org.datamate.authz.model.policy.enumtype.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.exception.PolicyCompilationException;
 
 import org.datamate.authz.compiler.generator.RegoGenerator;
@@ -71,12 +73,16 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
     private final ConditionFieldRepository conditionFieldPort;
     private final PolicyValidationPort validationPort;
 
+    @EnableLogger
+    private Logger log;
+
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public synchronized void recompile(String targetNamespace) {
+        log.info("Initiating OPA policy recompilation for namespace: {}", targetNamespace);
         synchronizeDeprecatedPolicies();
 
         List<Policy> allEnabledPolicies = policyPort.findAllEnabled();
@@ -107,6 +113,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
                 result.errors(), 
                 regoContent
             );
+            log.error("Generated Rego for namespace '{}' has syntax errors. Validation Errors: {}", targetNamespace, result.errors());
             throw new PolicyCompilationException(errorMessage);
         }
         
@@ -116,13 +123,18 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
                 .orElse(null);
                 
         if (!contentHash.equals(currentEtag)) {
+            log.info("Changes detected in generated Rego. Building and caching new OPA bundle for namespace: {}", targetNamespace);
             byte[] bundleBytes;
             try {
                 bundleBytes = bundleBuilder.build(targetNamespace, regoContent);
             } catch (IOException e) {
+                log.error("Failed to build OPA policy bundle for namespace {}", targetNamespace, e);
                 throw new PolicyCompilationException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
             }
             bundleCachePort.upsertBundle(targetNamespace, bundleBytes, contentHash);
+            log.info("Successfully updated OPA bundle cache for namespace: {}", targetNamespace);
+        } else {
+            log.debug("Generated Rego matches cached version (ETag: {}). No bundle update necessary.", currentEtag);
         }
     }
 
