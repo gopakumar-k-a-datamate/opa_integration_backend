@@ -1,4 +1,4 @@
-package org.datamate.authz.starter.enforcement;
+package org.datamate.authz.enforcement;
 
 import org.datamate.authz.api.principal.PrincipalProvider;
 import org.springframework.security.core.Authentication;

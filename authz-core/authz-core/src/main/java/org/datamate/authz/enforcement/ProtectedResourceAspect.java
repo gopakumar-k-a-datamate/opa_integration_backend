@@ -1,4 +1,4 @@
-package org.datamate.authz.starter.enforcement;
+package org.datamate.authz.enforcement;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
