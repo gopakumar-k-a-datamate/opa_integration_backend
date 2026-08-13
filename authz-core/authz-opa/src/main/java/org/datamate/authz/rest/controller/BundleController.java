@@ -12,11 +12,15 @@ import org.springframework.web.bind.annotation.*;
 /**
  * OPA Runtime — Bundle Serving API.
  *
- * <p>{@code GET /internal/authz/bundle}</p>
+ * <p>
+ * {@code GET /internal/authz/bundle}
+ * </p>
  *
- * <p>Serves the compiled {@code bundle.tar.gz} to the local OPA sidecar.
+ * <p>
+ * Serves the compiled {@code bundle.tar.gz} to the local OPA sidecar.
  * Supports conditional polling via {@code If-None-Match} / {@code ETag} headers
- * to avoid redundant bundle transfers when policies have not changed.</p>
+ * to avoid redundant bundle transfers when policies have not changed.
+ * </p>
  */
 @RestController
 @RequestMapping("/internal/authz")

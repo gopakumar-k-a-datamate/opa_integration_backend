@@ -5,6 +5,8 @@ import org.datamate.authz.service.policy.PolicyManagementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 
 import java.util.List;
 
@@ -21,6 +23,9 @@ import java.util.List;
 @RequestMapping("/internal/authz/permissions")
 public class ConditionFieldController {
 
+    @EnableLogger
+    private Logger log;
+
     private final PolicyManagementService policyManagementService;
 
     public ConditionFieldController(PolicyManagementService policyManagementService) {
@@ -33,6 +38,7 @@ public class ConditionFieldController {
     @GetMapping("/{permissionCode}/fields")
     public ResponseEntity<List<ConditionFieldDto>> getFields(
             @PathVariable String permissionCode) {
+        log.info("Received request to fetch condition fields for permissionCode: {}", permissionCode);
         return ResponseEntity.ok(policyManagementService.getConditionFields(permissionCode));
     }
 }

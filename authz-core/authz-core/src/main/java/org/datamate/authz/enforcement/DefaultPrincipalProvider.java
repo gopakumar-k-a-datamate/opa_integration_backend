@@ -5,6 +5,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +19,16 @@ import java.util.stream.Collectors;
 @Component
 public class DefaultPrincipalProvider implements PrincipalProvider {
 
+    @EnableLogger
+    private Logger log;
+
     @Override
     public String getUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             return authentication.getName();
         }
+        log.warn("Authentication is missing from SecurityContext; unable to extract getUserId()");
         return null;
     }
 
@@ -35,6 +41,7 @@ public class DefaultPrincipalProvider implements PrincipalProvider {
                     .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
                     .collect(Collectors.toList());
         }
+        log.warn("Authentication or authorities are missing; returning empty roles");
         return new ArrayList<>();
     }
 }
