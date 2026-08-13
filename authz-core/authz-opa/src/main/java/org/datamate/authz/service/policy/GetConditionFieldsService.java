@@ -2,8 +2,8 @@ package org.datamate.authz.service.policy;
 
 
 import org.datamate.authz.dto.policy.ConditionFieldDto;
-import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
-import org.datamate.authz.application.port.out.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.ConditionFieldRepositoryPort;
+import org.datamate.authz.api.policy.PermissionRepositoryPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.springframework.stereotype.Service;
 import org.datamate.authz.application.port.in.GetConditionFieldsUseCase;
@@ -29,7 +29,12 @@ public class GetConditionFieldsService implements GetConditionFieldsUseCase {
     private final PermissionRepositoryPort permissionPort;
     private final ConditionFieldRepositoryPort conditionFieldPort;
 
-    
+    public GetConditionFieldsService(PermissionRepositoryPort permissionPort, ConditionFieldRepositoryPort conditionFieldPort) {
+        this.permissionPort = permissionPort;
+        this.conditionFieldPort = conditionFieldPort;
+    }
+
+
     public List<ConditionFieldDto> getFields(String permissionCode) {
         Optional<Permission> permission = permissionPort.findByCode(permissionCode);
         if (permission.isEmpty()) {

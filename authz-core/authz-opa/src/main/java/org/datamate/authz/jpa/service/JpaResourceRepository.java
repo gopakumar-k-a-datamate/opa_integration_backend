@@ -3,7 +3,7 @@ package org.datamate.authz.jpa.service;
 
 import org.datamate.authz.jpa.entity.ResourceJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataResourceRepository;
-import org.datamate.authz.application.port.out.ResourceRepositoryPort;
+import org.datamate.authz.api.policy.ResourceRepositoryPort;
 import org.datamate.authz.model.policy.entity.Resource;
 import org.datamate.authz.model.policy.enumtype.Status;
 import org.springframework.stereotype.Component;

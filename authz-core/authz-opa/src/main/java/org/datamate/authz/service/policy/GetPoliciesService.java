@@ -4,9 +4,9 @@ package org.datamate.authz.service.policy;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.datamate.authz.application.port.out.PermissionRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyRepositoryPort;
-import org.datamate.authz.application.port.out.ResourceRepositoryPort;
+import org.datamate.authz.api.policy.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.PolicyRepositoryPort;
+import org.datamate.authz.api.policy.ResourceRepositoryPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.Resource;
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -39,7 +38,14 @@ public class GetPoliciesService implements GetPoliciesUseCase {
     private final ResourceRepositoryPort resourcePort;
     private final PolicyRepositoryPort policyPort;
     private final ObjectMapper objectMapper;
-    
+
+    public GetPoliciesService(PermissionRepositoryPort permissionPort, ResourceRepositoryPort resourcePort, PolicyRepositoryPort policyPort, ObjectMapper objectMapper) {
+        this.permissionPort = permissionPort;
+        this.resourcePort = resourcePort;
+        this.policyPort = policyPort;
+        this.objectMapper = objectMapper;
+    }
+
     public List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace) {
         // Build resource lookup map filtered by namespace
         Map<Long, Resource> resourcesById = resourcePort.findAllActive()

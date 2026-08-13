@@ -7,10 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.PolicyValidationPort;
 import org.datamate.authz.dto.policy.PolicyItemRequest;
 import org.datamate.authz.dto.policy.SavePoliciesRequest;
-import org.datamate.authz.service.policy.SavePoliciesService;
-import org.datamate.authz.application.port.out.PermissionRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyCompilerPort;
+import org.datamate.authz.api.policy.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.PolicyRepositoryPort;
+import org.datamate.authz.api.policy.PolicyCompilerPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.datamate.authz.exception.InvalidPayloadException;
@@ -50,11 +48,19 @@ public class SavePoliciesService implements SavePoliciesUseCase {
     private final PolicyRepositoryPort policyPort;
     private final PermissionRepositoryPort permissionPort;
     private final PolicyCompilerPort compilerPort;
-    private final org.datamate.authz.application.port.out.PolicyValidationPort validationPort;
+    private final PolicyValidationPort validationPort;
     private final ObjectMapper objectMapper;
 
     @EnableLogger
     private Logger log;
+
+    public SavePoliciesService(PolicyRepositoryPort policyPort, PermissionRepositoryPort permissionPort, PolicyCompilerPort compilerPort, PolicyValidationPort validationPort, ObjectMapper objectMapper) {
+        this.policyPort = policyPort;
+        this.permissionPort = permissionPort;
+        this.compilerPort = compilerPort;
+        this.validationPort = validationPort;
+        this.objectMapper = objectMapper;
+    }
 
 
     @Transactional

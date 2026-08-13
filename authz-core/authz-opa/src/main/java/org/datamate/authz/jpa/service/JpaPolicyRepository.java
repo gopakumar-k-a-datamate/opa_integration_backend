@@ -3,7 +3,7 @@ package org.datamate.authz.jpa.service;
 
 import org.datamate.authz.jpa.entity.PolicyJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPolicyRepository;
-import org.datamate.authz.application.port.out.PolicyRepositoryPort;
+import org.datamate.authz.api.policy.PolicyRepositoryPort;
 import org.datamate.authz.model.policy.entity.Policy;
 
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class JpaPolicyRepository implements PolicyRepositoryPort {

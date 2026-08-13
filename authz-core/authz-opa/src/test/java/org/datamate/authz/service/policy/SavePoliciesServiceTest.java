@@ -1,15 +1,13 @@
 package org.datamate.authz.service.policy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.authz.application.port.out.PermissionRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyCompilerPort;
-import org.datamate.authz.application.port.out.PolicyRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyValidationPort;
+import org.datamate.authz.api.policy.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.PolicyCompilerPort;
+import org.datamate.authz.api.policy.PolicyRepositoryPort;
+import org.datamate.authz.api.policy.PolicyValidationPort;
 import org.datamate.authz.dto.policy.PolicyItemRequest;
 import org.datamate.authz.dto.policy.SavePoliciesRequest;
 import org.datamate.authz.exception.InvalidPayloadException;
-import org.datamate.authz.model.policy.entity.Permission;
-import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +34,18 @@ class SavePoliciesServiceTest {
     private PolicyValidationPort validationPort;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private com.datamate.bedrock.framework.common.logging.service.Logger log;
 
     @InjectMocks
     private SavePoliciesService savePoliciesService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() throws Exception {
+        java.lang.reflect.Field logField = SavePoliciesService.class.getDeclaredField("log");
+        logField.setAccessible(true);
+        logField.set(savePoliciesService, log);
+    }
 
     @Test
     void testSavePolicies_EmptyRequest() {

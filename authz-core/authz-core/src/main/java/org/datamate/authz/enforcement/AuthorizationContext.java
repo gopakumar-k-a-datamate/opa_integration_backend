@@ -1,5 +1,7 @@
 package org.datamate.authz.enforcement;
 
+import org.datamate.authz.api.policy.PolicyEvaluationClientPort;
+
 import java.util.List;
 import java.util.Map;
 
@@ -7,7 +9,7 @@ import java.util.Map;
  * Generic, engine-agnostic authorization context.
  *
  * <p>This is the common contract between the {@link PolicyEnforcer} and the
- * {@link org.datamate.authz.application.port.out.PolicyEvaluationClientPort}. It carries the
+ * {@link PolicyEvaluationClientPort}. It carries the
  * minimum information needed to make an allow/deny decision, without any coupling
  * to OPA's specific JSON payload structure.</p>
  *

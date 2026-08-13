@@ -1,10 +1,10 @@
 package org.datamate.authz.service.policy;
 
-import org.datamate.authz.application.port.out.PermissionRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyRepositoryPort;
+import org.datamate.authz.api.policy.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.PolicyRepositoryPort;
 import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
-import org.datamate.authz.application.port.out.PolicyCompilerPort;
-import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
+import org.datamate.authz.api.policy.PolicyCompilerPort;
+import org.datamate.authz.api.policy.ConditionFieldRepositoryPort;
 import org.datamate.authz.api.policy.*;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
@@ -59,13 +59,23 @@ public class DefaultPolicyCompiler implements PolicyCompilerPort {
     private final PermissionRepositoryPort permissionPort;
     private final PolicyBundleCacheRepositoryPort bundleCachePort;
     private final ConditionFieldRepositoryPort conditionFieldPort;
-    private final org.datamate.authz.application.port.out.PolicyValidationPort validationPort;
+    private final PolicyValidationPort validationPort;
 
 
     @EnableLogger
     private Logger log;
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
+
+    public DefaultPolicyCompiler(PolicyRepositoryPort policyPort, PermissionRepositoryPort permissionPort, PolicyBundleCacheRepositoryPort bundleCachePort, ConditionFieldRepositoryPort conditionFieldPort, PolicyValidationPort validationPort, TarGzBundleService bundleBuilder, ObjectMapper objectMapper) {
+        this.policyPort = policyPort;
+        this.permissionPort = permissionPort;
+        this.bundleCachePort = bundleCachePort;
+        this.conditionFieldPort = conditionFieldPort;
+        this.validationPort = validationPort;
+        this.bundleBuilder = bundleBuilder;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)

@@ -1,7 +1,6 @@
 package org.datamate.authz.service.policy;
 
-import org.datamate.authz.service.policy.GetNamespacesService;
-import org.datamate.authz.application.port.out.ResourceRepositoryPort;
+import org.datamate.authz.api.policy.ResourceRepositoryPort;
 import org.datamate.authz.model.policy.entity.Resource;
 import org.springframework.stereotype.Service;
 import org.datamate.authz.application.port.in.GetNamespacesUseCase;
@@ -19,7 +18,11 @@ public class GetNamespacesService implements GetNamespacesUseCase {
 
     private final ResourceRepositoryPort resourcePort;
 
-    
+    public GetNamespacesService(ResourceRepositoryPort resourcePort) {
+        this.resourcePort = resourcePort;
+    }
+
+
     public List<String> getNamespaces() {
         return resourcePort.findAllActive()
                 .stream()

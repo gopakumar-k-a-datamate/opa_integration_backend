@@ -24,7 +24,8 @@ import javax.sql.DataSource;
         "org.datamate.authz.compiler",
         "org.datamate.authz.dto",
         "org.datamate.authz.adapter.out.opa",
-        "org.datamate.authz.enforcement"
+        "org.datamate.authz.enforcement",
+        "org.datamate.authz.adapter.in.rest.bundle"
 })
 public class BedrockAuthzAutoConfiguration {
 
@@ -58,12 +59,5 @@ public class BedrockAuthzAutoConfiguration {
                         .migrate();
             }
         }
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(name = "org.datamate.authz.rest.controller.PolicyController")
-    @ConditionalOnProperty(prefix = "authz.rest", name = "enabled", matchIfMissing = true)
-    @ComponentScan(basePackages = "org.datamate.authz.rest")
-    public static class RestConfiguration {
     }
 }

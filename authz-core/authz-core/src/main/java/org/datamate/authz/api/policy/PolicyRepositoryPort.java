@@ -1,4 +1,4 @@
-package org.datamate.authz.application.port.out;
+package org.datamate.authz.api.policy;
 
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;

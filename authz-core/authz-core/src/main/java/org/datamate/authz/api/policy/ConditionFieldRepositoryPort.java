@@ -1,8 +1,7 @@
-package org.datamate.authz.application.port.out;
+package org.datamate.authz.api.policy;
 
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.model.policy.entity.ConditionField;
-import org.datamate.authz.model.policy.enumtype.FieldStatus;
 
 import java.util.List;
 import java.util.Optional;

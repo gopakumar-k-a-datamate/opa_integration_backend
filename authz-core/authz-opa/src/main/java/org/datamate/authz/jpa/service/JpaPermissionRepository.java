@@ -3,7 +3,7 @@ package org.datamate.authz.jpa.service;
 
 import org.datamate.authz.jpa.entity.PermissionJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataPermissionRepository;
-import org.datamate.authz.application.port.out.PermissionRepositoryPort;
+import org.datamate.authz.api.policy.PermissionRepositoryPort;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.enumtype.Status;
 import org.springframework.stereotype.Component;

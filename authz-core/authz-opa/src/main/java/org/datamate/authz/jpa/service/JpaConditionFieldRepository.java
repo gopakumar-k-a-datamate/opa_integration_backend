@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.jpa.entity.ConditionFieldJpaEntity;
 import org.datamate.authz.jpa.repository.SpringDataConditionFieldRepository;
 import org.datamate.authz.model.policy.enumtype.FieldType;
-import org.datamate.authz.application.port.out.ConditionFieldRepositoryPort;
+import org.datamate.authz.api.policy.ConditionFieldRepositoryPort;
 import org.datamate.authz.model.policy.entity.ConditionField;
 
 import org.datamate.authz.model.policy.enumtype.FieldStatus;

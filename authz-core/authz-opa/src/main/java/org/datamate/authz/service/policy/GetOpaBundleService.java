@@ -2,7 +2,6 @@ package org.datamate.authz.service.policy;
 
 
 import org.datamate.authz.dto.policy.BundleResult;
-import org.datamate.authz.service.policy.GetOpaBundleService;
 import org.datamate.authz.application.port.out.PolicyBundleCacheRepositoryPort;
 import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
@@ -13,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.datamate.authz.application.port.out.PolicyCompilerPort;
+import org.datamate.authz.api.policy.PolicyCompilerPort;
 
 /**
  * Fetches the current compiled OPA bundle from the local {@code authz_policy_bundle_cache} table.
@@ -34,6 +33,11 @@ public class GetOpaBundleService {
 
     @EnableLogger
     private Logger log;
+
+    public GetOpaBundleService(PolicyBundleCacheRepositoryPort bundleCachePort, PolicyCompilerPort compilerPort) {
+        this.bundleCachePort = bundleCachePort;
+        this.compilerPort = compilerPort;
+    }
 
 
     public BundleResult getBundle(String namespace, String ifNoneMatch) {

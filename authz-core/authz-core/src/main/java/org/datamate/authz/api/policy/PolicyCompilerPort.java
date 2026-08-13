@@ -1,4 +1,4 @@
-package org.datamate.authz.application.port.out;
+package org.datamate.authz.api.policy;
 
 /**
  * Port for triggering policy bundle recompilation.

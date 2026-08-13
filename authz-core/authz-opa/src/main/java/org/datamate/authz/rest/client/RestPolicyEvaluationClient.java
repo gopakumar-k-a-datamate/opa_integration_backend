@@ -2,7 +2,7 @@ package org.datamate.authz.rest.client;
 
 import org.datamate.authz.enforcement.AuthorizationContext;
 import org.datamate.authz.dto.policy.EvaluationPayload;
-import org.datamate.authz.api.policy.PolicyEvaluationClient;
+import org.datamate.authz.api.policy.PolicyEvaluationClientPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.datamate.authz.exception.EngineConfigurationException;
@@ -19,7 +19,7 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import java.util.Map;
 
 @Component
-public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
+public class RestPolicyEvaluationClient implements PolicyEvaluationClientPort {
 
     @EnableLogger
     private Logger log;
@@ -32,13 +32,13 @@ public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
     public RestPolicyEvaluationClient(RestTemplateBuilder restTemplateBuilder,
                                   @Value("${authz.opa.config.file:classpath:opa-config.yaml}") org.springframework.core.io.Resource opaConfigFile) {
         this.restTemplate = restTemplateBuilder.build();
-        
+
         // Parse opa-config.yaml to extract evaluation_url
         try {
             YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
             yamlFactory.setResources(opaConfigFile);
             java.util.Properties properties = yamlFactory.getObject();
-            
+
             if (properties != null && properties.getProperty("evaluation_url") != null) {
                 this.evaluationUrl = properties.getProperty("evaluation_url");
             } else {
