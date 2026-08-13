@@ -26,6 +26,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.datamate.identity.application.port.in.user.UpdateUserUseCase;
 import org.datamate.identity.application.dto.user.UpdateUserRequest;
+import org.datamate.identity.application.port.in.user.UpdateUserRolesUseCase;
+import org.datamate.identity.application.dto.user.UpdateUserRolesRequest;
 
 import org.datamate.identity.application.port.in.user.ActivateUserUseCase;
 import org.datamate.identity.application.port.in.user.DeactivateUserUseCase;
@@ -49,6 +51,7 @@ public class UserController {
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
     private final UpdateUserUseCase updateUserUseCase;
+    private final UpdateUserRolesUseCase updateUserRolesUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -134,6 +137,20 @@ public class UserController {
         String adminUsername = principal != null ? principal.getName() : "SYSTEM";
         log.info("Update user request received for ID: {} by admin: {}", id, adminUsername);
         return updateUserUseCase.updateUser(id, request, adminUsername);
+    }
+
+    @PutMapping("/{id}/roles")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "ASSIGN_USER_ROLES", resource = "USER", description = "Update user role assignments")
+    @Operation(summary = "Update user roles", description = "Assigns or removes roles for an existing user.")
+    public UserDto updateUserRoles(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRolesRequest request,
+            Principal principal
+    ) {
+        String adminUsername = principal != null ? principal.getName() : "SYSTEM";
+        log.info("Update user roles request received for ID: {} by admin: {}", id, adminUsername);
+        return updateUserRolesUseCase.updateUserRoles(id, request, adminUsername);
     }
     
     @GetMapping("/login-history")

@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SpringDataRoleRepository extends JpaRepository<RoleJpaEntity, UUID>, JpaSpecificationExecutor<RoleJpaEntity> {
     boolean existsByName(String name);
+    Optional<RoleJpaEntity> findByName(String name);
     boolean existsByNameIgnoreCase(String name);
 
     @Query(value = "SELECT r.name FROM role r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = :userId", nativeQuery = true)
