@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
  * details from the Spring Security context.
  */
 @Component
+@ConditionalOnMissingBean(PrincipalProvider.class)
 public class DefaultPrincipalProvider implements PrincipalProvider {
 
     @EnableLogger
