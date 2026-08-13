@@ -4,8 +4,7 @@ import org.datamate.authz.api.principal.PrincipalProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 
@@ -17,8 +16,6 @@ import java.util.stream.Collectors;
  * Default implementation of {@link PrincipalProvider} that extracts identity
  * details from the Spring Security context.
  */
-@Component
-@ConditionalOnMissingBean(PrincipalProvider.class)
 public class DefaultPrincipalProvider implements PrincipalProvider {
 
     @EnableLogger

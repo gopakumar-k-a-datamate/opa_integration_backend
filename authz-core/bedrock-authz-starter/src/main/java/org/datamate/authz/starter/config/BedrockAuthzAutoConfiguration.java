@@ -13,6 +13,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.flywaydb.core.Flyway;
 import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
+import org.datamate.authz.api.principal.PrincipalProvider;
+import org.datamate.authz.enforcement.DefaultPrincipalProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 
 /**
  * Single entry point for Bedrock Authz auto-configuration.
@@ -51,6 +55,15 @@ public class BedrockAuthzAutoConfiguration {
                         .load()
                         .migrate();
             }
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    public static class PrincipalProviderConfiguration {
+        @Bean
+        @ConditionalOnMissingBean(PrincipalProvider.class)
+        public PrincipalProvider defaultPrincipalProvider() {
+            return new DefaultPrincipalProvider();
         }
     }
 }

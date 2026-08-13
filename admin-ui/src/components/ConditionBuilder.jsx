@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFields } from '../api/apiClient';
 import Editor from '@monaco-editor/react';
+import DynamicDropdown from './DynamicDropdown';
 
-const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
+const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => {
   const selectedField = fields.find(f => f.fieldName === rule.field);
 
   const renderValueInput = () => {
@@ -36,6 +37,16 @@ const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
       );
     }
 
+    if (selectedField.optionsEndpoint) {
+      return (
+        <DynamicDropdown 
+          endpoint={selectedField.optionsEndpoint}
+          permissionCode={permissionCode}
+          value={rule.value || ''}
+          onChange={(val) => onChange({ ...rule, value: val })}
+        />
+      );
+    }
     if (selectedField.allowedValues && selectedField.allowedValues.length > 0) {
       return (
         <select 
@@ -129,7 +140,7 @@ const ConditionRule = ({ rule, fields, onChange, onRemove }) => {
   );
 };
 
-const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
+const ConditionGroup = ({ node, fields, permissionCode, onChange, onRemove, isRoot }) => {
   const handleOperatorChange = (e) => {
     onChange({ ...node, operator: e.target.value });
   };
@@ -217,6 +228,7 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
             key={`rule-${item.index}`}
             rule={item.child} 
             fields={fields} 
+            permissionCode={permissionCode}
             onChange={(newRule) => handleChildChange(item.index, newRule)} 
             onRemove={() => handleRemoveChild(item.index)} 
           />
@@ -250,6 +262,7 @@ const ConditionGroup = ({ node, fields, onChange, onRemove, isRoot }) => {
               <ConditionGroup 
                 node={item.child} 
                 fields={fields} 
+                permissionCode={permissionCode}
                 onChange={(newChild) => handleChildChange(item.index, newChild)} 
                 onRemove={() => handleRemoveChild(item.index)} 
                 isRoot={false}
@@ -420,6 +433,7 @@ const ConditionBuilder = ({ permissionCode, policy, validationErrors, onClose, o
                 <ConditionGroup
                   node={expressionTree}
                   fields={fields}
+                  permissionCode={permissionCode}
                   onChange={setExpressionTree}
                   isRoot={true}
                 />

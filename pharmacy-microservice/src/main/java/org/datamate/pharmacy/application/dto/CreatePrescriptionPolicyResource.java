@@ -7,7 +7,11 @@ import org.datamate.authz.annotation.PolicyResource;
 @PolicyResource(namespace = "pharmacy", resourceName = "prescription", action = "create", description = "Create Prescription")
 public class CreatePrescriptionPolicyResource {
 
-    @PolicyField(type = FieldType.STRING, displayName = "Doctor Level", allowedValues = {"MAIN","JUNIOR","SENIOR"})
+    @PolicyField(
+            type = FieldType.STRING, 
+            displayName = "Doctor Level", 
+            optionsEndpoint = "/api/v1/pharmacy/doctors"
+    )
     private String doctorLevel;
 
     @PolicyField(type = FieldType.BOOLEAN, displayName = "Same Ward")
