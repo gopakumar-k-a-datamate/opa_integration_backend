@@ -56,4 +56,22 @@ public class RoleJpaEntity extends BaseAuditableEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "created_by_id")
+    private UUID createdById;
+
+    @Column(name = "created_by_system", length = 50)
+    private String createdBySystem;
+
+    @Column(name = "created_by_value", length = 255)
+    private String createdByValue;
+
+    @Column(name = "last_modified_by_id")
+    private UUID lastModifiedById;
+
+    @Column(name = "last_modified_by_system", length = 50)
+    private String lastModifiedBySystem;
+
+    @Column(name = "last_modified_by_value", length = 255)
+    private String lastModifiedByValue;
 }

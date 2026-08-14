@@ -7,9 +7,17 @@ import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
+import org.datamate.identity.application.port.in.role.UpdateRoleUseCase;
+import org.datamate.identity.application.port.in.role.ActivateRoleUseCase;
+import org.datamate.identity.application.port.in.role.DeactivateRoleUseCase;
+import org.datamate.identity.application.dto.role.UpdateRoleRequest;
+import org.datamate.identity.application.service.role.AuditActorResolver;
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import java.security.Principal;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.springframework.http.HttpStatus;
@@ -36,6 +44,11 @@ public class RoleController {
     private final CreateRoleUseCase createRoleUseCase;
     private final ListRolesUseCase listRolesUseCase;
     private final SelectRolesUseCase selectRolesUseCase;
+    private final GetRoleUseCase getRoleUseCase;
+    private final UpdateRoleUseCase updateRoleUseCase;
+    private final ActivateRoleUseCase activateRoleUseCase;
+    private final DeactivateRoleUseCase deactivateRoleUseCase;
+    private final AuditActorResolver auditActorResolver;
 
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
@@ -54,9 +67,11 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleDto> getRole(@PathVariable UUID id) {
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get role details", description = "Retrieve a role's detailed information by their unique ID.")
+    public RoleDto getRole(@PathVariable UUID id) {
         log.info("Get role request received for id {}", id);
-        return ResponseEntity.ok(roleManagementUseCase.getRole(id));
+        return getRoleUseCase.getRoleById(id);
     }
 
     @GetMapping
@@ -71,6 +86,43 @@ public class RoleController {
         RoleSearchCriteria criteria = new RoleSearchCriteria(search, status);
         PageQuery pageQuery = new PageQuery(page, size);
         return listRolesUseCase.listRoles(criteria, pageQuery);
+    }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "UPDATE_ROLE", resource = "ROLE", description = "Update role details")
+    @Operation(summary = "Update role details", description = "Edits the name and description of an existing role.")
+    public RoleDto updateRole(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateRoleRequest request,
+            Principal principal
+    ) {
+        String username = principal != null ? principal.getName() : "SYSTEM";
+        EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
+        log.info("Update role request received for ID: {} by admin: {}", id, username);
+        return updateRoleUseCase.updateRole(id, request, adminUserRef);
+    }
+
+    @PostMapping("/{id}/activate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "ACTIVATE_ROLE", resource = "ROLE", description = "Activate role")
+    @Operation(summary = "Activate role", description = "Activates a role by its ID.")
+    public void activateRole(@PathVariable UUID id, Principal principal) {
+        String username = principal != null ? principal.getName() : "SYSTEM";
+        EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
+        log.info("Activate role request received for ID: {} by admin: {}", id, username);
+        activateRoleUseCase.activateRole(id, adminUserRef);
+    }
+
+    @PostMapping("/{id}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    @AuditLog(action = "DEACTIVATE_ROLE", resource = "ROLE", description = "Deactivate role")
+    @Operation(summary = "Deactivate role", description = "Deactivates a role by its ID.")
+    public void deactivateRole(@PathVariable UUID id, Principal principal) {
+        String username = principal != null ? principal.getName() : "SYSTEM";
+        EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
+        log.info("Deactivate role request received for ID: {} by admin: {}", id, username);
+        deactivateRoleUseCase.deactivateRole(id, adminUserRef);
     }
 
     @DeleteMapping("/{id}")

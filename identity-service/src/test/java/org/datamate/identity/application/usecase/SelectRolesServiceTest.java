@@ -1,5 +1,7 @@
 package org.datamate.identity.application.usecase;
 
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.mapper.role.RoleDtoMapper;
@@ -43,6 +45,10 @@ class SelectRolesServiceTest {
     void shouldSelectRolesSuccessfully() {
         // Arrange
         UUID roleId = UUID.randomUUID();
+        EntityReference<UUID> auditRef = new EntityReference<>(
+                null,
+                new ResourceIdentifier("system", "system")
+        );
         Role sampleRole = Role.reconstitute(
                 roleId,
                 "ADMIN",
@@ -52,9 +58,9 @@ class SelectRolesServiceTest {
                 null,
                 1L,
                 1L,
-                "system",
+                auditRef,
                 LocalDateTime.now(),
-                "system",
+                auditRef,
                 LocalDateTime.now()
         );
 

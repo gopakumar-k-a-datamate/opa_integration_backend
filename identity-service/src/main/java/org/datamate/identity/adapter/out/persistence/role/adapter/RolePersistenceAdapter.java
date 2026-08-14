@@ -94,6 +94,11 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     }
 
     @Override
+    public boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id) {
+        return repository.existsByNameIgnoreCaseAndIdNot(name, id);
+    }
+
+    @Override
     public List<String> findRoleNamesByUserId(UUID userId) {
         return repository.findRoleNamesByUserId(userId);
     }

@@ -6,11 +6,18 @@ import org.datamate.identity.application.dto.role.RoleDto;
 import org.datamate.identity.application.dto.role.RoleRequest;
 import org.datamate.identity.application.dto.role.RoleSelectDto;
 import org.datamate.identity.application.port.in.role.CreateRoleUseCase;
+import org.datamate.identity.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.application.port.in.role.SelectRolesUseCase;
 import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.application.port.in.role.UpdateRoleUseCase;
+import org.datamate.identity.application.port.in.role.ActivateRoleUseCase;
+import org.datamate.identity.application.port.in.role.DeactivateRoleUseCase;
+import org.datamate.identity.application.service.role.AuditActorResolver;
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +61,21 @@ class RoleControllerTest {
 
     @Mock
     private SelectRolesUseCase selectRolesUseCase;
+
+    @Mock
+    private GetRoleUseCase getRoleUseCase;
+
+    @Mock
+    private UpdateRoleUseCase updateRoleUseCase;
+
+    @Mock
+    private ActivateRoleUseCase activateRoleUseCase;
+ 
+    @Mock
+    private DeactivateRoleUseCase deactivateRoleUseCase;
+
+    @Mock
+    private AuditActorResolver auditActorResolver;
 
     @Mock
     private Logger log;
@@ -102,7 +124,7 @@ class RoleControllerTest {
     @Test
     void shouldGetRoleSuccessfully() throws Exception {
         RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE);
-        when(roleManagementUseCase.getRole(eq(roleId))).thenReturn(responseDto);
+        when(getRoleUseCase.getRoleById(eq(roleId))).thenReturn(responseDto);
 
         mockMvc.perform(get("/api/v1/roles/" + roleId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -159,5 +181,35 @@ class RoleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(roleId.toString()))
                 .andExpect(jsonPath("$[0].name").value("DENTIST"));
+    }
+
+    @Test
+    void shouldActivateRoleSuccessfully() throws Exception {
+        EntityReference<UUID> adminUserRef = new EntityReference<>(
+                UUID.randomUUID(),
+                new ResourceIdentifier("identity-service", "admin")
+        );
+        when(auditActorResolver.resolve(any(String.class))).thenReturn(adminUserRef);
+
+        mockMvc.perform(post("/api/v1/roles/" + roleId + "/activate")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(activateRoleUseCase).activateRole(eq(roleId), eq(adminUserRef));
+    }
+
+    @Test
+    void shouldDeactivateRoleSuccessfully() throws Exception {
+        EntityReference<UUID> adminUserRef = new EntityReference<>(
+                UUID.randomUUID(),
+                new ResourceIdentifier("identity-service", "admin")
+        );
+        when(auditActorResolver.resolve(any(String.class))).thenReturn(adminUserRef);
+
+        mockMvc.perform(post("/api/v1/roles/" + roleId + "/deactivate")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(deactivateRoleUseCase).deactivateRole(eq(roleId), eq(adminUserRef));
     }
 }
