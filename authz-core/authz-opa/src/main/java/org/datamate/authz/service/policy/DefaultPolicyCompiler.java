@@ -10,15 +10,19 @@ import org.datamate.authz.api.policy.*;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.ConditionField;
+import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import org.datamate.authz.model.policy.enumtype.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.exception.PolicyCompilationException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.datamate.authz.compiler.generator.RegoGenerator;
 
+import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
@@ -105,7 +109,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
         RegoGenerator generator = new RegoGenerator(objectMapper);
         String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
         
-        org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validation.validate(regoContent);
+        RegoValidationResult result = validation.validate(regoContent);
         if (!result.valid()) {
             String errorMessage = String.format(
                 "Generated Rego for namespace '%s' has syntax errors. Bundle NOT updated.\nValidation Errors: %s\nGenerated Rego:\n%s", 
@@ -119,7 +123,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
         
         String contentHash = computeMd5(regoContent.getBytes());
         String currentEtag = bundleCacheRepository.getBundle(targetNamespace)
-                .map(org.datamate.authz.model.policy.entity.PolicyBundleCache::getEtag)
+                .map(PolicyBundleCache::getEtag)
                 .orElse(null);
                 
         if (!contentHash.equals(currentEtag)) {
@@ -165,8 +169,9 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
                     try {
                         JsonNode root = objectMapper.readTree(json);
                         usesDeprecatedField = hasDeprecatedField(root, deprecatedFields);
-                    } catch (Exception e) {
-                        // Ignore parse errors here, let RegoGenerator fail or ignore
+                    } catch (JsonProcessingException e) {
+                        log.error("Failed to parse JSON expression for policy ID {}. JSON was: {}", policy.getId(), json, e);
+                        throw new AuthzInvalidPayloadException("Invalid JSON format detected in policy ID " + policy.getId(), e);
                     }
                 }
             }

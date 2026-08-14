@@ -7,7 +7,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -33,7 +32,6 @@ public class BundleController {
         GetOpaBundleService = getOpaBundleService;
     }
 
-    @Operation(summary = "Download OPA Bundle", description = "Returns the compiled bundle.tar.gz for OPA.")
     @GetMapping(value = "/bundle/{namespace}", produces = "application/gzip")
     @AuditLog(action = "BUNDLE_PUBLISHED", resource = "BUNDLE", resourceId = "#namespace", description = "Serve compiled OPA bundle")
     public ResponseEntity<byte[]> getBundle(

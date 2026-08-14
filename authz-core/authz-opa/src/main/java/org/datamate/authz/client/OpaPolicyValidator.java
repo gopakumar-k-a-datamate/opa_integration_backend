@@ -1,5 +1,4 @@
 package org.datamate.authz.client;
-// TODO:- update path. Follow standards
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
