@@ -4,6 +4,8 @@ import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.api.principal.PrincipalProvider;
+import org.datamate.authz.dto.policy.EvaluationResult;
+import org.datamate.authz.enforcement.AuthorizationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,8 +13,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
-
+import org.datamate.authz.exception.AuthzDeniedException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -77,7 +79,7 @@ class DefaultPolicyEnforcerTest {
     void evaluate_object_success() {
         when(principalProvider.getUserId()).thenReturn("user123");
         when(principalProvider.getRoles()).thenReturn(List.of("ADMIN"));
-        when(policyEvaluationClient.evaluate(eq("finance"), any(AuthorizationContext.class))).thenReturn(true);
+        when(policyEvaluationClient.evaluate(eq("finance"), any(AuthorizationContext.class))).thenReturn(EvaluationResult.granted());
 
         TestResource resource = new TestResource();
         boolean result = enforcer.evaluate(resource);
@@ -100,7 +102,7 @@ class DefaultPolicyEnforcerTest {
     void evaluate_string_success() {
         when(principalProvider.getUserId()).thenReturn("user456");
         when(principalProvider.getRoles()).thenReturn(List.of("USER"));
-        when(policyEvaluationClient.evaluate(eq("hr"), any(AuthorizationContext.class))).thenReturn(false);
+        when(policyEvaluationClient.evaluate(eq("hr"), any(AuthorizationContext.class))).thenReturn(EvaluationResult.denied("Access Denied: You do not have permission to perform this action."));
 
         boolean result = enforcer.evaluate("hr:employee:write");
 
@@ -122,23 +124,23 @@ class DefaultPolicyEnforcerTest {
     @Test
     void enforce_object_throwsExceptionWhenDenied() {
         when(principalProvider.getUserId()).thenReturn("user123");
-        when(policyEvaluationClient.evaluate(anyString(), any())).thenReturn(false);
+        when(policyEvaluationClient.evaluate(anyString(), any())).thenReturn(EvaluationResult.denied("Denied"));
 
-        assertThrows(AccessDeniedException.class, () -> enforcer.enforce(new TestResource()));
+        assertThrows(AuthzDeniedException.class, () -> enforcer.enforce(new TestResource()));
     }
 
     @Test
     void enforce_string_throwsExceptionWhenDenied() {
         when(principalProvider.getUserId()).thenReturn("user123");
-        when(policyEvaluationClient.evaluate(anyString(), any())).thenReturn(false);
+        when(policyEvaluationClient.evaluate(anyString(), any())).thenReturn(EvaluationResult.denied("Denied"));
 
-        assertThrows(AccessDeniedException.class, () -> enforcer.enforce("finance:invoice:read"));
+        assertThrows(AuthzDeniedException.class, () -> enforcer.enforce("finance:invoice:read"));
     }
 
     @Test
     void enforce_object_passesWhenAllowed() {
         when(principalProvider.getUserId()).thenReturn("user123");
-        when(policyEvaluationClient.evaluate(anyString(), any())).thenReturn(true);
+        when(policyEvaluationClient.evaluate(anyString(), any())).thenReturn(EvaluationResult.granted());
 
         assertDoesNotThrow(() -> enforcer.enforce(new TestResource()));
     }

@@ -5,7 +5,7 @@ import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
-import org.datamate.authz.exception.InvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,7 +17,7 @@ class AstBuilderTest {
 
     @Test
     void build_nullNode_throwsException() {
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(null));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(null));
     }
 
     @Test
@@ -34,9 +34,9 @@ class AstBuilderTest {
 
     @Test
     void build_missingConditionFields_throwsException() throws Exception {
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree("{\"comparison\":\">\",\"value\":100}")));
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree("{\"field\":\"amount\",\"value\":100}")));
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree("{\"field\":\"amount\",\"comparison\":\">\"}")));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree("{\"comparison\":\">\",\"value\":100}")));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree("{\"field\":\"amount\",\"value\":100}")));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree("{\"field\":\"amount\",\"comparison\":\">\"}")));
     }
 
     @Test
@@ -54,19 +54,19 @@ class AstBuilderTest {
     @Test
     void build_notGroupWithMultipleChildren_throwsException() throws Exception {
         String json = "{\"operator\":\"NOT\",\"children\":[{\"field\":\"a\",\"comparison\":\"=\",\"value\":1}, {\"field\":\"b\",\"comparison\":\"=\",\"value\":2}]}";
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(json)));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(json)));
     }
 
     @Test
     void build_groupMissingOperator_throwsException() throws Exception {
         String json = "{\"children\":[]}";
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(json)));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(json)));
     }
 
     @Test
     void build_groupInvalidOperator_throwsException() throws Exception {
         String json = "{\"operator\":\"XOR\",\"children\":[]}";
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(json)));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(json)));
     }
 
     @Test
@@ -83,6 +83,6 @@ class AstBuilderTest {
                 "]}" +
                 "]}" +
                 "]}";
-        assertThrows(InvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(nestedJson)));
+        assertThrows(AuthzInvalidPayloadException.class, () -> astBuilder.build(mapper.readTree(nestedJson)));
     }
 }

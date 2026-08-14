@@ -1,11 +1,11 @@
 package org.datamate.authz.exception;
 
-public class PolicyCompilationException extends RuntimeException {
+public class PolicyCompilationException extends AuthzException {
     public PolicyCompilationException(String message) {
-        super(message);
+        super(AuthzErrorCode.COMPILATION_ERROR, message);
     }
     
     public PolicyCompilationException(String message, Throwable cause) {
-        super(message, cause);
+        super(AuthzErrorCode.COMPILATION_ERROR, message, null, null, cause);
     }
 }

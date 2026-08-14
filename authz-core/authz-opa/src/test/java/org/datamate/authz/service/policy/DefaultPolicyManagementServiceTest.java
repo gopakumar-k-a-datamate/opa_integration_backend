@@ -10,8 +10,8 @@ import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.exception.InvalidPayloadException;
-import org.datamate.authz.exception.InvalidPolicySyntaxException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidSyntaxException;
 import org.datamate.authz.model.policy.entity.ConditionField;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
@@ -159,7 +159,7 @@ class DefaultPolicyManagementServiceTest {
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
         when(permissionRepository.findAllActive()).thenReturn(List.of());
 
-        assertThrows(InvalidPayloadException.class, () -> service.savePolicies(req));
+        assertThrows(AuthzInvalidPayloadException.class, () -> service.savePolicies(req));
     }
 
     @Test
@@ -170,7 +170,7 @@ class DefaultPolicyManagementServiceTest {
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
         when(permissionRepository.findAllActive()).thenReturn(List.of());
 
-        assertThrows(InvalidPayloadException.class, () -> service.savePolicies(req));
+        assertThrows(AuthzInvalidPayloadException.class, () -> service.savePolicies(req));
     }
 
     @Test
@@ -208,7 +208,7 @@ class DefaultPolicyManagementServiceTest {
         when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
         when(validation.validate("invalid rego")).thenReturn(new RegoValidationResult(false, List.of(new org.datamate.authz.model.policy.valueobject.RegoValidationError(1, 1, "Syntax error"))));
 
-        assertThrows(InvalidPolicySyntaxException.class, () -> service.savePolicies(req));
+        assertThrows(AuthzInvalidSyntaxException.class, () -> service.savePolicies(req));
     }
 
     @Test

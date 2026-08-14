@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.datamate.authz.dto.policy.EvaluationResult;
 
 @Component
 public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
@@ -33,7 +34,7 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
     }
 
     @Override
-    public boolean evaluate(String namespace, AuthorizationContext context) {
+    public EvaluationResult evaluate(String namespace, AuthorizationContext context) {
         String url = opaEvaluationBaseUrl + namespace;
 
         HttpHeaders headers = new HttpHeaders();
@@ -64,12 +65,22 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
                         if (resultMap.containsKey("allow")) {
                             boolean allow = Boolean.TRUE.equals(resultMap.get("allow"));
                             log.debug("OPA evaluated policy for permission '{}': allow={}", context.permissionCode(), allow);
-                            return allow;
+                            if (allow) {
+                                return EvaluationResult.granted();
+                            } else {
+                                String reason = (String) resultMap.getOrDefault("reason", "Access Denied: You do not have permission to perform this action.");
+                                return EvaluationResult.denied(reason);
+                            }
                         }
                     }
                     if (result instanceof Boolean) {
-                        log.debug("OPA evaluated policy for permission '{}': allow={}", context.permissionCode(), result);
-                        return (Boolean) result;
+                        boolean allow = (Boolean) result;
+                        log.debug("OPA evaluated policy for permission '{}': allow={}", context.permissionCode(), allow);
+                        if (allow) {
+                            return EvaluationResult.granted();
+                        } else {
+                            return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
+                        }
                     }
                 }
             }
@@ -78,6 +89,6 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
         }
         
         log.warn("OPA evaluation returned false/denied (or failed) for permission '{}'", context.permissionCode());
-        return false;
+        return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
     }
 }

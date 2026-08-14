@@ -9,7 +9,9 @@ import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.springframework.context.annotation.Lazy;
 import org.datamate.authz.api.principal.PrincipalProvider;
-import org.springframework.security.access.AccessDeniedException;
+import org.datamate.authz.exception.AuthzDeniedException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
+import org.datamate.authz.dto.policy.EvaluationResult;
 import org.springframework.stereotype.Component;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
@@ -80,38 +82,70 @@ public class DefaultPolicyEnforcer implements PolicyEnforcer {
 
         // 5. Evaluate Policy via the engine adapter
         log.debug("Evaluating policy for permission: {}", permissionCode);
-        return policyEvaluationClient.evaluate(resourceAnnotation.namespace(), context);
+        return policyEvaluationClient.evaluate(resourceAnnotation.namespace(), context).allowed();
     }
 
     @Override
     public boolean evaluate(String permissionCode) {
         String[] parts = permissionCode.split(":");
         if (parts.length == 0) {
-            throw new IllegalArgumentException("Invalid permission code: " + permissionCode);
+            throw new AuthzInvalidPayloadException("Invalid permission code: " + permissionCode);
         }
         
         AuthorizationContext context = buildContext(permissionCode, new HashMap<>());
         log.debug("Evaluating RBAC policy for permission: {}", permissionCode);
-        return policyEvaluationClient.evaluate(parts[0], context);
+        return policyEvaluationClient.evaluate(parts[0], context).allowed();
     }
 
     @Override
     public void enforce(Object resource) {
-        if (!evaluate(resource)) {
-            PolicyResource resourceAnnotation = resource != null ? resource.getClass().getAnnotation(PolicyResource.class) : null;
-            String permissionCode = resourceAnnotation != null 
-                    ? String.format("%s:%s:%s", resourceAnnotation.namespace(), resourceAnnotation.resourceName(), resourceAnnotation.action())
-                    : "unknown";
-            log.warn("Access Denied attempting {}", permissionCode);
-            throw new AccessDeniedException("Access Denied: You do not have permission to perform this action.");
+        if (!supports(resource)) {
+            log.debug("Resource {} is not annotated with @PolicyResource. Bypassing policy enforcement.", 
+                    resource != null ? resource.getClass().getName() : "null");
+            return;
+        }
+
+        PolicyResource resourceAnnotation = resource.getClass().getAnnotation(PolicyResource.class);
+        String permissionCode = String.format("%s:%s:%s", 
+                resourceAnnotation.namespace(), 
+                resourceAnnotation.resourceName(), 
+                resourceAnnotation.action());
+
+        Map<String, Object> resourceContext = new HashMap<>();
+        for (Field field : resource.getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(PolicyField.class)) {
+                field.setAccessible(true);
+                try {
+                    Object value = field.get(resource);
+                    resourceContext.put(field.getName(), value);
+                } catch (IllegalAccessException e) {
+                    log.warn("Failed to extract PolicyField '{}' from Command", field.getName(), e);
+                }
+            }
+        }
+
+        AuthorizationContext context = buildContext(permissionCode, resourceContext);
+        EvaluationResult result = policyEvaluationClient.evaluate(resourceAnnotation.namespace(), context);
+
+        if (!result.allowed()) {
+            log.warn("Access Denied attempting {}: {}", permissionCode, result.message());
+            throw new AuthzDeniedException(result.message());
         }
     }
 
     @Override
     public void enforce(String permissionCode) {
-        if (!evaluate(permissionCode)) {
-            log.warn("Access Denied attempting {}", permissionCode);
-            throw new AccessDeniedException("Access Denied: You do not have permission to perform this action.");
+        String[] parts = permissionCode.split(":");
+        if (parts.length == 0) {
+            throw new AuthzInvalidPayloadException("Invalid permission code: " + permissionCode);
+        }
+        
+        AuthorizationContext context = buildContext(permissionCode, new HashMap<>());
+        EvaluationResult result = policyEvaluationClient.evaluate(parts[0], context);
+
+        if (!result.allowed()) {
+            log.warn("Access Denied attempting {}: {}", permissionCode, result.message());
+            throw new AuthzDeniedException(result.message());
         }
     }
 }

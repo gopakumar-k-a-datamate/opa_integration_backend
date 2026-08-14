@@ -6,7 +6,7 @@ import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.datamate.authz.exception.InvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
 
 public class AstBuilder {
 
@@ -18,35 +18,35 @@ public class AstBuilder {
 
     private AstNode build(JsonNode json, int depth) {
         if (depth > MAX_AST_DEPTH) {
-            throw new InvalidPayloadException("Invalid AST: Condition tree exceeds maximum depth of " + MAX_AST_DEPTH);
+            throw new AuthzInvalidPayloadException("Invalid AST: Condition tree exceeds maximum depth of " + MAX_AST_DEPTH);
         }
 
         if (json == null || json.isNull()) {
-            throw new InvalidPayloadException("Invalid AST: Node cannot be null.");
+            throw new AuthzInvalidPayloadException("Invalid AST: Node cannot be null.");
         }
 
         if (json.has("children")) {
             if (!json.hasNonNull("operator")) {
-                throw new InvalidPayloadException("Invalid AST: Group node is missing the 'operator' field.");
+                throw new AuthzInvalidPayloadException("Invalid AST: Group node is missing the 'operator' field.");
             }
             
             LogicalOperator operator;
             try {
                 operator = LogicalOperator.valueOf(json.get("operator").asText().toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new InvalidPayloadException("Invalid AST: Unknown operator '" + json.get("operator").asText() + "'.");
+                throw new AuthzInvalidPayloadException("Invalid AST: Unknown operator '" + json.get("operator").asText() + "'.");
             }
             
             GroupNode group = new GroupNode(operator);
 
             JsonNode childrenNode = json.get("children");
             if (!childrenNode.isArray()) {
-                throw new InvalidPayloadException("Invalid AST: 'children' must be an array.");
+                throw new AuthzInvalidPayloadException("Invalid AST: 'children' must be an array.");
             }
 
             if (operator == LogicalOperator.NOT) {
                 if (childrenNode.size() != 1) {
-                    throw new InvalidPayloadException("Invalid AST: NOT group must have exactly one child.");
+                    throw new AuthzInvalidPayloadException("Invalid AST: NOT group must have exactly one child.");
                 }
             }
 
@@ -58,13 +58,13 @@ public class AstBuilder {
         }
 
         if (!json.hasNonNull("field")) {
-            throw new InvalidPayloadException("Invalid AST: Condition node is missing the 'field' attribute.");
+            throw new AuthzInvalidPayloadException("Invalid AST: Condition node is missing the 'field' attribute.");
         }
         if (!json.hasNonNull("comparison")) {
-            throw new InvalidPayloadException("Invalid AST: Condition node is missing the 'comparison' attribute.");
+            throw new AuthzInvalidPayloadException("Invalid AST: Condition node is missing the 'comparison' attribute.");
         }
         if (!json.has("value")) {
-            throw new InvalidPayloadException("Invalid AST: Condition node is missing the 'value' attribute.");
+            throw new AuthzInvalidPayloadException("Invalid AST: Condition node is missing the 'value' attribute.");
         }
 
         return new ConditionNode(

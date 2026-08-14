@@ -8,7 +8,7 @@ import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.compiler.AstBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.authz.exception.InvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.exception.PolicyCompilationException;
 
 import java.util.ArrayList;
@@ -97,7 +97,7 @@ public class RegoGenerator {
                 for (List<ConditionNode> clause : dnfClauses) {
                     generateRuleFromClause(policy, permissionCode, clause, sb);
                 }
-            } catch (InvalidPayloadException e) {
+            } catch (AuthzInvalidPayloadException e) {
                 throw e; // Rethrow to allow global exception handler to return 400
             } catch (Exception e) {
                 throw new PolicyCompilationException("Failed to compile AST for Policy " + policy.getId(), e);
@@ -218,7 +218,7 @@ public class RegoGenerator {
                 for (AstNode child : group.getChildren()) {
                     dnf.addAll(convertToDNF(child, policyId, deferredBlocks, counter));
                     if (dnf.size() > MAX_DNF_CLAUSES) {
-                        throw new InvalidPayloadException("Condition produces too many rule combinations. Simplify the expression or use custom Rego.");
+                        throw new AuthzInvalidPayloadException("Condition produces too many rule combinations. Simplify the expression or use custom Rego.");
                     }
                 }
             } else if (group.getOperator() == LogicalOperator.AND) {
@@ -235,7 +235,7 @@ public class RegoGenerator {
                             newDnf.add(combinedAndClause);
 
                             if (newDnf.size() > MAX_DNF_CLAUSES) {
-                                throw new InvalidPayloadException("Condition produces too many rule combinations. Simplify the expression or use custom Rego.");
+                                throw new AuthzInvalidPayloadException("Condition produces too many rule combinations. Simplify the expression or use custom Rego.");
                             }
                         }
                     }

@@ -1,7 +1,7 @@
 package org.datamate.authz.compiler.generator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.datamate.authz.exception.InvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
@@ -123,6 +123,6 @@ class RegoGeneratorTest {
         when(p.getPermissionId()).thenReturn(500L);
         when(p.getExpressionJson()).thenReturn(json.toString());
 
-        assertThrows(InvalidPayloadException.class, () -> generator.generate("finance", List.of(p), Map.of(500L, "finance:read")));
+        assertThrows(AuthzInvalidPayloadException.class, () -> generator.generate("finance", List.of(p), Map.of(500L, "finance:read")));
     }
 }

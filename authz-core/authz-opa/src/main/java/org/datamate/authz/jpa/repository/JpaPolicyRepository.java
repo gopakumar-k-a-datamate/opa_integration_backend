@@ -8,7 +8,7 @@ import org.datamate.authz.model.policy.entity.Policy;
 
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
-import org.datamate.authz.exception.StaleDataException;
+import org.datamate.authz.exception.AuthzStaleDataException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -63,7 +63,7 @@ public class JpaPolicyRepository implements PolicyRepository {
         try {
             return toDomain(repository.save(entity));
         } catch (ObjectOptimisticLockingFailureException e) {
-            throw new StaleDataException("The policy has been modified by another user. Please refresh and try again.");
+            throw new AuthzStaleDataException("The policy has been modified by another user. Please refresh and try again.");
         }
     }
 

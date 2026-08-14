@@ -13,12 +13,14 @@ import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.exception.InvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
+import org.datamate.authz.exception.AuthzInvalidSyntaxException;
 import org.datamate.authz.model.policy.entity.ConditionField;
 import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.Resource;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.datamate.authz.rest.dto.PolicyItemRequest;
 import org.datamate.authz.rest.dto.SavePoliciesRequest;
 import org.springframework.stereotype.Service;
@@ -201,10 +203,10 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
 
         for (PolicyItemRequest item : request.policies()) {
             if (item.isDeleted() && (item.deletedReason() == null || item.deletedReason().isBlank())) {
-                throw new InvalidPayloadException("A reason is mandatory when deleting a policy (permissionCode: " + item.permissionCode() + ").");
+                throw new AuthzInvalidPayloadException("A reason is mandatory when deleting a policy (permissionCode: " + item.permissionCode() + ").");
             }
             if (!item.enabled() && !item.isDeleted() && (item.disabledReason() == null || item.disabledReason().isBlank())) {
-                throw new InvalidPayloadException("A reason is mandatory when disabling a policy (permissionCode: " + item.permissionCode() + ").");
+                throw new AuthzInvalidPayloadException("A reason is mandatory when disabling a policy (permissionCode: " + item.permissionCode() + ").");
             }
 
             Permission permission = permissionByCode.get(item.permissionCode());
@@ -218,9 +220,9 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                 }
             } else {
                 if (item.useCustomRego() && item.customRegoSnippet() != null && !item.customRegoSnippet().isBlank()) {
-                    org.datamate.authz.model.policy.valueobject.RegoValidationResult result = validation.validate(item.customRegoSnippet());
+                    RegoValidationResult result = validation.validate(item.customRegoSnippet());
                     if (!result.valid()) {
-                        throw new org.datamate.authz.exception.InvalidPolicySyntaxException(item.permissionCode(), result.errors());
+                        throw new AuthzInvalidSyntaxException(item.permissionCode(), result.errors());
                     }
                 }
                 
@@ -259,7 +261,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
         try {
             return objectMapper.writeValueAsString(item.expressionJson());
         } catch (Exception e) {
-            throw new InvalidPayloadException("Failed to serialize policy expression AST for permission: " + item.permissionCode());
+            throw new AuthzInvalidPayloadException("Failed to serialize policy expression AST for permission: " + item.permissionCode());
         }
     }
 }

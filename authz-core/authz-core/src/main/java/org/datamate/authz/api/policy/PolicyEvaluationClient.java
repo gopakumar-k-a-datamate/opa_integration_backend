@@ -1,6 +1,7 @@
 package org.datamate.authz.api.policy;
 
 import org.datamate.authz.enforcement.AuthorizationContext;
+import org.datamate.authz.dto.policy.EvaluationResult;
 
 public interface PolicyEvaluationClient {
     /**
@@ -14,7 +15,7 @@ public interface PolicyEvaluationClient {
      * @param namespace The namespace of the resource (e.g. "finance").
      * @param context   The generic authorization context (user, roles, permission,
      *                  resource).
-     * @return true if the policy engine allows the request, false otherwise.
+     * @return EvaluationResult containing true if the policy engine allows the request, false otherwise with reason.
      */
-    boolean evaluate(String namespace, AuthorizationContext context);
+    EvaluationResult evaluate(String namespace, AuthorizationContext context);
 }

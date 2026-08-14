@@ -1,6 +1,7 @@
 package org.datamate.pharmacy.application.service;
 
-import lombok.RequiredArgsConstructor;
+
+
 import org.datamate.pharmacy.adapter.out.persistence.DoctorRepository;
 import org.datamate.authz.rest.dto.AllowedValuePageResponse;
 import org.datamate.authz.rest.dto.AllowedValueResponse;
@@ -17,10 +18,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class GetDoctorsService implements GetDoctorsUseCase {
 
     private final DoctorRepository doctorRepository;
+
+    public GetDoctorsService(DoctorRepository doctorRepository) {
+        this.doctorRepository = doctorRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
