@@ -9,9 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -19,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class OpaPolicyValidator implements PolicyValidation {
 
     @EnableLogger
@@ -34,7 +31,7 @@ public class OpaPolicyValidator implements PolicyValidation {
     public OpaPolicyValidator(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
-            @Value("${authz.opa.validation.url:http://localhost:8181}") String opaBaseUrl) {
+            String opaBaseUrl) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.opaPolicyBaseUrl = opaBaseUrl + "/v1/policies/";

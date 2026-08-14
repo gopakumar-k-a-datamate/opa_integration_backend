@@ -4,20 +4,17 @@ import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.enforcement.AuthorizationContext;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.datamate.authz.dto.policy.EvaluationResult;
 
-@Component
 public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
 
     @EnableLogger
@@ -28,7 +25,7 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
 
     public OpaPolicyEvaluationClient(
             RestTemplate restTemplate,
-            @Value("${authz.opa.evaluation.url:http://localhost:8181}") String opaBaseUrl) {
+            String opaBaseUrl) {
         this.restTemplate = restTemplate;
         this.opaEvaluationBaseUrl = opaBaseUrl + "/v1/data/";
     }
