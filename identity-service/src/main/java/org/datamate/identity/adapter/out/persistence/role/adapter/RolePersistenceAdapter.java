@@ -51,13 +51,13 @@ public class RolePersistenceAdapter implements RolePersistencePort {
 
     @Override
     public List<Role> findAll() {
-        return repository.findAll().stream().map(mapper::mapToDomain).collect(Collectors.toList());
+        return repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate")).stream().map(mapper::mapToDomain).collect(Collectors.toList());
     }
 
     @Override
     public Paged<Role> searchRoles(RoleSearchCriteria criteria, PageQuery pageQuery) {
         log.debug("Searching roles with criteria: {} and page query: {}", criteria, pageQuery);
-        Pageable pageable = toPageable(pageQuery, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = toPageable(pageQuery, Sort.by(Sort.Direction.DESC, "createdDate"));
         Page<RoleJpaEntity> entityPage = repository.findAll(
                 RoleSpecification.filterRoles(criteria),
                 pageable
@@ -71,7 +71,7 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     public List<Role> findActiveRoles(String search) {
         log.debug("Finding active roles with search query: '{}'", search);
         RoleSearchCriteria criteria = new RoleSearchCriteria(search, RoleStatus.ACTIVE);
-        return repository.findAll(RoleSpecification.filterRoles(criteria))
+        return repository.findAll(RoleSpecification.filterRoles(criteria), Sort.by(Sort.Direction.DESC, "createdDate"))
                 .stream()
                 .map(mapper::mapToDomain)
                 .collect(Collectors.toList());
