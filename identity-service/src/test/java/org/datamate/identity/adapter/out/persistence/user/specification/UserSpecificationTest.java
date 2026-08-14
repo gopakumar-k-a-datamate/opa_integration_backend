@@ -57,6 +57,8 @@ class UserSpecificationTest {
         when(root.join("roles")).thenReturn(rolesJoin);
         when(rolesJoin.get("name")).thenReturn(mock(Path.class));
         when(cb.lower(any(Expression.class))).thenReturn(mock(Expression.class));
+        when(cb.concat(any(Expression.class), any(Expression.class))).thenReturn(mock(Expression.class));
+        when(cb.concat(any(Expression.class), anyString())).thenReturn(mock(Expression.class));
         when(cb.like(any(Expression.class), anyString())).thenReturn(predicate);
         when(cb.or(any(Predicate[].class))).thenReturn(predicate);
         when(cb.equal(any(Expression.class), any())).thenReturn(predicate);

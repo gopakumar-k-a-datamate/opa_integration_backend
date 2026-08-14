@@ -2,6 +2,7 @@ package org.datamate.identity.adapter.out.persistence.user.specification;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.common.logging.util.LoggerManager;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
@@ -35,11 +36,16 @@ public class UserSpecification {
 
             if (criteria.search() != null && !criteria.search().isBlank()) {
                 String searchPattern = "%" + criteria.search().toLowerCase() + "%";
+                Expression<String> fullName = cb.concat(
+                    cb.concat(cb.lower(root.get("firstName")), " "),
+                    cb.lower(root.get("lastName"))
+                );
                 predicates.add(cb.or(
                     cb.like(cb.lower(root.get("userName")), searchPattern),
                     cb.like(cb.lower(root.get("email")), searchPattern),
                     cb.like(cb.lower(root.get("firstName")), searchPattern),
-                    cb.like(cb.lower(root.get("lastName")), searchPattern)
+                    cb.like(cb.lower(root.get("lastName")), searchPattern),
+                    cb.like(fullName, searchPattern)
                 ));
             }
 
