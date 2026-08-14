@@ -7,6 +7,7 @@ import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
 import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
 import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
 import org.datamate.identity.shared.event.user.UserInformationUpdatedEvent;
+import org.datamate.identity.shared.event.user.UserRolesUpdatedEvent;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 import org.datamate.identity.domain.exception.user.InvalidUserDataException;
@@ -353,6 +354,42 @@ public class User extends AggregateRoot {
                 lastName,
                 referenceSystem,
                 referenceValue,
+                adminUsername
+        ));
+
+        return updatedUser;
+    }
+
+    public User assignRoles(List<String> newRoles, String adminUsername) {
+        List<String> uniqueRoles = newRoles.stream()
+                .distinct()
+                .toList();
+
+        User updatedUser = new User(
+                this.id,
+                this.userName,
+                this.email,
+                this.phoneNumber,
+                this.passwordHash,
+                this.firstName,
+                this.lastName,
+                this.referenceSystem,
+                this.referenceValue,
+                this.status,
+                uniqueRoles,
+                this.passwordTemporary,
+                this.version,
+                this.getDomainVersion(),
+                this.createdBy,
+                this.createdDate,
+                adminUsername,
+                LocalDateTime.now()
+        );
+
+        updatedUser.registerEvent(new UserRolesUpdatedEvent(
+                this.id,
+                updatedUser.getDomainVersion() + 1,
+                uniqueRoles,
                 adminUsername
         ));
 

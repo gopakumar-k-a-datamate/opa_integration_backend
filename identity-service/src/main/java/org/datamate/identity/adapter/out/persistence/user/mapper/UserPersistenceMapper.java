@@ -1,15 +1,26 @@
 package org.datamate.identity.adapter.out.persistence.user.mapper;
 
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
+import org.datamate.identity.adapter.out.persistence.role.repository.SpringDataRoleRepository;
 import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
 import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import org.datamate.identity.domain.exception.role.RoleNotFoundException;
 
 @Component
 public class UserPersistenceMapper {
+
+    private final SpringDataRoleRepository roleRepository;
+
+    public UserPersistenceMapper(SpringDataRoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
     public User mapToDomain(UserJpaEntity entity) {
         if (entity == null) return null;
@@ -78,5 +89,15 @@ public class UserPersistenceMapper {
         entity.setCreatedDate(user.getCreatedDate());
         entity.setLastModifiedBy(user.getLastModifiedBy());
         entity.setLastModifiedDate(user.getLastModifiedDate());
+
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            List<RoleJpaEntity> roleEntitiesList = roleRepository.findAllByNameIn(user.getRoles());
+            if (roleEntitiesList.size() != user.getRoles().size()) {
+                throw new RoleNotFoundException();
+            }
+            entity.setRoles(new HashSet<>(roleEntitiesList));
+        } else {
+            entity.getRoles().clear();
+        }
     }
 }

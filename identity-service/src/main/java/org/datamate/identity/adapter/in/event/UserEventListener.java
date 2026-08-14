@@ -8,6 +8,7 @@ import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
 import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
 import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
 import org.datamate.identity.shared.event.user.UserInformationUpdatedEvent;
+import org.datamate.identity.shared.event.user.UserRolesUpdatedEvent;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +57,13 @@ public class UserEventListener {
     public void onUserInformationUpdated(UserInformationUpdatedEvent event) {
         if (log != null) {
             log.info("Received UserInformationUpdatedEvent outbox event for user ID: {}, updated by: {}", event.aggregateId(), event.updatedBy());
+        }
+    }
+
+    @ApplicationModuleListener
+    public void onUserRolesUpdated(UserRolesUpdatedEvent event) {
+        if (log != null) {
+            log.info("Received UserRolesUpdatedEvent outbox event for user ID: {}, assigned by: {}", event.aggregateId(), event.assignedBy());
         }
     }
 }
