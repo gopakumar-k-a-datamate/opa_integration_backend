@@ -14,6 +14,7 @@ public interface SpringDataRoleRepository extends JpaRepository<RoleJpaEntity, U
     boolean existsByName(String name);
     Optional<RoleJpaEntity> findByName(String name);
     boolean existsByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 
     @Query(value = "SELECT r.name FROM role r JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = :userId", nativeQuery = true)
     List<String> findRoleNamesByUserId(@Param("userId") UUID userId);

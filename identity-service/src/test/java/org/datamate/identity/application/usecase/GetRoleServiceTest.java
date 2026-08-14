@@ -4,31 +4,29 @@ import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.application.dto.role.RoleDto;
-import org.datamate.identity.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.application.mapper.role.RoleDtoMapper;
 import org.datamate.identity.application.port.out.role.RolePersistencePort;
-import org.datamate.identity.application.usecase.role.ListRolesUseService;
+import org.datamate.identity.application.usecase.role.GetRoleService;
+import org.datamate.identity.domain.exception.role.RoleNotFoundException;
 import org.datamate.identity.domain.model.Role;
 import org.datamate.identity.shared.model.RoleStatus;
-import com.datamate.bedrock.framework.common.pagination.Paged;
-import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class ListRolesUseServiceTest {
+class GetRoleServiceTest {
 
     private RolePersistencePort rolePort;
     private RoleDtoMapper roleDtoMapper;
     private Logger log;
-    private ListRolesUseService listRolesUseService;
+    private GetRoleService getRoleService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -36,20 +34,18 @@ class ListRolesUseServiceTest {
         roleDtoMapper = new RoleDtoMapper();
         log = mock(Logger.class);
 
-        listRolesUseService = new ListRolesUseService(rolePort, roleDtoMapper);
+        getRoleService = new GetRoleService(rolePort, roleDtoMapper);
 
         // Manually inject the logger mock because it's a non-constructor private field (@EnableLogger)
-        Field logField = ListRolesUseService.class.getDeclaredField("log");
+        Field logField = GetRoleService.class.getDeclaredField("log");
         logField.setAccessible(true);
-        logField.set(listRolesUseService, log);
+        logField.set(getRoleService, log);
     }
 
     @Test
-    void shouldListRolesSuccessfully() {
+    void shouldReturnRoleDetailsSuccessfullyWhenRoleExists() {
         // Arrange
         UUID roleId = UUID.randomUUID();
-        RoleSearchCriteria criteria = new RoleSearchCriteria("admin", RoleStatus.ACTIVE);
-        PageQuery pageQuery = new PageQuery(1, 10);
         EntityReference<UUID> auditRef = new EntityReference<>(
                 null,
                 new ResourceIdentifier("system", "system")
@@ -69,21 +65,34 @@ class ListRolesUseServiceTest {
                 LocalDateTime.now()
         );
 
-        Paged<Role> pagedRole = new Paged<>(List.of(sampleRole), 1, 10, 1L, 1, false, false);
-        when(rolePort.searchRoles(eq(criteria), any(PageQuery.class))).thenReturn(pagedRole);
+        when(rolePort.findById(roleId)).thenReturn(Optional.of(sampleRole));
 
         // Act
-        Paged<RoleDto> result = listRolesUseService.listRoles(criteria, pageQuery);
+        RoleDto result = getRoleService.getRoleById(roleId);
 
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.content().size());
-        RoleDto dto = result.content().get(0);
-        assertEquals(roleId, dto.id());
-        assertEquals("ADMIN", dto.name());
-        assertEquals("Administrator Role", dto.description());
-        assertEquals(RoleStatus.ACTIVE, dto.status());
+        assertEquals(roleId, result.id());
+        assertEquals("ADMIN", result.name());
+        assertEquals("Administrator Role", result.description());
+        assertEquals(RoleStatus.ACTIVE, result.status());
 
-        verify(rolePort).searchRoles(eq(criteria), any(PageQuery.class));
+        verify(rolePort).findById(roleId);
+        verify(log).info("Starting retrieval of role details for ID: {}", roleId);
+        verify(log).info("Successfully retrieved role details for ID: {}", roleId);
+    }
+
+    @Test
+    void shouldThrowRoleNotFoundExceptionWhenRoleDoesNotExist() {
+        // Arrange
+        UUID roleId = UUID.randomUUID();
+        when(rolePort.findById(roleId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RoleNotFoundException.class, () -> getRoleService.getRoleById(roleId));
+
+        verify(rolePort).findById(roleId);
+        verify(log).info("Starting retrieval of role details for ID: {}", roleId);
+        verify(log).error("Role details retrieval failed. Role not found for ID: {}", roleId);
     }
 }

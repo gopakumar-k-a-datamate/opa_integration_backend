@@ -11,9 +11,13 @@ import org.datamate.identity.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.domain.exception.role.RoleAlreadyExistsException;
 import org.datamate.identity.domain.model.Role;
 import org.datamate.identity.application.mapper.role.RoleDtoMapper;
+import org.datamate.identity.application.service.role.AuditActorResolver;
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class CreateRoleService implements CreateRoleUseCase {
     private final SecurityContextPort securityContextPort;
     private final RoleDtoMapper roleDtoMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditActorResolver auditActorResolver;
 
     @Override
     public RoleDto createRole(RoleRequest request) {
@@ -35,7 +40,8 @@ public class CreateRoleService implements CreateRoleUseCase {
             throw new RoleAlreadyExistsException();
         }
         String currentUser = securityContextPort.getCurrentUsername();
-        Role role = Role.create(request.name(), request.description(), currentUser);
+        EntityReference<UUID> createdBy = auditActorResolver.resolve(currentUser);
+        Role role = Role.create(request.name(), request.description(), createdBy);
         Role saved = rolePort.save(role);
         
         // Register the event and publish it
