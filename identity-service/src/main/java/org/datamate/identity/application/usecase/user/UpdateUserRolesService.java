@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -35,8 +36,9 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
                 .orElseThrow(UserNotFoundException::new);
 
         // Validate that all roles exist and are active
+        List<Role> allRoles = rolePort.findAll();
         for (String roleName : request.roles()) {
-            Role role = rolePort.findAll().stream()
+            Role role = allRoles.stream()
                     .filter(r -> r.getName().equals(roleName))
                     .findFirst()
                     .orElseThrow(RoleNotFoundException::new);

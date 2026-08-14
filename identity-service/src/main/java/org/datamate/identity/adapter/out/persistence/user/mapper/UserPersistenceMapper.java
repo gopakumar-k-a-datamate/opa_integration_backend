@@ -7,6 +7,8 @@ import org.datamate.identity.domain.model.User;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.datamate.identity.domain.exception.role.RoleNotFoundException;
@@ -88,12 +90,12 @@ public class UserPersistenceMapper {
         entity.setLastModifiedBy(user.getLastModifiedBy());
         entity.setLastModifiedDate(user.getLastModifiedDate());
 
-        if (user.getRoles() != null) {
-            Set<RoleJpaEntity> roleEntities = user.getRoles().stream()
-                    .map(roleName -> roleRepository.findByName(roleName)
-                            .orElseThrow(RoleNotFoundException::new))
-                    .collect(Collectors.toSet());
-            entity.setRoles(roleEntities);
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            List<RoleJpaEntity> roleEntitiesList = roleRepository.findAllByNameIn(user.getRoles());
+            if (roleEntitiesList.size() != user.getRoles().size()) {
+                throw new RoleNotFoundException();
+            }
+            entity.setRoles(new HashSet<>(roleEntitiesList));
         } else {
             entity.getRoles().clear();
         }

@@ -17,7 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationEventPublisher;
-
+import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ class UpdateUserRolesServiceTest {
     private UserDtoMapper userDtoMapper;
     private ApplicationEventPublisher eventPublisher;
     private UpdateUserRolesService service;
+    private final EntityReference<UUID> auditRef = new EntityReference<>(null, new ResourceIdentifier("system", "creator"));
 
     @BeforeEach
     void setUp() {
@@ -56,7 +58,7 @@ class UpdateUserRolesServiceTest {
 
         Role adminRole = Role.reconstitute(
                 UUID.randomUUID(), "ADMIN", "Administrator Role", RoleStatus.ACTIVE,
-                null, null, 1L, 1L, "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
@@ -112,7 +114,7 @@ class UpdateUserRolesServiceTest {
 
         Role adminRole = Role.reconstitute(
                 UUID.randomUUID(), "ADMIN", "Administrator Role", RoleStatus.ACTIVE,
-                null, null, 1L, 1L, "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
@@ -164,7 +166,7 @@ class UpdateUserRolesServiceTest {
 
         Role inactiveRole = Role.reconstitute(
                 UUID.randomUUID(), "INACTIVE_ROLE", "Inactive Role", RoleStatus.INACTIVE,
-                null, null, 1L, 1L, "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
