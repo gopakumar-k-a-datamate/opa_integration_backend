@@ -10,7 +10,9 @@ import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.TokenGeneratorPort;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.domain.exception.InvalidCredentialsException;
+import org.datamate.identity.domain.exception.user.UserInactiveException;
 import org.datamate.identity.domain.model.User;
+import org.datamate.identity.shared.model.UserStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,11 @@ public class LoginService implements LoginUseCase {
         if (!passwordEncoderPort.matches(request.password(), user.getPasswordHash())) {
             log.warn("Login failed: incorrect password for user '{}'", request.userName());
             throw new InvalidCredentialsException();
+        }
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            log.warn("Login failed: user account '{}' is inactive", request.userName());
+            throw new UserInactiveException();
         }
 
         String accessToken = tokenGeneratorPort.generateAccessToken(user);
