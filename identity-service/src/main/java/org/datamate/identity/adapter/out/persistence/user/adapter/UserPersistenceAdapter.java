@@ -80,13 +80,13 @@ public class UserPersistenceAdapter implements UserPersistencePort {
 
     @Override
     public List<User> findAll() {
-        return repository.findAll().stream().map(mapper::mapToDomain).toList();
+        return repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate")).stream().map(mapper::mapToDomain).toList();
     }
 
     @Override
     public Paged<User> searchUsers(UserSearchCriteria criteria, PageQuery pageQuery) {
         log.debug("Searching users with criteria {} and page query {}", criteria, pageQuery);
-        Pageable pageable = toPageable(pageQuery, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = toPageable(pageQuery, Sort.by(Sort.Direction.DESC, "createdDate"));
         Page<UserJpaEntity> entityPage = repository.findAll(
                 UserSpecification.filterUsers(criteria),
                 pageable
