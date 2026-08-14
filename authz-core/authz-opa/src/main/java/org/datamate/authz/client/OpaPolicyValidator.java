@@ -26,7 +26,6 @@ public class OpaPolicyValidator implements PolicyValidation {
 
     private static final int WRAPPER_LINE_OFFSET = 4;
 
-    // Todo: Don't set url as hardcoded in adapter layer
     public OpaPolicyValidator(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
