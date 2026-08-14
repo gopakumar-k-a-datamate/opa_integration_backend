@@ -29,27 +29,13 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.datamate.bedrock.framework.common.exception</groupId>
-            <artifactId>bedrock-exception-starter</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.datamate.bedrock.framework.common.logging</groupId>
-            <artifactId>bedrock-logging-starter</artifactId>
+            <artifactId>logging-core</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-        </dependency>
     </dependencies>
 </project>
