@@ -46,7 +46,21 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
     setError(null);
     setValidationErrors(null);
     try {
-      await savePolicies(subjectType, subjectId, moduleName, policies.filter(p => p.enabled));
+      const payloadPolicies = policies
+        .filter(p => p.enabled)
+        .map(p => ({
+          permissionCode: p.permissionCode,
+          effect: p.effect || 'ALLOW',
+          expressionJson: p.expressionJson,
+          enabled: p.enabled,
+          isDeleted: p.isDeleted || false,
+          deletedReason: p.deletedReason,
+          disabledReason: p.disabledReason,
+          useCustomRego: p.useCustomRego || false,
+          customRegoSnippet: p.customRegoSnippet
+        }));
+
+      await savePolicies(subjectType, subjectId, moduleName, payloadPolicies);
       alert('Policies updated successfully.');
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors) {

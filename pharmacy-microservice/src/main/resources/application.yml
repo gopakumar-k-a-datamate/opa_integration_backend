@@ -27,8 +27,7 @@ datamate:
 
 authz:
   opa:
-    validation:
-      url: http://localhost:8183
+    validation-url: http://localhost:8183
 logging:
   level:
     org.datamate.authz: DEBUG
