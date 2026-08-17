@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
@@ -44,7 +44,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
     private final ConditionFieldRepository conditionFieldRepository;
     private final ResourceRepository resourceRepository;
     private final PolicyRepository policyRepository;
-    private final PolicyCompiler compiler;
+    private final PolicyBundleCacheRepository bundleCacheRepository;
     private final PolicyValidation validation;
     private final ObjectMapper objectMapper;
 
@@ -56,14 +56,14 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
             ConditionFieldRepository conditionFieldRepository,
             ResourceRepository resourceRepository,
             PolicyRepository policyRepository,
-            PolicyCompiler compiler,
+            PolicyBundleCacheRepository bundleCacheRepository,
             PolicyValidation validation,
             ObjectMapper objectMapper) {
         this.permissionRepository = permissionRepository;
         this.conditionFieldRepository = conditionFieldRepository;
         this.resourceRepository = resourceRepository;
         this.policyRepository = policyRepository;
-        this.compiler = compiler;
+        this.bundleCacheRepository = bundleCacheRepository;
         this.validation = validation;
         this.objectMapper = objectMapper;
     }
@@ -253,7 +253,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
             }
         }
 
-        compiler.recompile(targetNamespace);
+        bundleCacheRepository.upsertBundle(targetNamespace, null, null);
     }
 
     private String serializeJson(PolicyItemRequest item) {
