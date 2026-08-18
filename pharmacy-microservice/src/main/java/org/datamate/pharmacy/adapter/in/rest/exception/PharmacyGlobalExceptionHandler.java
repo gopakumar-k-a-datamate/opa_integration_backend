@@ -33,6 +33,17 @@ public class PharmacyGlobalExceptionHandler extends GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ProblemDetail handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex, HttpServletRequest request) {
+        logger.warn("Resource not found: {}", ex.getResourcePath());
+        org.springframework.http.ProblemDetail pd = org.springframework.http.ProblemDetail.forStatusAndDetail(
+                org.springframework.http.HttpStatus.NOT_FOUND, 
+                "The requested endpoint does not exist."
+        );
+        pd.setTitle("NOT_FOUND");
+        return pd;
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleAny(Exception ex, HttpServletRequest request) {
         logger.error("Unhandled exception occurred", ex);

@@ -58,12 +58,13 @@ export const savePolicies = async (subjectType, subjectId, namespace, policies) 
 };
 
 export const fetchRoles = async () => {
-  // Identity Service runs on port 8080
-  const baseUrl = 'http://localhost:8080';
+  // Identity Service runs on port 8085
+  const baseUrl = 'http://localhost:8085';
   try {
     const res = await fetch(`${baseUrl}/api/v1/roles`);
     if (!res.ok) throw new Error('Failed to fetch roles');
-    return await res.json();
+    const data = await res.json();
+    return data.content || data; // Handle Paged<RoleDto> format
   } catch (err) {
     console.error(`Identity Service ${baseUrl} unavailable:`, err);
     throw new Error('Not available');
@@ -71,11 +72,12 @@ export const fetchRoles = async () => {
 };
 
 export const fetchUsers = async () => {
-  const baseUrl = 'http://localhost:8080';
+  const baseUrl = 'http://localhost:8085';
   try {
     const res = await fetch(`${baseUrl}/api/v1/users`);
     if (!res.ok) throw new Error('Failed to fetch users');
-    return await res.json();
+    const data = await res.json();
+    return data.content || data; // Handle Paged<UserResponseDto> format
   } catch (err) {
     console.error(`Identity Service ${baseUrl} unavailable:`, err);
     throw new Error('Not available');
