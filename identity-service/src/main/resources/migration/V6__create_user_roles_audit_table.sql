@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS user_roles_aud (
     role_id UUID NOT NULL,
     revtype SMALLINT,
     PRIMARY KEY (rev, user_id, role_id),
-    CONSTRAINT fk_user_roles_aud_revinfo FOREIGN KEY (rev) REFERENCES revinfo(rev)
+    CONSTRAINT fk_user_roles_aud_revinfo FOREIGN KEY (rev) REFERENCES audit.revinfo(id)
 );
