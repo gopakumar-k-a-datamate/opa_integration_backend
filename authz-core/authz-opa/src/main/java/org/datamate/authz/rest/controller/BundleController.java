@@ -3,6 +3,11 @@ package org.datamate.authz.rest.controller;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import org.datamate.authz.dto.policy.BundleResult;
 import org.datamate.authz.service.policy.GetOpaBundleService;
+import org.datamate.authz.api.endpoint.AuthorizationContext.BundleAuthContext;
+import org.datamate.authz.api.endpoint.AuthzBeans;
+import org.datamate.authz.api.endpoint.EndpointAuthorization;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,12 +29,16 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/internal/authz")
+@ConditionalOnBean(name = AuthzBeans.BUNDLE)
 public class BundleController {
 
     private final GetOpaBundleService GetOpaBundleService;
+    private final EndpointAuthorization authorization;
 
-    public BundleController(GetOpaBundleService getOpaBundleService) {
+    public BundleController(GetOpaBundleService getOpaBundleService,
+                            @Qualifier(AuthzBeans.BUNDLE) EndpointAuthorization authorization) {
         GetOpaBundleService = getOpaBundleService;
+        this.authorization = authorization;
     }
 
     @GetMapping(value = "/bundle/{namespace}", produces = "application/gzip")
@@ -37,6 +46,8 @@ public class BundleController {
     public ResponseEntity<byte[]> getBundle(
             @PathVariable("namespace") String namespace,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
+
+        authorization.authorize(new BundleAuthContext(namespace));
 
         BundleResult result = GetOpaBundleService.getBundle(namespace, ifNoneMatch);
 
