@@ -59,6 +59,11 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     }
 
     @Override
+    public Optional<User> findByUserNameOrEmail(String userName, String email) {
+        return repository.findByUserNameOrEmail(userName, email).map(mapper::mapToDomain);
+    }
+
+    @Override
     public boolean existsByUserName(String userName) {
         return repository.existsByUserName(userName);
     }
