@@ -8,6 +8,9 @@ const getApiUrl = (identifier) => {
   if (identifier.startsWith('finance')) {
     return 'http://localhost:8081'; // finance-microservice
   }
+  if (identifier.startsWith('pharmacy')) {
+    return 'http://localhost:8083'; // pharmacy-microservice
+  }
   
   return 'http://localhost:8081'; // default fallback
 };
@@ -91,3 +94,23 @@ export const fetchNamespaces = async (microservicePort) => {
     throw new Error('Not available');
   }
 };
+
+export const fetchOptionsEndpoint = async (permissionCode, endpoint, page, search) => {
+  const baseUrl = getApiUrl(permissionCode);
+  const queryParams = new URLSearchParams();
+  queryParams.append('page', page);
+  queryParams.append('size', 20);
+  if (search) {
+    queryParams.append('search', search);
+  }
+  
+  try {
+    const res = await fetch(`${baseUrl}${endpoint}?${queryParams.toString()}`);
+    if (!res.ok) throw new Error('Failed to fetch options');
+    return await res.json();
+  } catch (err) {
+    console.error(`Endpoint ${baseUrl}${endpoint} unavailable:`, err);
+    return { content: [], last: true, page: 0 };
+  }
+};
+

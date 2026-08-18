@@ -1,0 +1,215 @@
+package org.datamate.authz.service.policy;
+
+import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
+import org.datamate.authz.api.policy.PermissionRepository;
+import org.datamate.authz.api.policy.PolicyRepository;
+import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
+import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.api.policy.ConditionFieldRepository;
+import org.datamate.authz.api.policy.*;
+import org.datamate.authz.model.policy.entity.Permission;
+import org.datamate.authz.model.policy.entity.Policy;
+import org.datamate.authz.model.policy.entity.ConditionField;
+import org.datamate.authz.model.policy.entity.PolicyBundleCache;
+import org.datamate.authz.model.policy.enumtype.Status;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.datamate.authz.exception.PolicyCompilationException;
+import org.datamate.authz.exception.AuthzInvalidPayloadException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import org.datamate.authz.compiler.generator.RegoGenerator;
+
+import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * Application use case that orchestrates the OPA policy compilation pipeline.
+ *
+ * <p>Implements {@link PolicyCompiler} so that dependent use cases
+ * (e.g. {@link SavePoliciesService}, {@link org.datamate.authz.rest.startup.StartupScanner})
+ * depend only on the port interface, not this concrete class.</p>
+ *
+ * <h3>Pipeline</h3>
+ * <ol>
+ *   <li>Load all enabled, non-deleted policies from {@code authz_policy}.</li>
+ *   <li>Build a {@code permissionId â†’ code} lookup map (one query, not N).</li>
+ *   <li>Parse JSON AST and generate Rego via {@link AstBuilder} and {@link RegoGenerator}.</li>
+ *   <li>Package as {@code bundle.tar.gz} via {@link TarGzBundleService} (domain service).</li>
+ *   <li>Compute MD5 ETag and upsert into {@code authz_policy_bundle_cache}.</li>
+ * </ol>
+ */
+
+/* Todo- check exception management
+separation of concern
+logger if needed
+ */
+@Service
+public class DefaultPolicyCompiler implements PolicyCompiler {
+
+    private final PolicyRepository policyRepository;
+    private final PermissionRepository permissionRepository;
+    private final PolicyBundleCacheRepository bundleCacheRepository;
+    private final ConditionFieldRepository conditionFieldRepository;
+    private final PolicyValidation validation;
+
+
+    @EnableLogger
+    private Logger log;
+    private final TarGzBundleService bundleBuilder;
+    private final ObjectMapper objectMapper;
+
+    public DefaultPolicyCompiler(PolicyRepository policyRepository, PermissionRepository permissionRepository, PolicyBundleCacheRepository bundleCacheRepository, ConditionFieldRepository conditionFieldRepository, PolicyValidation validation, TarGzBundleService bundleBuilder, ObjectMapper objectMapper) {
+        this.policyRepository = policyRepository;
+        this.permissionRepository = permissionRepository;
+        this.bundleCacheRepository = bundleCacheRepository;
+        this.conditionFieldRepository = conditionFieldRepository;
+        this.validation = validation;
+        this.bundleBuilder = bundleBuilder;
+        this.objectMapper = objectMapper;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @AuditLog(action = "POLICY_COMPILED", resource = "NAMESPACE", resourceId = "#targetNamespace", description = "Recompile OPA policy for namespace")
+    public synchronized void recompile(String targetNamespace) {
+        log.info("Initiating OPA policy recompilation for namespace: {}", targetNamespace);
+        synchronizeDeprecatedPolicies();
+
+        List<Policy> allPolicies = policyRepository.findAllEnabled();
+
+        // Build permissionId â†’ code lookup (single query â€” no N+1)
+        Map<Long, String> permCodeLookup = permissionRepository.findAllActive()
+                .stream()
+                .filter(p -> p.getStatus() == Status.ACTIVE)
+                .collect(Collectors.toMap(Permission::getId, Permission::getCode));
+
+        // Filter policies for the specific namespace, excluding deprecated ones
+        List<Policy> namespacePolicies = allPolicies.stream()
+                .filter(p -> !p.isDeprecated())
+                .filter(p -> {
+                    String code = permCodeLookup.get(p.getPermissionId());
+                    return code != null && code.startsWith(targetNamespace + ":");
+                })
+                .toList();
+
+        RegoGenerator generator = new RegoGenerator(objectMapper);
+        String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
+        
+        RegoValidationResult result = validation.validate(regoContent);
+        if (!result.valid()) {
+            String errorMessage = String.format(
+                "Generated Rego for namespace '%s' has syntax errors. Bundle NOT updated.\nValidation Errors: %s\nGenerated Rego:\n%s", 
+                targetNamespace, 
+                result.errors(), 
+                regoContent
+            );
+            log.error("Generated Rego for namespace '{}' has syntax errors. Validation Errors: {}", targetNamespace, result.errors());
+            throw new PolicyCompilationException(errorMessage);
+        }
+        
+        String contentHash = computeMd5(regoContent.getBytes());
+        String currentEtag = bundleCacheRepository.getBundle(targetNamespace)
+                .map(PolicyBundleCache::getEtag)
+                .orElse(null);
+                
+        if (!contentHash.equals(currentEtag)) {
+            log.info("Changes detected in generated Rego. Building and caching new OPA bundle for namespace: {}", targetNamespace);
+            byte[] bundleBytes;
+            try {
+                bundleBytes = bundleBuilder.build(targetNamespace, regoContent);
+            } catch (IOException e) {
+                log.error("Failed to build OPA policy bundle for namespace {}", targetNamespace, e);
+                throw new PolicyCompilationException("Failed to build OPA policy bundle for namespace " + targetNamespace, e);
+            }
+            bundleCacheRepository.upsertBundle(targetNamespace, bundleBytes, contentHash);
+            log.info("Successfully updated OPA bundle cache for namespace: {}", targetNamespace);
+        } else {
+            log.debug("Generated Rego matches cached version (ETag: {}). No bundle update necessary.", currentEtag);
+        }
+    }
+
+    private String computeMd5(byte[] data) {
+        try {
+            return HexFormat.of().formatHex(
+                    MessageDigest.getInstance("MD5").digest(data));
+        } catch (NoSuchAlgorithmException e) {
+            throw new PolicyCompilationException("MD5 algorithm not available", e);
+        }
+    }
+
+    private void synchronizeDeprecatedPolicies() {
+        Set<String> deprecatedFields = conditionFieldRepository.findAllDeprecated()
+                .stream()
+                .map(ConditionField::getFieldName)
+                .collect(Collectors.toSet());
+
+        List<Policy> activePolicies = policyRepository.findAllActive();
+        for (Policy policy : activePolicies) {
+            boolean usesDeprecatedField = false;
+            
+            if (policy.hasCustomRego()) {
+                usesDeprecatedField = customRegoMayUseDeprecatedField(policy.getCustomRegoSnippet(), deprecatedFields);
+            } else {
+                String json = policy.getExpressionJson();
+                if (json != null && !json.trim().isEmpty()) {
+                    try {
+                        JsonNode root = objectMapper.readTree(json);
+                        usesDeprecatedField = hasDeprecatedField(root, deprecatedFields);
+                    } catch (JsonProcessingException e) {
+                        log.error("Failed to parse JSON expression for policy ID {}. JSON was: {}", policy.getId(), json, e);
+                        throw new AuthzInvalidPayloadException("Invalid JSON format detected in policy ID " + policy.getId(), e);
+                    }
+                }
+            }
+            if (policy.isDeprecated() != usesDeprecatedField) {
+                policyRepository.updateDeprecatedStatus(policy.getId(), usesDeprecatedField);
+            }
+        }
+    }
+
+    private boolean customRegoMayUseDeprecatedField(String regoSnippet, Set<String> deprecatedFields) {
+        if (regoSnippet == null) return false;
+        for (String field : deprecatedFields) {
+            if (regoSnippet.contains("input.resource." + field)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasDeprecatedField(JsonNode node, Set<String> deprecatedFields) {
+        if (node == null || node.isMissingNode()) return false;
+        if (node.has("field")) {
+            String field = node.get("field").asText();
+            if (deprecatedFields.contains(field)) {
+                return true;
+            }
+        }
+        if (node.has("children") && node.get("children").isArray()) {
+            for (JsonNode child : node.get("children")) {
+                if (hasDeprecatedField(child, deprecatedFields)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+
+
+
