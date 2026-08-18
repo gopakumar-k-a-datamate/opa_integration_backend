@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.api.policy.PolicyCompiler;
+import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
@@ -46,7 +46,7 @@ class DefaultPolicyManagementServiceTest {
     @Mock private ConditionFieldRepository conditionFieldRepository;
     @Mock private ResourceRepository resourceRepository;
     @Mock private PolicyRepository policyRepository;
-    @Mock private PolicyCompiler compiler;
+    @Mock private PolicyBundleCacheRepository bundleCacheRepository;
     @Mock private PolicyValidation validation;
     @Mock private ObjectMapper objectMapper;
 
@@ -147,7 +147,7 @@ class DefaultPolicyManagementServiceTest {
 
         service.savePolicies(req);
 
-        verify(compiler).recompile("finance");
+        verify(bundleCacheRepository).upsertBundle("finance", null, null);
         verify(policyRepository, never()).upsert(any(), any(), any(), any(), any(), any(), anyBoolean(), any(), anyBoolean(), any());
     }
 
@@ -192,7 +192,7 @@ class DefaultPolicyManagementServiceTest {
         service.savePolicies(req);
 
         verify(policyRepository).softDelete(100L, "Not needed");
-        verify(compiler).recompile("finance");
+        verify(bundleCacheRepository).upsertBundle("finance", null, null);
     }
 
     @Test
@@ -228,7 +228,7 @@ class DefaultPolicyManagementServiceTest {
         service.savePolicies(req);
 
         verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, "{\"some\":\"json\"}", true, null, false, null);
-        verify(compiler).recompile("finance");
+        verify(bundleCacheRepository).upsertBundle("finance", null, null);
     }
 
     @Test
@@ -249,6 +249,6 @@ class DefaultPolicyManagementServiceTest {
         service.savePolicies(req);
 
         verify(policyRepository).softDelete(100L, "Removed policy in state sync.");
-        verify(compiler).recompile("finance");
+        verify(bundleCacheRepository).upsertBundle("finance", null, null);
     }
 }
