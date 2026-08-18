@@ -104,7 +104,8 @@ class UserControllerTest {
                 "User",
                 "securePass123",
                 "ELLIDER",
-                "EXT-12345"
+                "EXT-12345",
+                List.of()
         );
 
         UserDto responseDto = new UserDto(
@@ -148,7 +149,8 @@ class UserControllerTest {
                 "User",
                 "123",
                 null,
-                null
+                null,
+                List.of()
         );
 
         mockMvc.perform(post("/api/v1/users")

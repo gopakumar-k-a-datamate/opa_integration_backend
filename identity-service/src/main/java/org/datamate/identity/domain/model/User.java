@@ -86,11 +86,13 @@ public class User extends AggregateRoot {
             String lastName,
             String referenceSystem,
             String referenceValue,
+            List<String> roles,
             String createdBy
     ) {
         validateState(userName, email, passwordHash, firstName, lastName, createdBy);
 
         UUID newUserId = UUID.randomUUID();
+        List<String> uniqueRoles = roles != null ? roles.stream().distinct().toList() : new ArrayList<>();
 
         User newUser = new User(
                 newUserId,
@@ -103,7 +105,7 @@ public class User extends AggregateRoot {
                 referenceSystem,
                 referenceValue,
                 UserStatus.INACTIVE,
-                new ArrayList<>(),
+                uniqueRoles,
                 true,
                 null,
                 0L,
@@ -122,6 +124,7 @@ public class User extends AggregateRoot {
                 firstName,
                 lastName,
                 UserStatus.INACTIVE,
+                uniqueRoles,
                 createdBy
         ));
 

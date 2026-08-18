@@ -10,6 +10,7 @@ import org.datamate.identity.domain.exception.role.RoleAlreadyExistsException;
 import org.datamate.identity.domain.exception.role.RoleNotFoundException;
 import org.datamate.identity.domain.model.Role;
 import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +92,7 @@ class UpdateRoleServiceTest {
         verify(rolePort).findById(roleId);
         verify(rolePort).existsByNameIgnoreCaseAndIdNot("NEW_NAME", roleId);
         verify(rolePort).save(any(Role.class));
-        verify(eventPublisher, atLeastOnce()).publishEvent(any(org.datamate.identity.shared.event.role.RoleUpdatedEvent.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(RoleUpdatedEvent.class));
     }
 
     @Test
