@@ -22,12 +22,7 @@
         </dependency>
         <dependency>
             <groupId>org.datamate</groupId>
-            <artifactId>authz-jpa</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.datamate</groupId>
-            <artifactId>authz-rest</artifactId>
+            <artifactId>authz-opa</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
