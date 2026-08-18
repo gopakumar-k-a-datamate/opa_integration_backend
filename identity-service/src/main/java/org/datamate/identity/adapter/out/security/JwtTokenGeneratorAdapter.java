@@ -31,7 +31,7 @@ public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
                 .subject(user.getId().toString())
                 .claim("userId", user.getId())
                 .claim("userName", user.getUserName())
-                .claim("role", roles)
+                .claim("roles", roles)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
                 .signWith(key)

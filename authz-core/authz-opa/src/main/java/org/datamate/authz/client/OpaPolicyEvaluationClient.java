@@ -38,8 +38,12 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> inputMap = new HashMap<>();
-        inputMap.put("user", context.userId());
-        inputMap.put("roles", context.roles());
+        
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", context.userId());
+        userMap.put("roles", context.roles());
+        
+        inputMap.put("user", userMap);
         inputMap.put("permission", context.permissionCode());
         inputMap.put("resource", context.resourceData());
 

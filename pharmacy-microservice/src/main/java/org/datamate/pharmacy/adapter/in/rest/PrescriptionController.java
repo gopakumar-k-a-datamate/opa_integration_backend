@@ -17,7 +17,7 @@ public class PrescriptionController {
     }
 
 
-    @ProtectedResource("pharmacy:prescription:write")
+    @ProtectedResource("pharmacy:prescription:create")
     @PostMapping("/prescription")
     public String createPrescription(@RequestBody CreatePrescriptionRequest body){
         return createPrescription.createPrescription(body);

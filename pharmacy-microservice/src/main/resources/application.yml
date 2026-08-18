@@ -25,14 +25,13 @@ datamate:
 authz:
   opa:
     validation-url: http://localhost:8183
+    evaluation-url: http://localhost:8183/v1/data/app/authz/%s/allow
 
 # JWT secret must match the identity service that signs the tokens
 bedrock:
   security:
     jwt:
-      secret: your-shared-secret-key-must-be-at-least-32-chars
-      issuer: datamate-identity-service
-      audience: pharmacy-microservice
+      secret: YourSuperSecretKeyThatIsAtLeast32CharactersLongForJWTGeneration
 
 logging:
   level:

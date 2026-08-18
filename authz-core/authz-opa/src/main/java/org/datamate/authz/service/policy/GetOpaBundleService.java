@@ -7,7 +7,6 @@ import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,7 +22,6 @@ logger if needed
 necessity of transaction
  */
 @Service
-@Transactional(readOnly = true)
 public class GetOpaBundleService {
 
     private final PolicyBundleCacheRepository bundleCache;
