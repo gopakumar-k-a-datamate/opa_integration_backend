@@ -32,7 +32,7 @@ public class LoginService implements LoginUseCase {
     public AuthResponse login(LoginRequest request) {
         log.info("Processing login request for user '{}'", request.userName());
 
-        User user = userPersistencePort.findByUserName(request.userName())
+        User user = userPersistencePort.findByUserNameOrEmail(request.userName(), request.userName())
                 .orElseThrow(() -> {
                     log.warn("Login failed: user '{}' not found", request.userName());
                     return new InvalidCredentialsException();
