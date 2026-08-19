@@ -23,8 +23,7 @@ public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
                 user.getUserName(),
                 user.getEmail(),
                 user.getFirstName(),
-                user.getLastName(),
-                user.getRoles()
+                user.getLastName()
         );
         return jwtTokenService.generateAccessToken(details);
     }
@@ -36,8 +35,7 @@ public class JwtTokenGeneratorAdapter implements TokenGeneratorPort {
                 user.getUserName(),
                 user.getEmail(),
                 user.getFirstName(),
-                user.getLastName(),
-                user.getRoles()
+                user.getLastName()
         );
         return jwtTokenService.generateRefreshToken(details);
     }
