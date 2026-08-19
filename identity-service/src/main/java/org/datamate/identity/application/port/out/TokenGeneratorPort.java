@@ -2,8 +2,12 @@ package org.datamate.identity.application.port.out;
 
 import org.datamate.identity.domain.model.User;
 
-import java.util.List;
-
 public interface TokenGeneratorPort {
-    String generateToken(User user, List<String> roles);
+    String generateAccessToken(User user);
+    String generateRefreshToken(User user);
+    void invalidateToken(String token);
+    boolean isBlacklisted(String token);
+    boolean validateToken(String token);
+    String getUsernameFromToken(String token);
+    String getTokenType(String token);
 }

@@ -2,8 +2,10 @@ package org.datamate.identity.shared.config;
 
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.adapter.in.rest.security.JwtAuthenticationFilter;
+import org.datamate.identity.shared.config.security.RevisionMetadataFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,12 +21,20 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
+import com.datamate.bedrock.framework.common.security.config.SecurityProperties;
+import com.datamate.bedrock.framework.common.security.jwt.service.JwtTokenService;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Import;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(SecurityProperties.class)
+@Import(JwtTokenService.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final RevisionMetadataFilter revisionMetadataFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,12 +48,13 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/roles", "/api/v1/users").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/refresh").permitAll()
+                .requestMatchers("/api/v1/roles", "/api/v1/roles/**", "/api/v1/users", "/api/v1/users/**").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(revisionMetadataFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
