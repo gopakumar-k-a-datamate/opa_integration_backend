@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: pharmacy-microservice
+  datasource:
+    url: jdbc:postgresql://localhost:5433/pharmacy_db?options=-c%20TimeZone=Asia/Kolkata
+    username: myuser
+    password: mypassword
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: "0"
+    locations: classpath:db/migration
+
+server:
+  port: 8083
+
+# Bedrock Authz Configuration
+datamate:
+  authz:
+    opa:
+      config-path: classpath:opa-config.yaml
+    admin:
+      enabled: false
+
+authz:
+  opa:
+    validation-url: http://localhost:8183
+    evaluation-url: http://localhost:8183/v1/data/app/authz/%s/allow
+
+# JWT secret must match the identity service that signs the tokens
+bedrock:
+  security:
+    jwt:
+      secret: YourSuperSecretKeyThatIsAtLeast32CharactersLongForJWTGeneration
+
+logging:
+  level:
+    org.datamate.authz: DEBUG

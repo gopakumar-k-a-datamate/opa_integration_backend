@@ -8,7 +8,7 @@ function App() {
   const [subjectType, setSubjectType] = useState('ROLE');
   const [subjectId, setSubjectId] = useState('');
   const [moduleName, setModuleName] = useState('finance');
-  const [availableModules, setAvailableModules] = useState(['finance', 'clinical']);
+  const [availableModules, setAvailableModules] = useState(['finance', 'clinical', 'pharmacy']);
 
   useEffect(() => {
     const loadModules = async () => {
@@ -16,8 +16,9 @@ function App() {
         // Fetch from both microservices (falling back to empty arrays if offline)
         const financeModules = await fetchNamespaces(8081).catch(() => []);
         const clinicModules = await fetchNamespaces(8082).catch(() => []);
+        const pharmacyModules = await fetchNamespaces(8083).catch(() => []);
         
-        const combined = [...new Set([...financeModules, ...clinicModules])];
+        const combined = [...new Set([...financeModules, ...clinicModules, ...pharmacyModules])];
         if (combined.length > 0) {
           setAvailableModules(combined);
         }

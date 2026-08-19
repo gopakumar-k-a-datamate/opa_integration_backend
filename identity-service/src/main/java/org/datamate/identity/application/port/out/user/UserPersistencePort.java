@@ -13,6 +13,7 @@ public interface UserPersistencePort {
     User save(User user);
     Optional<User> findById(UUID id);
     Optional<User> findByUserName(String userName);
+    Optional<User> findByUserNameOrEmail(String userName, String email);
     boolean existsByUserName(String userName);
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, UUID id);

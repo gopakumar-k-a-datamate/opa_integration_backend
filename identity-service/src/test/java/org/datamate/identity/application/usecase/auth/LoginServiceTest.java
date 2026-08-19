@@ -54,7 +54,7 @@ class LoginServiceTest {
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
-        when(userPersistencePort.findByUserName("test_user")).thenReturn(Optional.of(user));
+        when(userPersistencePort.findByUserNameOrEmail("test_user", "test_user")).thenReturn(Optional.of(user));
         when(passwordEncoderPort.matches("password123", "hash")).thenReturn(true);
         when(tokenGeneratorPort.generateAccessToken(user)).thenReturn("access_token");
         when(tokenGeneratorPort.generateRefreshToken(user)).thenReturn("refresh_token");
@@ -77,7 +77,7 @@ class LoginServiceTest {
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
-        when(userPersistencePort.findByUserName("test_user")).thenReturn(Optional.of(user));
+        when(userPersistencePort.findByUserNameOrEmail("test_user", "test_user")).thenReturn(Optional.of(user));
         when(passwordEncoderPort.matches("password123", "hash")).thenReturn(true);
 
         assertThrows(UserInactiveException.class, () -> loginService.login(request));
@@ -94,7 +94,7 @@ class LoginServiceTest {
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
-        when(userPersistencePort.findByUserName("test_user")).thenReturn(Optional.of(user));
+        when(userPersistencePort.findByUserNameOrEmail("test_user", "test_user")).thenReturn(Optional.of(user));
         when(passwordEncoderPort.matches("password123", "hash")).thenReturn(false);
 
         assertThrows(InvalidCredentialsException.class, () -> loginService.login(request));
@@ -104,7 +104,7 @@ class LoginServiceTest {
     void shouldFailLoginWhenUserNotFound() {
         LoginRequest request = new LoginRequest("non_existent", "password123");
 
-        when(userPersistencePort.findByUserName("non_existent")).thenReturn(Optional.empty());
+        when(userPersistencePort.findByUserNameOrEmail("non_existent", "non_existent")).thenReturn(Optional.empty());
 
         assertThrows(InvalidCredentialsException.class, () -> loginService.login(request));
     }
