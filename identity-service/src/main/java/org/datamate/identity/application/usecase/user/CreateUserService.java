@@ -60,7 +60,7 @@ public class CreateUserService implements CreateUserUseCase {
             }
             for (Role role : assignedRoles) {
                 if (role.getStatus() != RoleStatus.ACTIVE) {
-                    throw new InvalidRoleAssignmentException("Cannot assign inactive role: " + role.getName());
+                    throw new InvalidRoleAssignmentException(role.getName());
                 }
             }
         }
