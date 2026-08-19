@@ -3,8 +3,10 @@ package org.datamate.pharmacy.adapter.in.rest.exception;
 import com.datamate.bedrock.framework.common.exception.config.ExceptionProperties;
 import com.datamate.bedrock.framework.common.exception.service.MessageResolver;
 import com.datamate.bedrock.framework.common.exception.spring.service.web.GlobalExceptionHandler;
+import org.datamate.authz.exception.AuthzDeniedException;
 import org.datamate.authz.exception.AuthzException;
 import com.datamate.bedrock.framework.common.exception.exceptions.BaseAppException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -54,4 +56,22 @@ public class PharmacyGlobalExceptionHandler extends GlobalExceptionHandler {
         pd.setTitle("INTERNAL_SERVER_ERROR");
         return pd;
     }
+
+    @ExceptionHandler(AuthzDeniedException.class)
+    public ProblemDetail handleAuthzDeniedException(AuthzDeniedException ex) {
+        String title = "ACCESS_DENIED";
+        String detail = ex.getMessage();
+
+        // If we passed a structured reason from Rego like "ERROR_CODE|Message"
+        if (detail != null && detail.contains("|")) {
+            String[] parts = detail.split("\\|", 2);
+            title = parts[0];
+            detail = parts[1];
+        }
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, detail);
+        problemDetail.setTitle(title); // e.g., "INVALID_ATTRIBUTE" or "POLICY_NOT_FOUND"
+        return problemDetail;
+    }
+
 }

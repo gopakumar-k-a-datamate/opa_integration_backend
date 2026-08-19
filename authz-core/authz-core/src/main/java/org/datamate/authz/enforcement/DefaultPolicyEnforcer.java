@@ -50,9 +50,9 @@ public class DefaultPolicyEnforcer implements PolicyEnforcer {
     @Override
     public boolean evaluate(Object resource) {
         if (!supports(resource)) {
-            log.debug("Resource {} is not annotated with @PolicyResource. Bypassing policy evaluation.", 
-                    resource != null ? resource.getClass().getName() : "null");
-            return true;
+            String resourceName = resource != null ? resource.getClass().getName() : "null";
+            log.error("Resource {} is not annotated with @PolicyResource. Denying access by default.", resourceName);
+            return false;
         }
 
         PolicyResource resourceAnnotation = resource.getClass().getAnnotation(PolicyResource.class);
@@ -100,9 +100,9 @@ public class DefaultPolicyEnforcer implements PolicyEnforcer {
     @Override
     public void enforce(Object resource) {
         if (!supports(resource)) {
-            log.debug("Resource {} is not annotated with @PolicyResource. Bypassing policy enforcement.", 
-                    resource != null ? resource.getClass().getName() : "null");
-            return;
+            String resourceName = resource != null ? resource.getClass().getName() : "null";
+            log.error("Resource {} is not annotated with @PolicyResource. Denying access by default.", resourceName);
+            throw new AuthzDeniedException("Access Denied: Resource is not protected by policy.");
         }
 
         PolicyResource resourceAnnotation = resource.getClass().getAnnotation(PolicyResource.class);
