@@ -1,6 +1,9 @@
 services:
   clinic_api:
     url: http://host.docker.internal:8082
+    credentials:
+      bearer:
+        token: "my-dev-secret"
 
 bundles:
   clinical_bundle:

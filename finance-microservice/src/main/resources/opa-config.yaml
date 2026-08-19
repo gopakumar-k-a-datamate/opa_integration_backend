@@ -1,6 +1,9 @@
 services:
   finance_api:
     url: http://host.docker.internal:8081
+    credentials:
+      bearer:
+        token: "my-dev-secret"
 
 bundles:
   finance_bundle:

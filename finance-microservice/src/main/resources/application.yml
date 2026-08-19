@@ -25,3 +25,7 @@ datamate:
     # Exposing these on a regular microservice is a security risk.
     admin:
       enabled: false
+    # OPA Bundle endpoint security
+    bundle:
+      api-key: ${BUNDLE_API_KEY:my-dev-secret}
+
