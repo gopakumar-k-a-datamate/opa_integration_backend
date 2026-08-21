@@ -11,6 +11,11 @@ import org.datamate.identity.application.port.out.PasswordEncoderPort;
 import org.datamate.identity.application.port.out.SecurityContextPort;
 import org.datamate.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.domain.exception.user.UserAlreadyExistsException;
+import org.datamate.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.domain.exception.role.RoleNotFoundException;
+import org.datamate.identity.domain.exception.user.InvalidRoleAssignmentException;
 import org.datamate.identity.domain.model.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -26,6 +31,7 @@ public class CreateUserService implements CreateUserUseCase {
     private Logger log;
 
     private final UserPersistencePort userPort;
+    private final RolePersistencePort rolePort;
     private final PasswordEncoderPort passwordEncoderPort;
     private final SecurityContextPort securityContextPort;
     private final ApplicationEventPublisher eventPublisher;
@@ -45,6 +51,20 @@ public class CreateUserService implements CreateUserUseCase {
             throw new UserAlreadyExistsException();
         }
 
+        // Validate roles if provided
+        if (request.roles() != null && !request.roles().isEmpty()) {
+            List<Role> assignedRoles = rolePort.findAllByNameIn(request.roles());
+            long uniqueRequestedRolesCount = request.roles().stream().distinct().count();
+            if (assignedRoles.size() != uniqueRequestedRolesCount) {
+                throw new RoleNotFoundException();
+            }
+            for (Role role : assignedRoles) {
+                if (role.getStatus() != RoleStatus.ACTIVE) {
+                    throw new InvalidRoleAssignmentException(role.getName());
+                }
+            }
+        }
+
         String passwordHash = passwordEncoderPort.encode(request.password());
         String createdBy = securityContextPort.getCurrentUsername();
 
@@ -57,6 +77,7 @@ public class CreateUserService implements CreateUserUseCase {
                 request.lastName(),
                 request.referenceSystem(),
                 request.referenceValue(),
+                request.roles(),
                 createdBy
         );
 
