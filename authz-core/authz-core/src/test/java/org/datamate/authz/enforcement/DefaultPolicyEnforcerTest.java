@@ -70,8 +70,8 @@ class DefaultPolicyEnforcerTest {
     }
 
     @Test
-    void evaluate_object_bypassIfNotSupported() {
-        assertTrue(enforcer.evaluate(new NonAnnotatedResource()));
+    void evaluate_object_denyIfNotSupported() {
+        assertFalse(enforcer.evaluate(new NonAnnotatedResource()));
         verifyNoInteractions(policyEvaluationClient);
     }
 
