@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,6 +53,16 @@ public class RolePersistenceAdapter implements RolePersistencePort {
     @Override
     public List<Role> findAll() {
         return repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate")).stream().map(mapper::mapToDomain).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Role> findAllByNameIn(Collection<String> names) {
+        if (names == null || names.isEmpty()) {
+            return List.of();
+        }
+        return repository.findAllByNameIn(names).stream()
+                .map(mapper::mapToDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

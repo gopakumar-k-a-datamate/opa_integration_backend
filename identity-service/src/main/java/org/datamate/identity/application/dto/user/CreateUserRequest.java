@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.Collections;
+import java.util.List;
+
 public record CreateUserRequest(
         @NotBlank(message = "{user.validation.username.required}")
         @Size(min = 3, max = 50, message = "{user.validation.username.size}")
@@ -31,5 +34,7 @@ public record CreateUserRequest(
         String referenceSystem,
 
         @Size(max = 255, message = "Reference value must be at most 255 characters")
-        String referenceValue
+        String referenceValue,
+
+        List<String> roles
 ) {}

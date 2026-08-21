@@ -24,6 +24,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 "admin"
         );
 
@@ -62,6 +63,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 "admin"
         ));
     }
@@ -77,6 +79,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 "admin"
         ));
     }
@@ -92,6 +95,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 "admin"
         ));
     }
@@ -107,6 +111,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 " "
         ));
     }
@@ -122,6 +127,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 "admin"
         );
 
@@ -155,6 +161,7 @@ class UserTest {
                 "Doe",
                 "ELLIDER",
                 "EXT-12345",
+                List.of(),
                 "admin"
         );
 
