@@ -1,18 +1,12 @@
 const getApiUrl = (identifier) => {
-  // identifier can be a namespace (e.g. 'clinical') or a permissionCode (e.g. 'clinical:appointment:view')
-  if (!identifier) return 'http://localhost:8081';
+  // identifier can be a namespace (e.g. 'pharmacy') or a permissionCode (e.g. 'pharmacy:prescription:view')
+  if (!identifier) return 'http://localhost:8083';
   
-  if (identifier.startsWith('clinical') || identifier.startsWith('billing')) {
-    return 'http://localhost:8082'; // clinic-modulith handles BOTH clinical and billing
-  }
-  if (identifier.startsWith('finance')) {
-    return 'http://localhost:8081'; // finance-microservice
-  }
   if (identifier.startsWith('pharmacy')) {
     return 'http://localhost:8083'; // pharmacy-microservice
   }
   
-  return 'http://localhost:8081'; // default fallback
+  return 'http://localhost:8083'; // default fallback
 };
 
 export const fetchPolicies = async (subjectType, subjectId, namespace) => {
@@ -45,15 +39,28 @@ export const savePolicies = async (subjectType, subjectId, namespace, policies) 
     const res = await fetch(`${baseUrl}/internal/authz/policies`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      // Note: Admin UI workflow payload might just require the array, or a wrapper object.
-      // Based on 06-api-endpoints.md, it expects a wrapper with subjectType, subjectId, and policies.
       body: JSON.stringify({ subjectType, subjectId, namespace, policies })
     });
-    if (!res.ok) throw new Error('Failed to save');
+    if (!res.ok) {
+      let errorData = { message: 'Failed to save policies' };
+      try {
+        errorData = await res.json();
+        // Spring ProblemDetail uses 'detail', but UI expects 'message'
+        if (errorData.detail && !errorData.message) {
+          errorData.message = errorData.detail;
+        }
+      } catch (e) {
+        console.warn('Could not parse error response');
+      }
+      const error = new Error('Failed to save');
+      // Mock Axios-style error shape for PolicyGrid.jsx
+      error.response = { data: errorData };
+      throw error;
+    }
     return await res.json();
   } catch (err) {
     console.error(`Backend ${baseUrl} unavailable:`, err);
-    throw new Error('Not available');
+    throw err;
   }
 };
 
@@ -85,7 +92,7 @@ export const fetchUsers = async () => {
 };
 
 export const fetchNamespaces = async (microservicePort) => {
-  // microservicePort would be 8081 for Finance or 8082 for Clinic
+  // microservicePort would be 8083 for Pharmacy
   const baseUrl = `http://localhost:${microservicePort}`;
   try {
     const res = await fetch(`${baseUrl}/internal/authz/namespaces`);
