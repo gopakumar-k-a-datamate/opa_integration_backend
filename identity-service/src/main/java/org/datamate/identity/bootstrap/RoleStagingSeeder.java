@@ -46,3 +46,4 @@ public class RoleStagingSeeder {
         log.info("Inserted role '{}'.", name);
     }
 }
+

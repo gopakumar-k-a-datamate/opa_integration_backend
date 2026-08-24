@@ -1,8 +1,8 @@
 package org.datamate.identity.shared.config;
 
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.adapter.in.rest.security.JwtAuthenticationFilter;
-import org.datamate.identity.shared.config.security.RevisionMetadataFilter;
+import org.datamate.identity.auth.adapter.in.rest.security.JwtAuthenticationFilter;
+import org.datamate.identity.auth.shared.config.security.RevisionMetadataFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

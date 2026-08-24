@@ -1,8 +1,0 @@
-package org.datamate.identity.application.port.in.auth;
-
-import org.datamate.identity.application.dto.auth.AuthResponse;
-import org.datamate.identity.application.dto.auth.RefreshTokenRequest;
-
-public interface RefreshTokenUseCase {
-    AuthResponse refreshToken(RefreshTokenRequest request);
-}

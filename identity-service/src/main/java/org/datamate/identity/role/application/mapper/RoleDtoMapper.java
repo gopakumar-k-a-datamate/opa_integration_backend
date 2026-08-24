@@ -1,0 +1,29 @@
+package org.datamate.identity.role.application.mapper;
+
+import org.datamate.identity.role.application.dto.RoleDto;
+import org.datamate.identity.role.application.dto.RoleSelectDto;
+import org.datamate.identity.role.domain.model.Role;
+
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import org.springframework.stereotype.Component;
+
+@Component
+public class RoleDtoMapper {
+
+    public RoleDto toDto(Role role) {
+        if (role == null) return null;
+        return new RoleDto(role.getId(), role.getName(), role.getDescription(), role.getStatus());
+    }
+
+    public RoleSelectDto toSelectDto(Role role) {
+        if (role == null) return null;
+        return new RoleSelectDto(role.getId(), role.getName());
+    }
+
+    public Paged<RoleDto> toPaged(Paged<Role> paged) {
+        if (paged == null) return null;
+        return paged.map(this::toDto);
+    }
+}
+
+

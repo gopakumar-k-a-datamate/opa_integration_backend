@@ -3,11 +3,11 @@ package org.datamate.identity.adapter.in.rest.controller;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.datamate.identity.application.dto.auth.AuthResponse;
-import org.datamate.identity.application.dto.auth.LoginRequest;
-import org.datamate.identity.application.dto.auth.RefreshTokenRequest;
-import org.datamate.identity.application.port.in.auth.LoginUseCase;
-import org.datamate.identity.application.port.in.auth.RefreshTokenUseCase;
+import org.datamate.identity.auth.application.dto.AuthResponse;
+import org.datamate.identity.auth.application.dto.LoginRequest;
+import org.datamate.identity.auth.application.dto.RefreshTokenRequest;
+import org.datamate.identity.auth.application.port.in.LoginUseCase;
+import org.datamate.identity.auth.application.port.in.RefreshTokenUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,3 +40,4 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 }
+
