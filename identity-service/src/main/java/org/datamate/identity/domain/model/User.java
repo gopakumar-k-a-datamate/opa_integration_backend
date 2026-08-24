@@ -37,7 +37,7 @@ public class User extends AggregateRoot {
     private final String lastModifiedBy;
     private final LocalDateTime lastModifiedDate;
 
-    private User(
+     private User(
             UUID id,
             String userName,
             String email,
