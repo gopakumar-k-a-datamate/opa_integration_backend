@@ -7,10 +7,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
+import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
+import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
@@ -47,6 +49,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
     private final PolicyBundleCacheRepository bundleCacheRepository;
     private final PolicyValidation validation;
     private final ObjectMapper objectMapper;
+    private final AstBuilder astBuilder;
 
     @EnableLogger
     private Logger log;
@@ -58,7 +61,8 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
             PolicyRepository policyRepository,
             PolicyBundleCacheRepository bundleCacheRepository,
             PolicyValidation validation,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            AstBuilder astBuilder) {
         this.permissionRepository = permissionRepository;
         this.conditionFieldRepository = conditionFieldRepository;
         this.resourceRepository = resourceRepository;
@@ -66,6 +70,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
         this.bundleCacheRepository = bundleCacheRepository;
         this.validation = validation;
         this.objectMapper = objectMapper;
+        this.astBuilder = astBuilder;
     }
 
     @Override
@@ -223,6 +228,12 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                     RegoValidationResult result = validation.validate(item.customRegoSnippet());
                     if (!result.valid()) {
                         throw new AuthzInvalidSyntaxException(item.permissionCode(), result.errors());
+                    }
+                } else if (!item.useCustomRego() && item.expressionJson() != null && !item.expressionJson().isNull()) {
+                    try {
+                        astBuilder.build(item.expressionJson());
+                    } catch (AuthzInvalidPayloadException e) {
+                        throw new AuthzInvalidPayloadException("Validation failed for " + item.permissionCode() + ": " + e.getMessage());
                     }
                 }
                 

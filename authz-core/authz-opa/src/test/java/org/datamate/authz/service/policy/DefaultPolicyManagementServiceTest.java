@@ -49,6 +49,7 @@ class DefaultPolicyManagementServiceTest {
     @Mock private PolicyBundleCacheRepository bundleCacheRepository;
     @Mock private PolicyValidation validation;
     @Mock private ObjectMapper objectMapper;
+    @org.mockito.Spy private org.datamate.authz.compiler.AstBuilder astBuilder = new org.datamate.authz.compiler.AstBuilder();
 
     @Mock private com.datamate.bedrock.framework.common.logging.service.Logger log;
 
@@ -213,7 +214,8 @@ class DefaultPolicyManagementServiceTest {
 
     @Test
     void savePolicies_upsertNew_success() throws Exception {
-        JsonNode jsonNode = mock(JsonNode.class);
+        ObjectMapper testMapper = new ObjectMapper();
+        JsonNode jsonNode = testMapper.readTree("{\"operator\": \"AND\", \"children\": []}");
         PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, jsonNode, true, false, null, null, false, null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
@@ -223,11 +225,11 @@ class DefaultPolicyManagementServiceTest {
 
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
         when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(objectMapper.writeValueAsString(jsonNode)).thenReturn("{\"some\":\"json\"}");
+        when(objectMapper.writeValueAsString(jsonNode)).thenReturn("{\"operator\":\"AND\",\"children\":[]}");
 
         service.savePolicies(req);
 
-        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, "{\"some\":\"json\"}", true, null, false, null);
+        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, "{\"operator\":\"AND\",\"children\":[]}", true, null, false, null);
         verify(bundleCacheRepository).upsertBundle("finance", null, null);
     }
 

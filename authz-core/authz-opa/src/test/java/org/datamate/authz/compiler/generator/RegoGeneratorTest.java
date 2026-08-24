@@ -1,5 +1,7 @@
 package org.datamate.authz.compiler.generator;
 
+import org.datamate.authz.compiler.AstBuilder;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.model.policy.entity.Policy;
@@ -22,7 +24,7 @@ class RegoGeneratorTest {
 
     @BeforeEach
     void setUp() {
-        generator = new RegoGenerator(mapper);
+        generator = new RegoGenerator(mapper, new AstBuilder());
     }
 
     @Test
