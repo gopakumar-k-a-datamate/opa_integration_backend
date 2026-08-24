@@ -73,12 +73,39 @@ SET etag = NULL, bundle_data = NULL;
 ### 2.2. How the Logic Works
 1. **Cache Invalidation:** Setting `etag` and `bundle_data` to `NULL` triggers a system recalculation.
 2. **Policy Sync:** Any existing rows in `authz_policy` that currently use the deprecated `status` field will automatically be flagged with `deprecated = true`.
-3. **Runtime Impact:** The policies are **not disabled**. They remain active, are still compiled into the OPA Rego bundle, and enforce authorization exactly as they did before.
+3. **Runtime Impact:** To guarantee a fail-closed secure state, the policies are **excluded** from the OPA compilation pipeline. The `deprecated = true` flag drops the policy entirely from Rego generation.
 4. **UI Impact:** The `deprecated = true` flag triggers a visual warning in the Admin UI, prompting the administrator to update their policies to use newer fields before the deprecated field is fully deleted in a future release.
 
 ---
 
-## 3. Deleting a Resource
+## 3. Un-deprecating a Condition Field
+
+If a field was deprecated by mistake, or you decide to restore it, you can easily reverse the action. The system will automatically detect the change and re-activate all affected policies.
+
+### 3.1. Flyway SQL Migration
+```sql
+-- V4__undeprecate_status_field.sql
+
+-- 1. Restore the field to ACTIVE in the condition fields table
+UPDATE authz_condition_field 
+SET status = 'ACTIVE' 
+WHERE field_name = 'status' 
+  AND permission_id IN (SELECT id FROM authz_permission WHERE code LIKE 'finance:%');
+
+-- 2. Explicitly invalidate the OPA bundle cache
+UPDATE authz_policy_bundle_cache 
+SET etag = NULL, bundle_data = NULL;
+```
+
+### 3.2. How the Logic Works
+1. **Cache Invalidation:** The `NULL` cache triggers a recompilation on the next read request.
+2. **Policy Sync:** The compiler checks the active fields. Since the `status` field is no longer marked as `DEPRECATED` in the database, it automatically updates the `deprecated` flag on all referencing `authz_policy` rows back to `false`.
+3. **Runtime Impact:** The policies are immediately **re-included** in the OPA compilation pipeline. They are restored to the Rego bundle and resume enforcing authorization exactly as they did before.
+4. **UI Impact:** The `deprecated = true` warning banner is removed from the Admin UI.
+
+---
+
+## 4. Deleting a Resource
 
 When an entire resource (and its associated permissions) is permanently removed from the application, it must be removed from the Admin UI.
 
