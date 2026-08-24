@@ -1,5 +1,6 @@
 package org.datamate.authz.compiler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.compiler.generator.RegoGenerator;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -64,7 +65,7 @@ public class CompilerTest {
         );
 
         // Step 2: Pass the namespace and policies to the updated RegoGenerator
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(100L, "finance:journal:create");
         String actualRego = generator.generate("finance", List.of(policy), permCodeLookup);
 
@@ -143,7 +144,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper());
+        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(101L, "clinic:visit:create");
         String actualRego = generator.generate("clinic", List.of(policy), permCodeLookup);
 
@@ -229,7 +230,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper());
+        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(102L, "clinic:billing:approve");
         String actualRego = generator.generate("clinic", List.of(policy), permCodeLookup);
 
@@ -310,7 +311,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper());
+        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(103L, "system:record:read");
         String actualRego = generator.generate("system", List.of(policy), permCodeLookup);
 

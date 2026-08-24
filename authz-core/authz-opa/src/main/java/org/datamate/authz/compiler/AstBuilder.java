@@ -6,8 +6,10 @@ import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.springframework.stereotype.Component;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
 
+@Component
 public class AstBuilder {
 
     private static final int MAX_AST_DEPTH = 5;
@@ -44,14 +46,22 @@ public class AstBuilder {
                 throw new AuthzInvalidPayloadException("Invalid AST: 'children' must be an array.");
             }
 
-            if (operator == LogicalOperator.NOT) {
-                if (childrenNode.size() != 1) {
-                    throw new AuthzInvalidPayloadException("Invalid AST: NOT group must have exactly one child.");
+            for (JsonNode child : childrenNode) {
+                AstNode builtChild = build(child, depth + 1);
+                if (builtChild != null) {
+                    group.addChild(builtChild);
                 }
             }
 
-            for (JsonNode child : childrenNode) {
-                group.addChild(build(child, depth + 1));
+            // Prune empty groups from the tree bottom-up
+            if (group.getChildren().isEmpty()) {
+                return null;
+            }
+
+            if (operator == LogicalOperator.NOT) {
+                if (group.getChildren().size() != 1) {
+                    throw new AuthzInvalidPayloadException("Invalid AST: NOT group must have exactly one child.");
+                }
             }
 
             return group;

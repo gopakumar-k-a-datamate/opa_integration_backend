@@ -18,10 +18,13 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.HashMap;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class RegoGenerator {
 
     private final ObjectMapper objectMapper;
-    private final AstBuilder astBuilder = new AstBuilder();
+    private final AstBuilder astBuilder;
 
     // To hold deferred helper rules for NOT groups
     private static class NotBlock {
@@ -39,8 +42,9 @@ public class RegoGenerator {
         }
     }
 
-    public RegoGenerator(ObjectMapper objectMapper) {
+    public RegoGenerator(ObjectMapper objectMapper, AstBuilder astBuilder) {
         this.objectMapper = objectMapper;
+        this.astBuilder = astBuilder;
     }
 
     public String generate(String namespace, List<Policy> policies, Map<Long, String> permCodeLookup) {
@@ -90,6 +94,13 @@ public class RegoGenerator {
             try {
                 JsonNode rootNode = objectMapper.readTree(json);
                 AstNode astRoot = astBuilder.build(rootNode);
+
+                if (astRoot == null) {
+                    sb.append("# Policy ID: ").append(policy.getId()).append(" (Unconditional - Empty Tree)\n");
+                    generateRuleHeader(policy, permissionCode, sb);
+                    sb.append("}\n\n");
+                    continue;
+                }
 
                 sb.append("# Policy ID: ").append(policy.getId()).append("\n");
 
@@ -204,11 +215,13 @@ public class RegoGenerator {
                 String helperName = "_not_block_p" + policyId + "_" + (counter[0]++);
                 List<List<ConditionNode>> childDnf = convertToDNF(child, policyId, deferredBlocks, counter);
                 
-                // We collect all conditions from the child and make a helper rule
-                // Assuming child is just conditions (we don't support deeply nested ORs under NOT easily in this basic implementation without more helper rules)
-                // For simplicity, we just take the first clause, which matches the example in ADR.
+                // We collect all conditions from the child and make helper rules
+                // By creating a separate NotBlock for each clause, Rego naturally treats them as OR
+                // e.g. NOT (A OR B) creates helper if {A} and helper if {B}. 'not helper' becomes NOT A AND NOT B.
                 if (!childDnf.isEmpty()) {
-                    deferredBlocks.add(new NotBlock(helperName, childDnf.get(0)));
+                    for (List<ConditionNode> clause : childDnf) {
+                        deferredBlocks.add(new NotBlock(helperName, clause));
+                    }
                 }
                 
                 List<ConditionNode> placeholderClause = new ArrayList<>();

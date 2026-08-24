@@ -5,6 +5,8 @@ import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
+import org.datamate.authz.compiler.AstBuilder;
+import org.datamate.authz.compiler.generator.RegoGenerator;
 import org.datamate.authz.exception.PolicyCompilationException;
 import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -49,6 +51,7 @@ class DefaultPolicyCompilerTest {
     void setUp() throws Exception {
         // Use a real ObjectMapper because RegoGenerator is instantiated internally
         ObjectMapper mapper = new ObjectMapper();
+        RegoGenerator regoGen = new RegoGenerator(mapper, new AstBuilder());
         compiler = new DefaultPolicyCompiler(
                 policyRepository, 
                 permissionRepository, 
@@ -56,7 +59,8 @@ class DefaultPolicyCompilerTest {
                 conditionFieldRepository, 
                 validation, 
                 bundleBuilder, 
-                mapper
+                mapper,
+                regoGen
         );
         
         java.lang.reflect.Field logField = DefaultPolicyCompiler.class.getDeclaredField("log");
@@ -111,7 +115,7 @@ class DefaultPolicyCompilerTest {
 
         // We need the hash to match. For an empty policy set, generate the rego, hash it, and mock the DB
         ObjectMapper mapper = new ObjectMapper();
-        org.datamate.authz.compiler.generator.RegoGenerator gen = new org.datamate.authz.compiler.generator.RegoGenerator(mapper);
+        org.datamate.authz.compiler.generator.RegoGenerator gen = new org.datamate.authz.compiler.generator.RegoGenerator(mapper, new org.datamate.authz.compiler.AstBuilder());
         String rego = gen.generate("finance", List.of(), java.util.Map.of(10L, "finance:read"));
         
         String hash = computeMd5(rego.getBytes());

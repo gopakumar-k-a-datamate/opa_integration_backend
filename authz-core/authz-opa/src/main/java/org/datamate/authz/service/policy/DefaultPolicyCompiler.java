@@ -71,8 +71,9 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
     private Logger log;
     private final TarGzBundleService bundleBuilder;
     private final ObjectMapper objectMapper;
+    private final RegoGenerator regoGenerator;
 
-    public DefaultPolicyCompiler(PolicyRepository policyRepository, PermissionRepository permissionRepository, PolicyBundleCacheRepository bundleCacheRepository, ConditionFieldRepository conditionFieldRepository, PolicyValidation validation, TarGzBundleService bundleBuilder, ObjectMapper objectMapper) {
+    public DefaultPolicyCompiler(PolicyRepository policyRepository, PermissionRepository permissionRepository, PolicyBundleCacheRepository bundleCacheRepository, ConditionFieldRepository conditionFieldRepository, PolicyValidation validation, TarGzBundleService bundleBuilder, ObjectMapper objectMapper, RegoGenerator regoGenerator) {
         this.policyRepository = policyRepository;
         this.permissionRepository = permissionRepository;
         this.bundleCacheRepository = bundleCacheRepository;
@@ -80,6 +81,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
         this.validation = validation;
         this.bundleBuilder = bundleBuilder;
         this.objectMapper = objectMapper;
+        this.regoGenerator = regoGenerator;
     }
 
     @Override
@@ -106,8 +108,7 @@ public class DefaultPolicyCompiler implements PolicyCompiler {
                 })
                 .toList();
 
-        RegoGenerator generator = new RegoGenerator(objectMapper);
-        String regoContent = generator.generate(targetNamespace, namespacePolicies, permCodeLookup);
+        String regoContent = regoGenerator.generate(targetNamespace, namespacePolicies, permCodeLookup);
         
         RegoValidationResult result = validation.validate(regoContent);
         if (!result.valid()) {
