@@ -21,6 +21,10 @@ datamate:
       config-path: classpath:opa-config.yaml
     admin:
       enabled: false
+    # OPA Bundle endpoint security
+    bundle:
+      api-key: ${BUNDLE_API_KEY:my-dev-secret}
+
 
 authz:
   opa:

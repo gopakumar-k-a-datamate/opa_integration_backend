@@ -186,7 +186,46 @@ public class CustomSaveController {
 }
 ```
 
+## Auto-Configured Endpoints
+
+### Bundle Endpoint
+
+The `BundleController` (`GET /internal/authz/bundle/{namespace}`) is **auto-activated by default** via `BundleEndpointConfiguration` in the starter. Consumers do **not** need to define a `@Bean(AuthzBeans.BUNDLE)` for it to work.
+
+**Zero-config (default):**
+The bundle endpoint is active with no authentication. Suitable for local development where the OPA sidecar runs on `localhost`.
+
+**API key security (recommended for production):**
+Set `datamate.authz.bundle.api-key` in `application.yml` to require a shared secret:
+
+```yaml
+datamate:
+  authz:
+    bundle:
+      api-key: ${BUNDLE_API_KEY:my-dev-secret}
+```
+
+Configure the OPA sidecar to send the matching token:
+
+```yaml
+services:
+  my_api:
+    url: http://host.docker.internal:8082
+    credentials:
+      bearer:
+        token: "my-dev-secret"
+```
+
+**Disabling the endpoint:**
+Set `datamate.authz.bundle.enabled=false` to keep the `BundleController` dormant.
+
+**Consumer override:**
+If a consumer defines their own `@Bean(AuthzBeans.BUNDLE) EndpointAuthorization`, the auto-configured bean backs off and the consumer's custom logic takes effect.
+
+---
+
 ## Consequences
+
 
 **Positive:**
 - **Zero Dead Endpoints:** Because we use `@ConditionalOnBean`, unactivated endpoints are never registered with Spring MVC. There are no dangling routes returning 404s.
