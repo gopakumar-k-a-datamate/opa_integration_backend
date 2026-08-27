@@ -1,8 +1,10 @@
 # REST API Endpoints (Federated Library)
 
-This document outlines the REST APIs exposed by the `authz-core` library. When a microservice (or modulith) includes this library, these endpoints are automatically provisioned to serve the Admin UI and the local OPA sidecar.
+This document outlines the REST APIs that **must be exposed** by each microservice (or modulith) integrating with the `authz-core` framework. 
 
-All library endpoints are typically prefixed with `/internal/authz/` and should be secured via API Gateway or internal network routing.
+In the Bedrock architecture, the `authz-core` library provides the core domain logic and services (e.g., `PolicyManagement`), but the microservice itself acts as the "Driving Adapter", exposing these services via its own `@RestController` or Spring Router functions.
+
+All of these policy-management endpoints are typically prefixed with `/internal/authz/` and should be secured via API Gateway or internal network routing.
 
 ---
 

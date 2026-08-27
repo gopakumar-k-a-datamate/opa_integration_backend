@@ -21,10 +21,12 @@ flowchart TB
     end
 
     subgraph ApplicationService["Application Service (e.g., Finance)"]
+        PolicyAPI["Policy CRUD API (REST)"]
+        BundleAPI["Bundle Serving API (REST)"]
+        
         subgraph AuthzLibrary["authz-core (Shared Library)"]
-            PolicyAPI["Policy CRUD API"]
+            ManagementService["Policy Management"]
             Compiler["Policy Compiler"]
-            BundleAPI["Bundle Serving API"]
         end
         PEP["PEP (Policy Enforcement Point)"]
         LocalAuthzDB[("Local Authz Tables")]
@@ -36,8 +38,9 @@ flowchart TB
 
     AdminUI -->|"1. fetch roles"| RoleAPI
     AdminUI -->|"2. manage policies"| PolicyAPI
-    PolicyAPI -->|read/write| LocalAuthzDB
-    PolicyAPI -->|on save| Compiler
+    PolicyAPI -->|"delegates to"| ManagementService
+    ManagementService -->|read/write| LocalAuthzDB
+    ManagementService -->|on save| Compiler
     Compiler -->|reads policies| LocalAuthzDB
     Compiler -->|writes bundle| LocalAuthzDB
     OPA -->|polls| BundleAPI
