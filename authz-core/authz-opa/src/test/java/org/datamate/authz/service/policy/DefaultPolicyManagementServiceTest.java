@@ -234,6 +234,25 @@ class DefaultPolicyManagementServiceTest {
     }
 
     @Test
+    void savePolicies_upsertNew_customRego_success() throws Exception {
+        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "allow_rule if { input.resource.special == true }");
+        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+
+        Permission perm = mock(Permission.class);
+        when(perm.getId()).thenReturn(10L);
+        when(perm.getCode()).thenReturn("finance:read");
+
+        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+        when(validation.validate("allow_rule if { input.resource.special == true }")).thenReturn(new RegoValidationResult(true, List.of()));
+
+        service.savePolicies(req);
+
+        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, null, true, null, true, "allow_rule if { input.resource.special == true }");
+        verify(bundleCacheRepository).upsertBundle("finance", null, null);
+    }
+
+    @Test
     void savePolicies_softDeleteAbsentFromPayload() {
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of());
 

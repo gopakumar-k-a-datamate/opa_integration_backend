@@ -61,4 +61,26 @@ public class PharmacyGlobalExceptionHandler extends GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(org.datamate.authz.exception.AuthzInvalidSyntaxException.class)
+    public ProblemDetail handleAuthzInvalidSyntaxException(org.datamate.authz.exception.AuthzInvalidSyntaxException ex) {
+        logger.warn("Invalid syntax in policy payload: {}", ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        pd.setTitle("COMPILATION_ERROR");
+        return pd;
+    }
+
+    @ExceptionHandler(org.datamate.authz.exception.AuthzInvalidPayloadException.class)
+    public ProblemDetail handleAuthzInvalidPayloadException(org.datamate.authz.exception.AuthzInvalidPayloadException ex) {
+        logger.warn("Invalid payload in policy: {}", ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        pd.setTitle("INVALID_PAYLOAD");
+        return pd;
+    }
+
 }

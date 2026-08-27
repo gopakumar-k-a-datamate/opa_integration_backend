@@ -135,6 +135,9 @@ public class RegoGenerator {
             String trimmed = line.trim();
             if (trimmed.startsWith("import ")) {
                 imports.add(trimmed);
+            } else if (trimmed.startsWith("package ")) {
+                // Strip package declarations completely to prevent multiple package errors
+                continue;
             } else {
                 cleaned.append(line).append("\n");
             }

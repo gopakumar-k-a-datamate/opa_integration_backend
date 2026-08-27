@@ -109,7 +109,7 @@ SET etag = NULL, bundle_data = NULL;
 
 When an entire resource (and its associated permissions) is permanently removed from the application, it must be removed from the Admin UI.
 
-### 3.1. Flyway SQL Migration
+### 4.1. Flyway SQL Migration
 ```sql
 -- V4__delete_old_resource.sql
 
@@ -128,7 +128,7 @@ UPDATE authz_policy_bundle_cache
 SET etag = NULL, bundle_data = NULL;
 ```
 
-### 3.2. How the Logic Works
+### 4.2. How the Logic Works
 1. **UI Impact:** Because the resource and permissions are marked as `DELETED`, they will no longer appear in the Admin UI. Administrators can no longer create or manage policies for this resource.
 2. **Policy Impact:** **No changes** are made to the existing policies in the `authz_policy` table. 
    - **Design Decision:** We deliberately leave existing `authz_policy` rows untouched when a resource is deleted. This preserves historical configuration data and avoids destructive cascading deletes, even though the resource is no longer actively evaluated.
