@@ -242,7 +242,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                             throw new AuthzInvalidPayloadException(
                                 "Custom Rego snippet for " + item.permissionCode() + 
                                 " must not define the 'allow' rule. " +
-                                "Use 'allow_rule if { ... }' or 'deny_rule if { ... }' instead."
+                                "Use 'allow_rule if { ... }' instead."
                             );
                         }
                     }
