@@ -52,9 +52,9 @@ Because `authz-core` throws pure `AuthzException`s, microservices utilizing Data
 This is achieved using the **Adapter Pattern** via the `bedrock-authz-starter` module and the microservice's `@RestControllerAdvice`.
 
 ### The Microservice Global Exception Handler (Inline Mapping)
-Microservices (e.g., `pharmacy-microservice`) simply extend the standard Bedrock `GlobalExceptionHandler` and add an `@ExceptionHandler` specifically for `AuthzException`.
+Microservices (e.g., `pharmacy-microservice`) simply extend the standard Bedrock `GlobalExceptionHandler` and add `@ExceptionHandler` methods to map specific domain exceptions into HTTP `ProblemDetail` structures (which is the Spring 6 standard).
 
-Instead of relying on a dedicated adapter class in the starter (which tightly couples dependencies), the microservice's REST layer—acting as the "Driving Adapter"—maps the domain exception to a Bedrock `BaseAppException` inline.
+Instead of relying on a dedicated adapter class in the starter (which tightly couples dependencies), the microservice's REST layer—acting as the "Driving Adapter"—maps the domain exception inline.
 
 ```java
 // pharmacy-microservice
@@ -80,7 +80,7 @@ public class PharmacyGlobalExceptionHandler extends GlobalExceptionHandler {
 
 > [!TIP]
 > **Why do it this way?** 
-> By intercepting `AuthzException.class`, we can handle *all* framework exceptions (`AuthzDeniedException`, `AuthzInvalidPayloadException`, etc.) in a single, scalable block of code.
+> By explicitly mapping subclasses like `AuthzDeniedException`, `AuthzInvalidSyntaxException`, and `AuthzInvalidPayloadException`, the microservice can assign highly specific HTTP status codes (e.g. 403 Forbidden vs 400 Bad Request) and ProblemDetail titles that best fit the context, without polluting the core domain with HTTP concerns.
 
 ---
 

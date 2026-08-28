@@ -22,6 +22,7 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
       const data = await fetchPolicies(subjectType, subjectId, moduleName);
       setPolicies(data);
     } catch (err) {
+      setPolicies([]);
       setError('Service Not Available');
     } finally {
       setLoading(false);
@@ -89,11 +90,6 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
   };
 
   if (loading) return <div>Loading policies...</div>;
-  if (error) return (
-    <div className="glass-panel" style={{ padding: '2rem', color: '#fca5a5', textAlign: 'center', marginTop: '1rem', whiteSpace: 'pre-wrap' }}>
-      ⚠️ {error}
-    </div>
-  );
 
   // Group by resourceName
   const grouped = policies.reduce((acc, p) => {
@@ -104,6 +100,12 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
 
   return (
     <div>
+      {error && (
+        <div className="glass-panel" style={{ padding: '1rem', color: '#fca5a5', textAlign: 'center', marginBottom: '1rem', whiteSpace: 'pre-wrap', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       {Object.keys(grouped).map(resource => (
         <div key={resource} className="resource-group">
           <div className="resource-header">

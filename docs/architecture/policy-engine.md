@@ -128,7 +128,7 @@ When a condition field is no longer needed, the migration script handles it as f
 - The `authz_condition_field` is updated to `status = 'DEPRECATED'`.
 - The `etag` and `bundle` columns are explicitly set to `NULL` to invalidate the bundle cache.
 - Any existing policies in `authz_policy` that reference this specific condition field are updated to `deprecated = true`. 
-- **Runtime Impact**: The policies are **not** disabled. They are still compiled into the OPA bundle and evaluated normally. However, the `deprecated` flag triggers a warning in the Admin UI, prompting the administrator to migrate away from the deprecated field.
+- **Runtime Impact**: To guarantee a fail-closed secure state, the policies are **excluded** from the OPA compilation pipeline. The `deprecated = true` flag drops the policy entirely from Rego generation and triggers a warning in the Admin UI, forcing the administrator to review and rewrite the rule with supported fields.
 
 ### Deleting a Resource
 When an entire resource is deprecated or removed from the system, it is treated as deleted from the UI's perspective:

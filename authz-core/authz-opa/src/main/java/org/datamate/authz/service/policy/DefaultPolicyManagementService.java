@@ -225,7 +225,29 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                 }
             } else {
                 if (item.useCustomRego() && item.customRegoSnippet() != null && !item.customRegoSnippet().isBlank()) {
-                    RegoValidationResult result = validation.validate(item.customRegoSnippet());
+                    String snippet = item.customRegoSnippet();
+                    
+                    // Reject boilerplate keywords in custom snippets to prevent conflicting with the compiler
+                    for (String line : snippet.split("\n")) {
+                        String trimmed = line.trim();
+                        if (trimmed.startsWith("package ") || trimmed.startsWith("import ") || trimmed.startsWith("default ")) {
+                            String keyword = trimmed.substring(0, trimmed.indexOf(' '));
+                            throw new AuthzInvalidPayloadException(
+                                "Custom Rego snippet for " + item.permissionCode() + 
+                                " must not contain '" + keyword + "' statements. " +
+                                "These are managed automatically by the compiler."
+                            );
+                        }
+                        if (trimmed.startsWith("allow if") || trimmed.startsWith("allow {") || trimmed.startsWith("allow=")) {
+                            throw new AuthzInvalidPayloadException(
+                                "Custom Rego snippet for " + item.permissionCode() + 
+                                " must not define the 'allow' rule. " +
+                                "Use 'allow_rule if { ... }' instead."
+                            );
+                        }
+                    }
+
+                    RegoValidationResult result = validation.validate(snippet);
                     if (!result.valid()) {
                         throw new AuthzInvalidSyntaxException(item.permissionCode(), result.errors());
                     }

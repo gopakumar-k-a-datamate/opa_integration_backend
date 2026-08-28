@@ -4,8 +4,6 @@ import com.datamate.bedrock.framework.common.exception.config.ExceptionPropertie
 import com.datamate.bedrock.framework.common.exception.service.MessageResolver;
 import com.datamate.bedrock.framework.common.exception.spring.service.web.GlobalExceptionHandler;
 import org.datamate.authz.exception.AuthzDeniedException;
-import org.datamate.authz.exception.AuthzException;
-import com.datamate.bedrock.framework.common.exception.exceptions.BaseAppException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,17 +21,6 @@ public class PharmacyGlobalExceptionHandler extends GlobalExceptionHandler {
 
     @EnableLogger
     private Logger logger;
-
-    @ExceptionHandler(AuthzException.class)
-    public ProblemDetail handleAuthzException(AuthzException ex, HttpServletRequest request) {
-        logger.error("Authorization exception occurred", ex);
-        org.springframework.http.ProblemDetail pd = org.springframework.http.ProblemDetail.forStatusAndDetail(
-                org.springframework.http.HttpStatus.BAD_REQUEST, 
-                ex.getMessage()
-        );
-        pd.setTitle(ex.getErrorCode().name());
-        return pd;
-    }
 
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
     public ProblemDetail handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex, HttpServletRequest request) {
@@ -72,6 +59,28 @@ public class PharmacyGlobalExceptionHandler extends GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, detail);
         problemDetail.setTitle(title); // e.g., "INVALID_ATTRIBUTE" or "POLICY_NOT_FOUND"
         return problemDetail;
+    }
+
+    @ExceptionHandler(org.datamate.authz.exception.AuthzInvalidSyntaxException.class)
+    public ProblemDetail handleAuthzInvalidSyntaxException(org.datamate.authz.exception.AuthzInvalidSyntaxException ex) {
+        logger.warn("Invalid syntax in policy payload: {}", ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        pd.setTitle("COMPILATION_ERROR");
+        return pd;
+    }
+
+    @ExceptionHandler(org.datamate.authz.exception.AuthzInvalidPayloadException.class)
+    public ProblemDetail handleAuthzInvalidPayloadException(org.datamate.authz.exception.AuthzInvalidPayloadException ex) {
+        logger.warn("Invalid payload in policy: {}", ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        pd.setTitle("INVALID_PAYLOAD");
+        return pd;
     }
 
 }
