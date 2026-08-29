@@ -1,9 +1,10 @@
 package org.datamate.identity.application.usecase.user;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.domain.exception.user.UserNotFoundException;
-import org.datamate.identity.domain.model.User;
+import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
+import org.datamate.identity.user.application.usecase.user.DeactivateUserService;
+import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
+import org.datamate.identity.user.domain.model.user.entity.User;
 import org.datamate.identity.shared.model.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

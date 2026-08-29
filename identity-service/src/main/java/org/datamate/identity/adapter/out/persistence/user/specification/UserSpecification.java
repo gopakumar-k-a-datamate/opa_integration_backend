@@ -7,7 +7,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
-import org.datamate.identity.application.query.user.UserSearchCriteria;
+import org.datamate.identity.user.application.query.user.UserSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package org.datamate.identity.application.port.out;
 
-import org.datamate.identity.domain.model.User;
+import org.datamate.identity.user.domain.model.user.entity.User;
 
 public interface TokenGeneratorPort {
     String generateAccessToken(User user);

@@ -3,7 +3,7 @@ package org.datamate.identity.adapter.out.persistence.audit.adapter;
 import com.datamate.bedrock.framework.common.auditing.entity.ServiceAuditLog;
 import org.datamate.identity.adapter.out.persistence.audit.repository.AuditLogRepository;
 import org.datamate.identity.adapter.out.persistence.audit.specification.AuditLogSpecification;
-import org.datamate.identity.application.dto.user.LoginHistoryDto;
+import org.datamate.identity.user.application.dto.user.LoginHistoryDto;
 import org.datamate.identity.application.port.out.audit.AuditLogPersistencePort;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;

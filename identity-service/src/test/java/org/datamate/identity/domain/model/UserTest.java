@@ -4,7 +4,8 @@ import com.datamate.bedrock.framework.common.ddd.event.DomainEvent;
 import org.datamate.identity.shared.event.user.UserCreatedEvent;
 import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
 import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
-import org.datamate.identity.domain.exception.user.InvalidUserDataException;
+import org.datamate.identity.user.domain.exception.user.InvalidUserDataException;
+import org.datamate.identity.user.domain.model.user.entity.User;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

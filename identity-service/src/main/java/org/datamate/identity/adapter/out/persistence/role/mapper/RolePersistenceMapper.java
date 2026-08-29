@@ -1,7 +1,7 @@
 package org.datamate.identity.adapter.out.persistence.role.mapper;
 
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
-import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.role.domain.model.role.entity.Role;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import org.springframework.stereotype.Component;

@@ -3,15 +3,14 @@ package org.datamate.identity.adapter.out.persistence.user.mapper;
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
 import org.datamate.identity.adapter.out.persistence.role.repository.SpringDataRoleRepository;
 import org.datamate.identity.adapter.out.persistence.user.entity.UserJpaEntity;
-import org.datamate.identity.domain.model.User;
+import org.datamate.identity.user.domain.model.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.datamate.identity.domain.exception.role.RoleNotFoundException;
+import org.datamate.identity.role.domain.exception.role.RoleNotFoundException;
 
 @Component
 public class UserPersistenceMapper {

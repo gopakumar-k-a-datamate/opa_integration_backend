@@ -4,7 +4,7 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.common.logging.util.LoggerManager;
 import jakarta.persistence.criteria.Predicate;
 import org.datamate.identity.adapter.out.persistence.role.entity.RoleJpaEntity;
-import org.datamate.identity.application.query.role.RoleSearchCriteria;
+import org.datamate.identity.role.application.query.role.RoleSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package org.datamate.identity.application.port.out.audit;
 
-import org.datamate.identity.application.dto.user.LoginHistoryDto;
+import org.datamate.identity.user.application.dto.user.LoginHistoryDto;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 

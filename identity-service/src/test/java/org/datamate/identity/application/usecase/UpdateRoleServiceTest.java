@@ -1,14 +1,14 @@
 package org.datamate.identity.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.dto.role.RoleDto;
-import org.datamate.identity.application.dto.role.UpdateRoleRequest;
-import org.datamate.identity.application.mapper.role.RoleDtoMapper;
-import org.datamate.identity.application.port.out.role.RolePersistencePort;
-import org.datamate.identity.application.usecase.role.UpdateRoleService;
-import org.datamate.identity.domain.exception.role.RoleAlreadyExistsException;
-import org.datamate.identity.domain.exception.role.RoleNotFoundException;
-import org.datamate.identity.domain.model.Role;
+import org.datamate.identity.role.application.dto.role.RoleDto;
+import org.datamate.identity.role.application.dto.role.UpdateRoleRequest;
+import org.datamate.identity.role.application.mapper.role.RoleDtoMapper;
+import org.datamate.identity.role.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.role.application.usecase.role.UpdateRoleService;
+import org.datamate.identity.role.domain.exception.role.RoleAlreadyExistsException;
+import org.datamate.identity.role.domain.exception.role.RoleNotFoundException;
+import org.datamate.identity.role.domain.model.role.entity.Role;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;

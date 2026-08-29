@@ -4,7 +4,7 @@ import com.datamate.bedrock.framework.common.security.jwt.service.JwtTokenServic
 import com.datamate.bedrock.framework.common.security.vo.UserDetails;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.application.port.out.TokenGeneratorPort;
-import org.datamate.identity.domain.model.User;
+import org.datamate.identity.user.domain.model.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;

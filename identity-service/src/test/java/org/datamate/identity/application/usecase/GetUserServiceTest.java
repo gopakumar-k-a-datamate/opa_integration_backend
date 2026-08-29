@@ -1,12 +1,12 @@
 package org.datamate.identity.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.dto.user.UserDto;
-import org.datamate.identity.application.mapper.user.UserDtoMapper;
-import org.datamate.identity.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.application.usecase.user.GetUserService;
-import org.datamate.identity.domain.exception.user.UserNotFoundException;
-import org.datamate.identity.domain.model.User;
+import org.datamate.identity.user.application.dto.user.UserDto;
+import org.datamate.identity.user.application.mapper.user.UserDtoMapper;
+import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
+import org.datamate.identity.user.application.usecase.user.GetUserService;
+import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
+import org.datamate.identity.user.domain.model.user.entity.User;
 import org.datamate.identity.shared.model.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
