@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.datamate.identity.role.application.dto.role.RoleDto;
 import org.datamate.identity.role.application.dto.role.RoleRequest;
 import org.datamate.identity.role.application.port.in.role.CreateRoleUseCase;
-import org.datamate.identity.application.port.out.SecurityContextPort;
+import org.datamate.identity.auth.application.port.out.auth.SecurityContextPort;
 import org.datamate.identity.role.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.role.domain.exception.role.RoleAlreadyExistsException;
 import org.datamate.identity.role.domain.model.role.entity.Role;

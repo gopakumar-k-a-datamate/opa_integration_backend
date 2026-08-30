@@ -5,7 +5,7 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.user.application.dto.user.LoginHistoryDto;
 import org.datamate.identity.user.application.port.in.user.GetLoginHistoryUseCase;
-import org.datamate.identity.application.port.out.audit.AuditLogPersistencePort;
+import org.datamate.identity.auth.application.port.out.audit.AuditLogPersistencePort;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.springframework.stereotype.Service;

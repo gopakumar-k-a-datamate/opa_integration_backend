@@ -1,6 +1,6 @@
 package org.datamate.identity.user.domain.exception.user;
 
-import org.datamate.identity.domain.exception.DomainException;
+import org.datamate.identity.auth.domain.exception.DomainException;
 
 public class PasswordMismatchException extends DomainException {
 

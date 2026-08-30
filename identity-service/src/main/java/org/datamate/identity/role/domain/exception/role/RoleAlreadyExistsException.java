@@ -1,6 +1,6 @@
 package org.datamate.identity.role.domain.exception.role;
 
-import org.datamate.identity.domain.exception.DomainException;
+import org.datamate.identity.auth.domain.exception.DomainException;
 
 public class RoleAlreadyExistsException extends DomainException {
 

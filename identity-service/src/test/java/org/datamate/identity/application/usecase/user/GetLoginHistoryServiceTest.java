@@ -2,7 +2,7 @@ package org.datamate.identity.application.usecase.user;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.user.application.dto.user.LoginHistoryDto;
-import org.datamate.identity.application.port.out.audit.AuditLogPersistencePort;
+import org.datamate.identity.auth.application.port.out.audit.AuditLogPersistencePort;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.datamate.identity.user.application.usecase.user.GetLoginHistoryService;
