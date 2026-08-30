@@ -2,13 +2,13 @@ package org.datamate.identity.user.adapter.in.event;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.shared.event.user.UserCreatedEvent;
-import org.datamate.identity.shared.event.user.UserActivatedEvent;
-import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
-import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
-import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
-import org.datamate.identity.shared.event.user.UserInformationUpdatedEvent;
-import org.datamate.identity.shared.event.user.UserRolesUpdatedEvent;
+import org.datamate.identity.user.domain.event.user.UserCreatedEvent;
+import org.datamate.identity.user.domain.event.user.UserActivatedEvent;
+import org.datamate.identity.user.domain.event.user.UserDeactivatedEvent;
+import org.datamate.identity.user.domain.event.user.UserPasswordResetByAdminEvent;
+import org.datamate.identity.user.domain.event.user.UserPasswordChangedEvent;
+import org.datamate.identity.user.domain.event.user.UserInformationUpdatedEvent;
+import org.datamate.identity.user.domain.event.user.UserRolesUpdatedEvent;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 

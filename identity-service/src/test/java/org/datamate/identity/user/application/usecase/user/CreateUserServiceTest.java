@@ -9,7 +9,7 @@ import org.datamate.identity.user.application.mapper.user.UserDtoMapper;
 import org.datamate.identity.auth.application.port.out.auth.PasswordEncoderPort;
 import org.datamate.identity.auth.application.port.out.auth.SecurityContextPort;
 import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.shared.event.user.UserCreatedEvent;
+import org.datamate.identity.user.domain.event.user.UserCreatedEvent;
 import org.datamate.identity.user.domain.exception.user.UserAlreadyExistsException;
 import org.datamate.identity.user.domain.model.user.entity.User;
 import org.datamate.identity.shared.model.UserStatus;

@@ -1,29 +1,39 @@
-package org.datamate.identity.shared.event.role;
+package org.datamate.identity.user.domain.event.user;
 
 import java.time.Instant;
 import java.util.UUID;
-import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 
-public record RoleDeactivatedEvent(
+public record UserDeactivatedEvent(
         String eventId,
         UUID aggregateId,
         Long domainVersion,
         String schemaVersion,
         Instant occurredOn,
-        String name,
-        EntityReference<UUID> deactivatedBy
+        String userName,
+        String email,
+        String phoneNumber,
+        String firstName,
+        String lastName,
+        String deactivatedBy
 ) implements VersionedDomainEvent<UUID> {
     public static final String SCHEMA_VERSION = "1.0";
 
-    public RoleDeactivatedEvent(UUID aggregateId, Long domainVersion, String name, EntityReference<UUID> deactivatedBy) {
+    public UserDeactivatedEvent(
+            UUID aggregateId, Long domainVersion, String userName, String email,
+            String phoneNumber, String firstName, String lastName, String deactivatedBy
+    ) {
         this(
                 UUID.randomUUID().toString(),
                 aggregateId,
                 domainVersion,
                 SCHEMA_VERSION,
                 Instant.now(),
-                name,
+                userName,
+                email,
+                phoneNumber,
+                firstName,
+                lastName,
                 deactivatedBy
         );
     }

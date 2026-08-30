@@ -1,10 +1,10 @@
-package org.datamate.identity.shared.event.user;
+package org.datamate.identity.user.domain.event.user;
 
 import java.time.Instant;
 import java.util.UUID;
 import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 
-public record UserPasswordResetByAdminEvent(
+public record UserActivatedEvent(
         String eventId,
         UUID aggregateId,
         Long domainVersion,
@@ -15,13 +15,13 @@ public record UserPasswordResetByAdminEvent(
         String phoneNumber,
         String firstName,
         String lastName,
-        String resetBy
+        String activatedBy
 ) implements VersionedDomainEvent<UUID> {
     public static final String SCHEMA_VERSION = "1.0";
 
-    public UserPasswordResetByAdminEvent(
+    public UserActivatedEvent(
             UUID aggregateId, Long domainVersion, String userName, String email,
-            String phoneNumber, String firstName, String lastName, String resetBy
+            String phoneNumber, String firstName, String lastName, String activatedBy
     ) {
         this(
                 UUID.randomUUID().toString(),
@@ -34,7 +34,7 @@ public record UserPasswordResetByAdminEvent(
                 phoneNumber,
                 firstName,
                 lastName,
-                resetBy
+                activatedBy
         );
     }
 }

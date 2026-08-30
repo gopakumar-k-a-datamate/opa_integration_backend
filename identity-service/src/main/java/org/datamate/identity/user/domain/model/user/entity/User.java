@@ -1,13 +1,13 @@
 package org.datamate.identity.user.domain.model.user.entity;
 
 import lombok.Getter;
-import org.datamate.identity.shared.event.user.UserCreatedEvent;
-import org.datamate.identity.shared.event.user.UserActivatedEvent;
-import org.datamate.identity.shared.event.user.UserDeactivatedEvent;
-import org.datamate.identity.shared.event.user.UserPasswordResetByAdminEvent;
-import org.datamate.identity.shared.event.user.UserPasswordChangedEvent;
-import org.datamate.identity.shared.event.user.UserInformationUpdatedEvent;
-import org.datamate.identity.shared.event.user.UserRolesUpdatedEvent;
+import org.datamate.identity.user.domain.event.user.UserCreatedEvent;
+import org.datamate.identity.user.domain.event.user.UserActivatedEvent;
+import org.datamate.identity.user.domain.event.user.UserDeactivatedEvent;
+import org.datamate.identity.user.domain.event.user.UserPasswordResetByAdminEvent;
+import org.datamate.identity.user.domain.event.user.UserPasswordChangedEvent;
+import org.datamate.identity.user.domain.event.user.UserInformationUpdatedEvent;
+import org.datamate.identity.user.domain.event.user.UserRolesUpdatedEvent;
 import org.datamate.identity.shared.model.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 import org.datamate.identity.user.domain.exception.user.InvalidUserDataException;

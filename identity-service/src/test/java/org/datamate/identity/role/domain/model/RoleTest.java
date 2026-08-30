@@ -2,8 +2,8 @@ package org.datamate.identity.role.domain.model;
 
 import com.datamate.bedrock.framework.common.ddd.event.DomainEvent;
 import org.datamate.identity.role.domain.model.role.entity.Role;
-import org.datamate.identity.shared.event.role.RoleActivatedEvent;
-import org.datamate.identity.shared.event.role.RoleDeactivatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleActivatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleDeactivatedEvent;
 import org.datamate.identity.shared.model.RoleStatus;
 import org.datamate.identity.role.domain.exception.role.InvalidRoleDataException;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;

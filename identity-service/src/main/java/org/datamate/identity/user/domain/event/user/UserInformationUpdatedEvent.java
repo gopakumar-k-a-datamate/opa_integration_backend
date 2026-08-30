@@ -1,4 +1,4 @@
-package org.datamate.identity.shared.event.user;
+package org.datamate.identity.user.domain.event.user;
 
 import java.time.Instant;
 import java.util.UUID;

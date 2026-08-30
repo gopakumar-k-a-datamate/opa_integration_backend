@@ -2,10 +2,10 @@ package org.datamate.identity.role.adapter.in.event;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.shared.event.role.RoleCreatedEvent;
-import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
-import org.datamate.identity.shared.event.role.RoleActivatedEvent;
-import org.datamate.identity.shared.event.role.RoleDeactivatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleCreatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleUpdatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleActivatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleDeactivatedEvent;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 

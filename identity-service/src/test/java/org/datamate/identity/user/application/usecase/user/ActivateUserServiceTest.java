@@ -2,7 +2,6 @@ package org.datamate.identity.user.application.usecase.user;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.user.application.usecase.user.ActivateUserService;
 import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.user.domain.model.user.entity.User;
 import org.datamate.identity.shared.model.UserStatus;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.datamate.identity.shared.event.user.UserActivatedEvent;
+import org.datamate.identity.user.domain.event.user.UserActivatedEvent;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;

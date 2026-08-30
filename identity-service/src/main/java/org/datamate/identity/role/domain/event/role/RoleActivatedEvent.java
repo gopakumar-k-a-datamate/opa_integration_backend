@@ -1,4 +1,4 @@
-package org.datamate.identity.shared.event.role;
+package org.datamate.identity.role.domain.event.role;
 
 import java.time.Instant;
 import java.util.UUID;

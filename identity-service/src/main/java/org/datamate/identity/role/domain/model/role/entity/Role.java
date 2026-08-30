@@ -9,10 +9,10 @@ import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.datamate.identity.shared.event.role.RoleCreatedEvent;
-import org.datamate.identity.shared.event.role.RoleUpdatedEvent;
-import org.datamate.identity.shared.event.role.RoleActivatedEvent;
-import org.datamate.identity.shared.event.role.RoleDeactivatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleCreatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleUpdatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleActivatedEvent;
+import org.datamate.identity.role.domain.event.role.RoleDeactivatedEvent;
 
 @Getter
 public class Role extends AggregateRoot {
