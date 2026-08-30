@@ -12,7 +12,7 @@ import org.datamate.identity.user.domain.exception.user.InvalidRoleAssignmentExc
 import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.role.domain.model.role.entity.Role;
 import org.datamate.identity.user.domain.model.user.entity.User;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

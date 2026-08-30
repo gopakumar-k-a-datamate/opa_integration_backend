@@ -10,8 +10,8 @@ import org.datamate.identity.user.domain.exception.user.InvalidRoleAssignmentExc
 import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.role.domain.model.role.entity.Role;
 import org.datamate.identity.user.domain.model.user.entity.User;
-import org.datamate.identity.shared.model.RoleStatus;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.datamate.identity.user.domain.event.user.UserRolesUpdatedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

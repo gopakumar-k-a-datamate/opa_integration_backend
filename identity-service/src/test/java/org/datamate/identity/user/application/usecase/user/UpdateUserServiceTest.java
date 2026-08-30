@@ -9,7 +9,7 @@ import org.datamate.identity.user.domain.exception.user.UserAlreadyExistsExcepti
 import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.user.domain.model.user.entity.User;
 import org.datamate.identity.user.domain.event.user.UserInformationUpdatedEvent;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;

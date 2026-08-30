@@ -13,7 +13,7 @@ import lombok.Setter;
 import org.hibernate.envers.Audited;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

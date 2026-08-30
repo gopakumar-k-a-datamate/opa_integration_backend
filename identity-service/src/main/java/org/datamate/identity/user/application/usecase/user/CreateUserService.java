@@ -13,7 +13,7 @@ import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.user.domain.exception.user.UserAlreadyExistsException;
 import org.datamate.identity.role.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.role.domain.model.role.entity.Role;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import org.datamate.identity.role.domain.exception.role.RoleNotFoundException;
 import org.datamate.identity.user.domain.exception.user.InvalidRoleAssignmentException;
 import org.datamate.identity.user.domain.model.user.entity.User;

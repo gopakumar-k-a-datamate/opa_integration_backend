@@ -8,7 +8,7 @@ import org.datamate.identity.user.domain.event.user.UserPasswordResetByAdminEven
 import org.datamate.identity.user.domain.event.user.UserPasswordChangedEvent;
 import org.datamate.identity.user.domain.event.user.UserInformationUpdatedEvent;
 import org.datamate.identity.user.domain.event.user.UserRolesUpdatedEvent;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 import org.datamate.identity.user.domain.exception.user.InvalidUserDataException;
 

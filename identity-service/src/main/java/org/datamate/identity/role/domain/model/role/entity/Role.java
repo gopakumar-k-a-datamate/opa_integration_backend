@@ -1,7 +1,7 @@
 package org.datamate.identity.role.domain.model.role.entity;
 
 import lombok.Getter;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import org.datamate.identity.role.domain.exception.role.InvalidRoleDataException;
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;

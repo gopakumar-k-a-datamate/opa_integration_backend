@@ -10,7 +10,7 @@ import org.datamate.identity.role.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.role.application.port.in.role.ListRolesUseCase;
 import org.datamate.identity.role.application.port.in.role.SelectRolesUseCase;
 import org.datamate.identity.role.application.query.role.RoleSearchCriteria;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import org.datamate.identity.role.application.port.in.role.UpdateRoleUseCase;
 import org.datamate.identity.role.application.port.in.role.ActivateRoleUseCase;
 import org.datamate.identity.role.application.port.in.role.DeactivateRoleUseCase;

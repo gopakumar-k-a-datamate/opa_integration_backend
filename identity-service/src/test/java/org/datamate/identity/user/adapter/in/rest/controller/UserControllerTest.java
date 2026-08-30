@@ -12,7 +12,7 @@ import org.datamate.identity.user.application.port.in.user.GetUserUseCase;
 import org.datamate.identity.user.application.port.in.user.ActivateUserUseCase;
 import org.datamate.identity.user.application.port.in.user.DeactivateUserUseCase;
 import org.datamate.identity.user.domain.exception.user.UserNotFoundException;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.junit.jupiter.api.BeforeEach;

@@ -2,7 +2,7 @@ package org.datamate.identity.role.domain.event.role;
 
 import java.time.Instant;
 import java.util.UUID;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 

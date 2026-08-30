@@ -18,7 +18,7 @@ import org.datamate.identity.role.application.service.role.AuditActorResolver;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import java.security.Principal;
 import org.datamate.identity.role.application.query.role.RoleSearchCriteria;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

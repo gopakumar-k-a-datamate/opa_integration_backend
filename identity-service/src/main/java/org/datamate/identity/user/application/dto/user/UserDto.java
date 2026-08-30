@@ -3,7 +3,7 @@ package org.datamate.identity.user.application.dto.user;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 
 public record UserDto(
         UUID id,

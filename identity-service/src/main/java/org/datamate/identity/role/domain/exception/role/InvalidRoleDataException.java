@@ -1,6 +1,6 @@
 package org.datamate.identity.role.domain.exception.role;
 
-import org.datamate.identity.auth.domain.exception.DomainException;
+import org.datamate.identity.role.domain.exception.domain.DomainException;
 
 public class InvalidRoleDataException extends DomainException {
 

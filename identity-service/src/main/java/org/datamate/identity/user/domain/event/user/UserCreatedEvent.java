@@ -2,7 +2,7 @@ package org.datamate.identity.user.domain.event.user;
 
 import java.time.Instant;
 import java.util.UUID;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import com.datamate.bedrock.framework.common.ddd.event.VersionedDomainEvent;
 
 import java.util.List;

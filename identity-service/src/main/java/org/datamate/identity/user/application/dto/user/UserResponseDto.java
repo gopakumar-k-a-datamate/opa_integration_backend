@@ -1,6 +1,6 @@
 package org.datamate.identity.user.application.dto.user;
 
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import java.util.List;
 import java.util.UUID;
 

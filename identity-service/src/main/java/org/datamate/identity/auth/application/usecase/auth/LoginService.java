@@ -12,7 +12,7 @@ import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.auth.domain.exception.InvalidCredentialsException;
 import org.datamate.identity.user.domain.exception.user.UserInactiveException;
 import org.datamate.identity.user.domain.model.user.entity.User;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

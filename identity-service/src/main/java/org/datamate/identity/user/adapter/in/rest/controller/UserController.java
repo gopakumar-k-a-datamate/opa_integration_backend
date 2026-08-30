@@ -18,7 +18,7 @@ import org.datamate.identity.user.application.dto.user.UserResponseDto;
 import org.datamate.identity.user.application.query.user.UserSearchCriteria;
 import org.datamate.identity.user.application.port.in.user.ListUserUseCase;
 import org.datamate.identity.user.application.port.in.user.GetUserUseCase;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;

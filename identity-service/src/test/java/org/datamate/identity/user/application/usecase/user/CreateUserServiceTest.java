@@ -12,14 +12,14 @@ import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.user.domain.event.user.UserCreatedEvent;
 import org.datamate.identity.user.domain.exception.user.UserAlreadyExistsException;
 import org.datamate.identity.user.domain.model.user.entity.User;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
 import org.datamate.identity.role.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.role.domain.model.role.entity.Role;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import org.datamate.identity.role.domain.exception.role.RoleNotFoundException;
 import org.datamate.identity.user.domain.exception.user.InvalidRoleAssignmentException;
 

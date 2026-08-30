@@ -9,7 +9,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.datamate.identity.user.adapter.out.persistence.user.entity.UserJpaEntity;
 import org.datamate.identity.user.application.query.user.UserSearchCriteria;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
 

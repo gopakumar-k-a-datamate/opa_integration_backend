@@ -4,11 +4,10 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.identity.auth.application.dto.auth.AuthResponse;
 import org.datamate.identity.auth.application.dto.auth.RefreshTokenRequest;
 import org.datamate.identity.auth.application.port.out.auth.TokenGeneratorPort;
-import org.datamate.identity.auth.application.usecase.auth.RefreshTokenService;
 import org.datamate.identity.user.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.auth.domain.exception.InvalidRefreshTokenException;
 import org.datamate.identity.user.domain.model.user.entity.User;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

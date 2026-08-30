@@ -18,7 +18,7 @@ import org.datamate.identity.role.adapter.out.persistence.role.entity.RoleJpaEnt
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.envers.RelationTargetAuditMode;
 

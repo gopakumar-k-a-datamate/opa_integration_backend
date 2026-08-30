@@ -10,7 +10,7 @@ import org.datamate.identity.role.adapter.out.persistence.role.specification.Rol
 import org.datamate.identity.role.application.port.out.role.RolePersistencePort;
 import org.datamate.identity.role.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.role.domain.model.role.entity.Role;
-import org.datamate.identity.shared.model.RoleStatus;
+import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import org.springframework.data.domain.Page;
