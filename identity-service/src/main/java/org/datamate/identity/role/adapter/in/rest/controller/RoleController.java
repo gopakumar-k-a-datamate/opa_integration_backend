@@ -9,7 +9,6 @@ import org.datamate.identity.role.application.dto.role.RoleSelectDto;
 import org.datamate.identity.role.application.port.in.role.CreateRoleUseCase;
 import org.datamate.identity.role.application.port.in.role.GetRoleUseCase;
 import org.datamate.identity.role.application.port.in.role.ListRolesUseCase;
-import org.datamate.identity.role.application.port.in.role.RoleManagementUseCase;
 import org.datamate.identity.role.application.port.in.role.SelectRolesUseCase;
 import org.datamate.identity.role.application.port.in.role.UpdateRoleUseCase;
 import org.datamate.identity.role.application.port.in.role.ActivateRoleUseCase;
@@ -40,7 +39,6 @@ public class RoleController {
     @EnableLogger
     private Logger log;
 
-    private final RoleManagementUseCase roleManagementUseCase;
     private final CreateRoleUseCase createRoleUseCase;
     private final ListRolesUseCase listRolesUseCase;
     private final SelectRolesUseCase selectRolesUseCase;
@@ -123,12 +121,5 @@ public class RoleController {
         EntityReference<UUID> adminUserRef = auditActorResolver.resolve(username);
         log.info("Deactivate role request received for ID: {} by admin: {}", id, username);
         deactivateRoleUseCase.deactivateRole(id, adminUserRef);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
-        log.info("Delete role request received for id {}", id);
-        roleManagementUseCase.deleteRole(id);
-        return ResponseEntity.noContent().build();
     }
 }
