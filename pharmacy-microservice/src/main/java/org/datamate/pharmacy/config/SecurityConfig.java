@@ -19,7 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-@Configuration
+@Configuration("pharmacySecurityConfig")
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableConfigurationProperties(SecurityProperties.class)
@@ -30,18 +30,25 @@ public class SecurityConfig {
         return new JwtTokenService(securityProperties);
     }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenService jwtTokenService) {
+    @Bean("pharmacyJwtAuthenticationFilter")
+    public JwtAuthenticationFilter pharmacyJwtAuthenticationFilter(JwtTokenService jwtTokenService) {
         return new JwtAuthenticationFilter(jwtTokenService);
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    @Bean("pharmacySecurityFilterChain")
+    @org.springframework.core.annotation.Order(2)
+    public SecurityFilterChain pharmacySecurityFilterChain(HttpSecurity http,
+                                                           @org.springframework.beans.factory.annotation.Qualifier("pharmacyJwtAuthenticationFilter") JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
+            .cors(cors -> cors.configurationSource(pharmacyCorsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll()
+                .requestMatchers("/actuator/**", "/error").permitAll()
                 .requestMatchers("/internal/authz/**").permitAll()
                 .anyRequest().permitAll()
             )
@@ -50,8 +57,8 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    @Bean("pharmacyCorsConfigurationSource")
+    public CorsConfigurationSource pharmacyCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

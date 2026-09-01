@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"org.datamate.pharmacy", "org.datamate.identity"})
 @EnableScheduling
 @EntityScan(basePackages = {"org.datamate.pharmacy"})
 @EnableJpaRepositories(basePackages = {"org.datamate.pharmacy"})

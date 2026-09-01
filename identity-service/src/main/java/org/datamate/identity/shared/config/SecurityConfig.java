@@ -26,7 +26,7 @@ import com.datamate.bedrock.framework.common.security.jwt.service.JwtTokenServic
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
 
-@Configuration
+@Configuration("identitySecurityConfig")
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableConfigurationProperties(SecurityProperties.class)
@@ -36,21 +36,17 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final RevisionMetadataFilter revisionMetadataFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Bean("identitySecurityFilterChain")
+    @org.springframework.core.annotation.Order(1)
+    public SecurityFilterChain identitySecurityFilterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher("/api/v1/auth/**", "/api/v1/users/**", "/api/v1/roles/**")
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
+            .cors(cors -> cors.configurationSource(identityCorsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html"
-                ).permitAll()
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/refresh").permitAll()
-                .requestMatchers("/api/v1/roles", "/api/v1/roles/**", "/api/v1/users", "/api/v1/users/**").permitAll()
-                .requestMatchers("/actuator/**", "/error").permitAll()
+                .requestMatchers("/api/v1/roles", "/api/v1/roles/**", "/api/v1/users", "/api/v1/users/**").hasAuthority("IDENTITY_ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -64,8 +60,8 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    @Bean("identityCorsConfigurationSource")
+    public CorsConfigurationSource identityCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Admin UI
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

@@ -46,6 +46,11 @@
             <artifactId>bedrock-authz-starter</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.datamate</groupId>
+            <artifactId>identity-service</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <!-- Bedrock JWT filter only (no OTP/Notifications/WebSocket baggage) -->
         <dependency>
             <groupId>com.datamate.bedrock.framework.common.security</groupId>
