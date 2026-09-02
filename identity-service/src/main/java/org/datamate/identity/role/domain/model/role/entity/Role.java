@@ -136,6 +136,10 @@ public class Role extends AggregateRoot {
     public Role updateInformation(String name, String description, EntityReference<UUID> lastModifiedBy) {
         validateUpdate(name, lastModifiedBy);
 
+        if ("SECURITY_ADMIN".equalsIgnoreCase(this.name) && !this.name.equalsIgnoreCase(name)) {
+            throw new InvalidRoleDataException("role.validation.system.role", "System role 'SECURITY_ADMIN' cannot be renamed.");
+        }
+
         Role updatedRole = new Role(
                 this.id,
                 name,
@@ -192,6 +196,9 @@ public class Role extends AggregateRoot {
     }
 
     public Role deactivate(EntityReference<UUID> updatedBy) {
+        if ("SECURITY_ADMIN".equalsIgnoreCase(this.name)) {
+            throw new InvalidRoleDataException("role.validation.system.role", "System role 'SECURITY_ADMIN' cannot be deactivated.");
+        }
         if (this.status == RoleStatus.INACTIVE) {
             throw new InvalidRoleDataException("role.validation.already.inactive", "Role is already inactive.");
         }

@@ -46,6 +46,18 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
             if (role.getStatus() != RoleStatus.ACTIVE) {
                 throw new InvalidRoleAssignmentException(roleName);
             }
+
+            if ("SECURITY_ADMIN".equalsIgnoreCase(roleName)) {
+                boolean isCallerSecurityAdmin = adminUsername != null && (
+                        adminUsername.equalsIgnoreCase("admin@123.com") ||
+                        userPort.findByUserNameOrEmail(adminUsername, adminUsername)
+                                .map(u -> u.getRoles().contains("SECURITY_ADMIN"))
+                                .orElse(false)
+                );
+                if (!isCallerSecurityAdmin) {
+                    throw new InvalidRoleAssignmentException("Access Denied: Only a SECURITY_ADMIN can assign the SECURITY_ADMIN role.", roleName);
+                }
+            }
         }
 
         User updatedUser = user.assignRoles(request.roles(), adminUsername);

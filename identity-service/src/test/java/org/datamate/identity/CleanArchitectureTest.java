@@ -148,7 +148,9 @@ public class CleanArchitectureTest {
                         "com.datamate.bedrock..",
                         "org.datamate.sharedkernel..",
                         "org.datamate.identity.shared..",
-                        "net.coobird.thumbnailator.."
+                        "net.coobird.thumbnailator..",
+                        "javax..",
+                        "io.jsonwebtoken.."
                 ));
 
         rule.check(classes);
