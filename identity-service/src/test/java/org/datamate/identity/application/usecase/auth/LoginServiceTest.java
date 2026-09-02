@@ -1,15 +1,16 @@
 package org.datamate.identity.application.usecase.auth;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.dto.auth.AuthResponse;
-import org.datamate.identity.application.dto.auth.LoginRequest;
-import org.datamate.identity.application.port.out.PasswordEncoderPort;
-import org.datamate.identity.application.port.out.TokenGeneratorPort;
-import org.datamate.identity.application.port.out.user.UserPersistencePort;
-import org.datamate.identity.domain.exception.InvalidCredentialsException;
-import org.datamate.identity.domain.exception.user.UserInactiveException;
-import org.datamate.identity.domain.model.User;
-import org.datamate.identity.shared.model.UserStatus;
+import org.datamate.identity.identity.application.dto.auth.AuthResponse;
+import org.datamate.identity.identity.application.dto.auth.LoginRequest;
+import org.datamate.identity.identity.application.port.out.PasswordEncoderPort;
+import org.datamate.identity.identity.application.port.out.TokenGeneratorPort;
+import org.datamate.identity.identity.application.port.out.user.UserPersistencePort;
+import org.datamate.identity.identity.application.usecase.auth.LoginService;
+import org.datamate.identity.identity.domain.exception.auth.InvalidCredentialsException;
+import org.datamate.identity.identity.domain.exception.user.UserInactiveException;
+import org.datamate.identity.identity.domain.model.user.entity.User;
+import org.datamate.identity.identity.domain.model.user.enums.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

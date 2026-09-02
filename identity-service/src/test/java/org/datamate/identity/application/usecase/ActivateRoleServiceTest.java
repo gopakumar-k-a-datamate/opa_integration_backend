@@ -1,13 +1,13 @@
 package org.datamate.identity.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.port.out.role.RolePersistencePort;
-import org.datamate.identity.application.usecase.role.ActivateRoleService;
-import org.datamate.identity.domain.exception.role.RoleNotFoundException;
-import org.datamate.identity.domain.exception.role.InvalidRoleDataException;
-import org.datamate.identity.domain.model.Role;
-import org.datamate.identity.shared.model.RoleStatus;
-import org.datamate.identity.shared.event.role.RoleActivatedEvent;
+import org.datamate.identity.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.identity.application.usecase.role.ActivateRoleService;
+import org.datamate.identity.identity.domain.exception.role.RoleNotFoundException;
+import org.datamate.identity.identity.domain.exception.role.InvalidRoleDataException;
+import org.datamate.identity.identity.domain.model.role.entity.Role;
+import org.datamate.identity.identity.domain.model.role.enums.RoleStatus;
+import org.datamate.identity.identity.domain.event.role.RoleActivatedEvent;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import com.datamate.bedrock.framework.common.ddd.datatype.ResourceIdentifier;
 import org.junit.jupiter.api.BeforeEach;
