@@ -129,4 +129,69 @@ class RoleTest {
 
         assertThrows(InvalidRoleDataException.class, () -> role.deactivate(adminUserRef));
     }
+
+    @Test
+    void shouldThrowInvalidRoleDataExceptionWhenDeactivatingSecurityAdmin() {
+        Role role = Role.reconstitute(
+                roleId,
+                "SECURITY_ADMIN",
+                "Description",
+                RoleStatus.ACTIVE,
+                null,
+                null,
+                1L,
+                1L,
+                adminUserRef,
+                LocalDateTime.now(),
+                adminUserRef,
+                LocalDateTime.now()
+        );
+
+        InvalidRoleDataException ex = assertThrows(InvalidRoleDataException.class, () -> role.deactivate(adminUserRef));
+        assertEquals("role.validation.system.role", ex.getErrorCode());
+    }
+
+    @Test
+    void shouldThrowInvalidRoleDataExceptionWhenRenamingSecurityAdmin() {
+        Role role = Role.reconstitute(
+                roleId,
+                "SECURITY_ADMIN",
+                "Description",
+                RoleStatus.ACTIVE,
+                null,
+                null,
+                1L,
+                1L,
+                adminUserRef,
+                LocalDateTime.now(),
+                adminUserRef,
+                LocalDateTime.now()
+        );
+
+        InvalidRoleDataException ex = assertThrows(InvalidRoleDataException.class, () -> role.updateInformation("NEW_NAME", "New Desc", adminUserRef));
+        assertEquals("role.validation.system.role", ex.getErrorCode());
+    }
+
+    @Test
+    void shouldMaintainDistinctRolesInSet() {
+        org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity r1 = new org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity();
+        r1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        r1.setName("SECURITY_ADMIN");
+
+        org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity r2 = new org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity();
+        r2.setId(UUID.fromString("11111111-1111-1111-1111-111111111111"));
+        r2.setName("ADMIN");
+
+        org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity r3 = new org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity();
+        r3.setId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
+        r3.setName("USER");
+
+        java.util.Set<org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity> set = new java.util.HashSet<>();
+        set.add(r1);
+        set.add(r2);
+        set.add(r3);
+
+        System.out.println("ROLE_SET_SIZE: " + set.size());
+        assertEquals(3, set.size());
+    }
 }
