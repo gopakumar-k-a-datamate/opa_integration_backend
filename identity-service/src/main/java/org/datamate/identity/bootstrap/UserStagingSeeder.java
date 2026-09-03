@@ -32,6 +32,7 @@ public class UserStagingSeeder {
         UUID supportId = insertUser("support@123.com", commonPassword, "System", "Support");
 
         if (adminId != null) {
+            insertUserRole(adminId, RoleStagingSeeder.SECURITY_ADMIN_ID); // SECURITY_ADMIN
             insertUserRole(adminId, RoleStagingSeeder.ADMIN_ID); // ADMIN
             insertUserRole(adminId, RoleStagingSeeder.USER_ID); // USER
         }

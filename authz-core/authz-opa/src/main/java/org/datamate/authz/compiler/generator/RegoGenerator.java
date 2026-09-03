@@ -124,6 +124,11 @@ public class RegoGenerator {
             sb.append("}\n\n");
         }
 
+        if ("identity".equalsIgnoreCase(namespace)) {
+            sb.append("# Root Administrator Bypass Rule\n");
+            sb.append("allow if {\n    \"SECURITY_ADMIN\" in input.user.roles\n}\n\n");
+        }
+
         sb.append("allow if {\n    allow_rule\n    not deny_rule\n}\n");
         return sb.toString();
     }

@@ -129,4 +129,46 @@ class RoleTest {
 
         assertThrows(InvalidRoleDataException.class, () -> role.deactivate(adminUserRef));
     }
+
+    @Test
+    void shouldThrowInvalidRoleDataExceptionWhenDeactivatingSecurityAdmin() {
+        Role role = Role.reconstitute(
+                roleId,
+                "SECURITY_ADMIN",
+                "Description",
+                RoleStatus.ACTIVE,
+                null,
+                null,
+                1L,
+                1L,
+                adminUserRef,
+                LocalDateTime.now(),
+                adminUserRef,
+                LocalDateTime.now()
+        );
+
+        InvalidRoleDataException ex = assertThrows(InvalidRoleDataException.class, () -> role.deactivate(adminUserRef));
+        assertEquals("role.validation.system.role", ex.getErrorCode());
+    }
+
+    @Test
+    void shouldThrowInvalidRoleDataExceptionWhenRenamingSecurityAdmin() {
+        Role role = Role.reconstitute(
+                roleId,
+                "SECURITY_ADMIN",
+                "Description",
+                RoleStatus.ACTIVE,
+                null,
+                null,
+                1L,
+                1L,
+                adminUserRef,
+                LocalDateTime.now(),
+                adminUserRef,
+                LocalDateTime.now()
+        );
+
+        InvalidRoleDataException ex = assertThrows(InvalidRoleDataException.class, () -> role.updateInformation("NEW_NAME", "New Desc", adminUserRef));
+        assertEquals("role.validation.system.role", ex.getErrorCode());
+    }
 }

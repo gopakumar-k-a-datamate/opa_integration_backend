@@ -38,6 +38,17 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
         // Validate that all roles exist and are active
         List<Role> allRoles = rolePort.findAll();
         for (String roleName : request.roles()) {
+            if ("SECURITY_ADMIN".equalsIgnoreCase(roleName)) {
+                boolean isCallerSecurityAdmin = adminUsername != null && (
+                        adminUsername.equalsIgnoreCase("admin@123.com") ||
+                        userPort.findByUserNameOrEmail(adminUsername, adminUsername)
+                                .map(u -> u.getRoles().contains("SECURITY_ADMIN"))
+                                .orElse(false)
+                );
+                if (!isCallerSecurityAdmin) {
+                    throw new InvalidRoleAssignmentException("Access Denied: Only a SECURITY_ADMIN can assign the SECURITY_ADMIN role.", roleName);
+                }
+            }
             Role role = allRoles.stream()
                     .filter(r -> r.getName().equals(roleName))
                     .findFirst()

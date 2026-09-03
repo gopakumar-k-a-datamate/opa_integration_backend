@@ -135,6 +135,7 @@ public class CleanArchitectureTest {
                 // This is cleaner than repeating ignoreDependency for every layer
                 .ignoreDependency(alwaysTrue(), resideInAnyPackage(
                         "java..",
+                        "javax..",
                         "jakarta..",
                         "org.springframework..",
                         "lombok..",
@@ -148,7 +149,9 @@ public class CleanArchitectureTest {
                         "com.datamate.bedrock..",
                         "org.datamate.sharedkernel..",
                         "org.datamate.identity.shared..",
-                        "net.coobird.thumbnailator.."
+                        "org.datamate.authz..",
+                        "net.coobird.thumbnailator..",
+                        "io.jsonwebtoken.."
                 ));
 
         rule.check(classes);

@@ -19,6 +19,7 @@ import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import java.security.Principal;
 import org.datamate.identity.role.application.query.role.RoleSearchCriteria;
 import org.datamate.identity.role.domain.model.role.enums.RoleStatus;
+import org.datamate.authz.annotation.ProtectedResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,6 +49,7 @@ public class RoleController {
     private final DeactivateRoleUseCase deactivateRoleUseCase;
     private final AuditActorResolver auditActorResolver;
 
+    @ProtectedResource("identity:role:create")
     @PostMapping
     @AuditLog(action = "CREATE_ROLE", resource = "ROLE", description = "Create new role")
     @Operation(summary = "Create a new role", description = "Creates a new role with the provided name, description, and status.")
@@ -56,6 +58,7 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createRoleUseCase.createRole(request));
     }
 
+    @ProtectedResource("identity:role:read")
     @GetMapping("/select")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Select roles", description = "Retrieves a simplified list (id and name) of only active roles, optionally filtered by a search query.")
@@ -64,6 +67,7 @@ public class RoleController {
         return selectRolesUseCase.selectRoles(search);
     }
 
+    @ProtectedResource("identity:role:read")
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get role details", description = "Retrieve a role's detailed information by their unique ID.")
@@ -72,6 +76,7 @@ public class RoleController {
         return getRoleUseCase.getRoleById(id);
     }
 
+    @ProtectedResource("identity:role:read")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "List roles", description = "Retrieves a list of roles, optionally filtered by role name search query and status, with support for pagination.")
@@ -86,6 +91,7 @@ public class RoleController {
         return listRolesUseCase.listRoles(criteria, pageQuery);
     }
 
+    @ProtectedResource("identity:role:update")
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "UPDATE_ROLE", resource = "ROLE", description = "Update role details")
@@ -101,6 +107,7 @@ public class RoleController {
         return updateRoleUseCase.updateRole(id, request, adminUserRef);
     }
 
+    @ProtectedResource("identity:role:activate")
     @PostMapping("/{id}/activate")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "ACTIVATE_ROLE", resource = "ROLE", description = "Activate role")
@@ -112,6 +119,7 @@ public class RoleController {
         activateRoleUseCase.activateRole(id, adminUserRef);
     }
 
+    @ProtectedResource("identity:role:deactivate")
     @PostMapping("/{id}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "DEACTIVATE_ROLE", resource = "ROLE", description = "Deactivate role")

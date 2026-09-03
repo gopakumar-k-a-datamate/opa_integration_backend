@@ -22,6 +22,7 @@ import org.datamate.identity.user.domain.model.user.enums.UserStatus;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import io.swagger.v3.oas.annotations.Operation;
+import org.datamate.authz.annotation.ProtectedResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.datamate.identity.user.application.port.in.user.UpdateUserUseCase;
@@ -53,6 +54,7 @@ public class UserController {
     private final UpdateUserUseCase updateUserUseCase;
     private final UpdateUserRolesUseCase updateUserRolesUseCase;
 
+    @ProtectedResource("identity:user:create")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @AuditLog(action = "CREATE_USER", resource = "USER", description = "Create user account")
@@ -62,6 +64,7 @@ public class UserController {
         return createUserUseCase.createUser(request);
     }
 
+    @ProtectedResource("identity:user:read")
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get user details", description = "Retrieve a user's detailed information by their unique ID.")
@@ -70,6 +73,7 @@ public class UserController {
         return getUserUseCase.getUserById(id);
     }
 
+    @ProtectedResource("identity:user:read")
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "List users", description = "Search and filter user accounts using search query, role, and status, with support for pagination.")
@@ -88,6 +92,7 @@ public class UserController {
         return result;
     }
 
+    @ProtectedResource("identity:user:activate")
     @PostMapping("/{id}/activate")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "ACTIVATE_USER", resource = "USER", description = "Activate user account")
@@ -98,6 +103,7 @@ public class UserController {
         activateUserUseCase.activateUser(id, adminUsername);
     }
 
+    @ProtectedResource("identity:user:deactivate")
     @PostMapping("/{id}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "DEACTIVATE_USER", resource = "USER", description = "Deactivate user account")
@@ -107,6 +113,8 @@ public class UserController {
         log.info("Deactivate user request received for ID: {} by admin: {}", id, adminUsername);
         deactivateUserUseCase.deactivateUser(id, adminUsername);
     }
+
+    @ProtectedResource("identity:user:reset_password")
     @PostMapping("/{id}/reset-password")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "RESET_USER_PASSWORD", resource = "USER", description = "Administrator reset user password")
@@ -116,6 +124,7 @@ public class UserController {
         return resetPasswordUseCase.resetPassword(id, request);
     }
 
+    @ProtectedResource("identity:user:change_password")
     @PostMapping("/{id}/change-password")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "CHANGE_USER_PASSWORD", resource = "USER", description = "User changed password")
@@ -125,6 +134,7 @@ public class UserController {
         return changePasswordUseCase.changePassword(id, request);
     }
 
+    @ProtectedResource("identity:user:update")
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "UPDATE_USER", resource = "USER", description = "Update user details")
@@ -139,6 +149,7 @@ public class UserController {
         return updateUserUseCase.updateUser(id, request, adminUsername);
     }
 
+    @ProtectedResource("identity:user:assign_roles")
     @PutMapping("/{id}/roles")
     @ResponseStatus(HttpStatus.OK)
     @AuditLog(action = "ASSIGN_USER_ROLES", resource = "USER", description = "Update user role assignments")
@@ -153,6 +164,7 @@ public class UserController {
         return updateUserRolesUseCase.updateUserRoles(id, request, adminUsername);
     }
     
+    @ProtectedResource("identity:user:read")
     @GetMapping("/login-history")
     @ResponseStatus(HttpStatus.OK)
     public Paged<LoginHistoryDto> getLoginHistory(

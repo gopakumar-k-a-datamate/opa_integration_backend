@@ -175,4 +175,62 @@ class UpdateUserRolesServiceTest {
         UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("INACTIVE_ROLE"));
         assertThrows(InvalidRoleAssignmentException.class, () -> service.updateUserRoles(userId, request, "admin_user"));
     }
+
+    @Test
+    void shouldThrowInvalidRoleAssignmentExceptionWhenNonSecurityAdminAssignsSecurityAdmin() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.reconstitute(
+                userId, "test_user", "test@example.com", "+12345",
+                "hash", "John", "Doe", "ELLIDER", "EXT-1",
+                UserStatus.ACTIVE, new ArrayList<>(), false, 1L, 1L,
+                "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+        );
+
+        Role secAdminRole = Role.reconstitute(
+                UUID.randomUUID(), "SECURITY_ADMIN", "Security Admin", RoleStatus.ACTIVE,
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(rolePort.findAll()).thenReturn(List.of(secAdminRole));
+        when(userPort.findByUserNameOrEmail("standard_admin", "standard_admin")).thenReturn(Optional.of(
+                User.reconstitute(
+                        UUID.randomUUID(), "standard_admin", "standard@example.com", "+12345",
+                        "hash", "Standard", "Admin", "ELLIDER", "EXT-1",
+                        UserStatus.ACTIVE, List.of("ADMIN"), false, 1L, 1L,
+                        "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+                )
+        ));
+
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("SECURITY_ADMIN"));
+        InvalidRoleAssignmentException ex = assertThrows(InvalidRoleAssignmentException.class,
+                () -> service.updateUserRoles(userId, request, "standard_admin"));
+        assertTrue(ex.getMessage().contains("Only a SECURITY_ADMIN can assign the SECURITY_ADMIN role"));
+    }
+
+    @Test
+    void shouldAllowSecurityAdminToAssignSecurityAdminRole() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.reconstitute(
+                userId, "test_user", "test@example.com", "+12345",
+                "hash", "John", "Doe", "ELLIDER", "EXT-1",
+                UserStatus.ACTIVE, new ArrayList<>(), false, 1L, 1L,
+                "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+        );
+
+        Role secAdminRole = Role.reconstitute(
+                UUID.randomUUID(), "SECURITY_ADMIN", "Security Admin", RoleStatus.ACTIVE,
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(rolePort.findAll()).thenReturn(List.of(secAdminRole));
+        when(userPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("SECURITY_ADMIN"));
+        UserDto result = service.updateUserRoles(userId, request, "admin@123.com");
+
+        assertNotNull(result);
+        assertTrue(result.roles().contains("SECURITY_ADMIN"));
+    }
 }
