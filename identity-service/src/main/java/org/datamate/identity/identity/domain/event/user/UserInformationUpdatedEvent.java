@@ -10,6 +10,7 @@ public record UserInformationUpdatedEvent(
         Long domainVersion,
         String schemaVersion,
         Instant occurredOn,
+        String userName,
         String email,
         String phoneNumber,
         String firstName,
@@ -21,7 +22,7 @@ public record UserInformationUpdatedEvent(
     public static final String SCHEMA_VERSION = "1.0";
 
     public UserInformationUpdatedEvent(
-            UUID aggregateId, Long domainVersion, String email, String phoneNumber,
+            UUID aggregateId, Long domainVersion, String userName, String email, String phoneNumber,
             String firstName, String lastName, String referenceSystem, String referenceValue, String updatedBy
     ) {
         this(
@@ -30,6 +31,7 @@ public record UserInformationUpdatedEvent(
                 domainVersion,
                 SCHEMA_VERSION,
                 Instant.now(),
+                userName,
                 email,
                 phoneNumber,
                 firstName,

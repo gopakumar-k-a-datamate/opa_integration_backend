@@ -13,7 +13,8 @@ public sealed interface AuthorizationContext
                 AuthorizationContext.PoliciesAuthContext,
                 AuthorizationContext.SavePoliciesAuthContext,
                 AuthorizationContext.NamespacesAuthContext,
-                AuthorizationContext.BundleAuthContext {
+                AuthorizationContext.BundleAuthContext,
+                AuthorizationContext.SubjectsAuthContext {
 
     record FieldsAuthContext(String permissionCode) implements AuthorizationContext {}
 
@@ -24,4 +25,6 @@ public sealed interface AuthorizationContext
     record NamespacesAuthContext() implements AuthorizationContext {}
 
     record BundleAuthContext(String namespace) implements AuthorizationContext {}
+    
+    record SubjectsAuthContext(SubjectType type) implements AuthorizationContext {}
 }

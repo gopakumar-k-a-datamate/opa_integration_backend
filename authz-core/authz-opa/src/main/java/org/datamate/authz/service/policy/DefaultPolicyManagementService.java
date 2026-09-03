@@ -12,6 +12,7 @@ import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
+import org.datamate.authz.api.subject.SubjectManagementService;
 import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
@@ -47,6 +48,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
     private final ResourceRepository resourceRepository;
     private final PolicyRepository policyRepository;
     private final PolicyBundleCacheRepository bundleCacheRepository;
+    private final SubjectManagementService subjectManagementService;
     private final PolicyValidation validation;
     private final ObjectMapper objectMapper;
     private final AstBuilder astBuilder;
@@ -60,6 +62,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
             ResourceRepository resourceRepository,
             PolicyRepository policyRepository,
             PolicyBundleCacheRepository bundleCacheRepository,
+            SubjectManagementService subjectManagementService,
             PolicyValidation validation,
             ObjectMapper objectMapper,
             AstBuilder astBuilder) {
@@ -68,6 +71,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
         this.resourceRepository = resourceRepository;
         this.policyRepository = policyRepository;
         this.bundleCacheRepository = bundleCacheRepository;
+        this.subjectManagementService = subjectManagementService;
         this.validation = validation;
         this.objectMapper = objectMapper;
         this.astBuilder = astBuilder;
@@ -184,6 +188,12 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
         String targetNamespace = request.namespace();
 
         log.info("Processing SavePoliciesRequest for Subject: [{} {}], Namespace: '{}'", subjectType, subjectId, targetNamespace);
+
+        if (!subjectManagementService.subjectExists(subjectType, subjectId)) {
+            throw new AuthzInvalidPayloadException(
+                String.format("Subject %s with ID '%s' is not registered or is inactive in the authorization database.", subjectType, subjectId)
+            );
+        }
 
         List<Policy> allExisting = policyRepository.findBySubject(subjectType, subjectId);
         List<Permission> allPermissions = permissionRepository.findAllActive();

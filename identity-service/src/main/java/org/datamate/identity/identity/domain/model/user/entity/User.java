@@ -351,6 +351,7 @@ public class User extends AggregateRoot {
         updatedUser.registerEvent(new UserInformationUpdatedEvent(
                 this.id,
                 updatedUser.getDomainVersion() + 1,
+                userName,
                 email,
                 phoneNumber,
                 firstName,
