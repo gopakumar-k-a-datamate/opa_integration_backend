@@ -79,7 +79,7 @@ class DddArchitectureTest {
                 .and().resideInAPackage("..domain..")
                 .should().resideInAPackage("..domain.policy..")
                 .because("Business policies should be organized in domain.policy")
-                .allowEmptyShould(true);;
+                .allowEmptyShould(true);
 
         rule.check(classes);
     }
