@@ -1,10 +1,11 @@
 package org.datamate.identity.application.usecase.user;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.dto.user.LoginHistoryDto;
-import org.datamate.identity.application.port.out.audit.AuditLogPersistencePort;
+import org.datamate.identity.identity.application.dto.user.LoginHistoryDto;
+import org.datamate.identity.identity.application.port.out.audit.AuditLogPersistencePort;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import org.datamate.identity.identity.application.usecase.user.GetLoginHistoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -1,8 +1,8 @@
 package org.datamate.identity.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.datamate.identity.application.port.out.role.RolePersistencePort;
-import org.datamate.identity.application.usecase.role.RoleManagementService;
+import org.datamate.identity.identity.application.port.out.role.RolePersistencePort;
+import org.datamate.identity.identity.application.usecase.role.RoleManagementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
