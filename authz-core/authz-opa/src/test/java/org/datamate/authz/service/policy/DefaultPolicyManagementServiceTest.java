@@ -50,6 +50,7 @@ class DefaultPolicyManagementServiceTest {
     @Mock private PolicyValidation validation;
     @Mock private ObjectMapper objectMapper;
     @org.mockito.Spy private org.datamate.authz.compiler.AstBuilder astBuilder = new org.datamate.authz.compiler.AstBuilder();
+    @Mock private org.datamate.authz.api.subject.SubjectManagementService subjectManagementService;
 
     @Mock private com.datamate.bedrock.framework.common.logging.service.Logger log;
 
@@ -61,6 +62,7 @@ class DefaultPolicyManagementServiceTest {
         java.lang.reflect.Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(service, log);
+        org.mockito.Mockito.lenient().when(subjectManagementService.subjectExists(any(), anyString())).thenReturn(true);
     }
 
     @Test

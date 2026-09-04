@@ -102,7 +102,7 @@ class SubjectSyncContractTest {
     MessagePact roleCreatedPact(MessagePactBuilder builder) {
         PactDslJsonBody body = new PactDslJsonBody()
                 .stringMatcher("subjectType", "USER|ROLE", "ROLE")
-                .uuid("subjectId", "r1r2r3r4-0000-0000-0000-000000000001")
+                .uuid("subjectId", "d1d2d3d4-0000-0000-0000-000000000001")
                 .stringType("subjectName", "PHARMACIST")
                 .numberType("version", 1L)
                 .booleanType("deleted", false);
