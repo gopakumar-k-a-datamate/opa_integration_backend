@@ -15,6 +15,7 @@ import org.datamate.identity.identity.application.service.role.AuditActorResolve
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -32,6 +33,7 @@ public class CreateRoleService implements CreateRoleUseCase {
     private final AuditActorResolver auditActorResolver;
 
     @Override
+    @Transactional
     public RoleDto createRole(RoleRequest request) {
         log.info("Creating role '{}'", request.name());
         if (rolePort.existsByNameIgnoreCase(request.name())) {
