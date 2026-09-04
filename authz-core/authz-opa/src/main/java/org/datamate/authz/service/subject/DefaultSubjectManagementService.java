@@ -6,8 +6,8 @@ import org.datamate.authz.event.AuthzSubjectSyncEvent;
 import org.datamate.authz.jpa.entity.AuthzSubjectJpaEntity;
 import org.datamate.authz.jpa.repository.AuthzSubjectJpaRepository;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +22,8 @@ import java.util.Optional;
 @Service
 public class DefaultSubjectManagementService implements SubjectManagementService {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultSubjectManagementService.class);
+    @EnableLogger
+    private Logger log;
 
     private final AuthzSubjectJpaRepository subjectRepository;
 
@@ -33,7 +34,20 @@ public class DefaultSubjectManagementService implements SubjectManagementService
     @Override
     @Transactional
     public void apply(AuthzSubjectSyncEvent event) {
-        AuthzSubjectJpaEntity entity = subjectRepository
+        AuthzSubjectJpaEntity entity = findOrCreateSubject(event);
+
+        if (isStaleEvent(entity, event)) {
+            return;
+        }
+
+        updateSubjectFields(entity, event);
+        handleSoftDeleteAndActivation(entity, event);
+
+        subjectRepository.save(entity);
+    }
+
+    private AuthzSubjectJpaEntity findOrCreateSubject(AuthzSubjectSyncEvent event) {
+        return subjectRepository
                 .findBySubjectTypeAndSubjectId(event.subjectType(), event.subjectId())
                 .orElseGet(() -> {
                     AuthzSubjectJpaEntity newEntity = new AuthzSubjectJpaEntity();
@@ -42,14 +56,18 @@ public class DefaultSubjectManagementService implements SubjectManagementService
                     newEntity.setVersion(0L);
                     return newEntity;
                 });
+    }
 
-        // Version check for idempotency and out-of-order delivery
+    private boolean isStaleEvent(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
         if (entity.getId() != null && event.version() <= entity.getVersion()) {
             log.debug("Skipping stale subject sync event for {} {}. Event version {}, current version {}",
                     event.subjectType(), event.subjectId(), event.version(), entity.getVersion());
-            return;
+            return true;
         }
+        return false;
+    }
 
+    private void updateSubjectFields(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
         entity.setSubjectName(event.subjectName());
         entity.setDisplayName(event.displayName());
         entity.setEmail(event.email());
@@ -57,7 +75,9 @@ public class DefaultSubjectManagementService implements SubjectManagementService
         entity.setStatus(event.status());
         entity.setVersion(event.version());
         entity.setSyncedAt(LocalDateTime.now());
+    }
 
+    private void handleSoftDeleteAndActivation(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
         if (event.deleted()) {
             if (entity.getDeletedAt() == null) {
                 entity.setDeletedAt(LocalDateTime.now());
@@ -67,12 +87,12 @@ public class DefaultSubjectManagementService implements SubjectManagementService
             if (entity.getDeletedAt() != null) {
                 entity.setDeletedAt(null);
                 log.info("Re-activated synced subject {} {}", event.subjectType(), event.subjectId());
+            } else if (entity.getId() == null) {
+                log.info("Created synced subject {} {}", event.subjectType(), event.subjectId());
             } else {
-                log.info("Upserted synced subject {} {}", event.subjectType(), event.subjectId());
+                log.info("Updated synced subject {} {}", event.subjectType(), event.subjectId());
             }
         }
-
-        subjectRepository.save(entity);
     }
 
     @Override

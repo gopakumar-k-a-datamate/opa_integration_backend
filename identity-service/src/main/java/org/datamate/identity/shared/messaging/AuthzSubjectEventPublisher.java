@@ -9,8 +9,8 @@ import org.datamate.identity.identity.domain.event.user.UserCreatedEvent;
 import org.datamate.identity.identity.domain.event.user.UserDeactivatedEvent;
 import org.datamate.identity.identity.domain.event.user.UserInformationUpdatedEvent;
 import org.datamate.identity.shared.config.messaging.RabbitConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -36,7 +36,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class AuthzSubjectEventPublisher {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthzSubjectEventPublisher.class);
+    @EnableLogger
+    private Logger log;
+
     private final RabbitTemplate rabbitTemplate;
 
     public AuthzSubjectEventPublisher(RabbitTemplate rabbitTemplate) {
@@ -47,13 +49,12 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UserCreatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "USER",
+        publish(buildUserMessage(
                 event.aggregateId().toString(),
                 event.userName(),
-                event.firstName() + " " + event.lastName(),
+                event.firstName(),
+                event.lastName(),
                 event.email(),
-                null,             // description: not applicable for USER
                 event.status().name(),
                 event.domainVersion(),
                 false
@@ -62,13 +63,12 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UserInformationUpdatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "USER",
+        publish(buildUserMessage(
                 event.aggregateId().toString(),
                 event.userName(),
-                event.firstName() + " " + event.lastName(),
+                event.firstName(),
+                event.lastName(),
                 event.email(),
-                null,
                 "ACTIVE",         // update events only fire for active users
                 event.domainVersion(),
                 false
@@ -77,13 +77,12 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UserActivatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "USER",
+        publish(buildUserMessage(
                 event.aggregateId().toString(),
                 event.userName(),
-                event.firstName() + " " + event.lastName(),
+                event.firstName(),
+                event.lastName(),
                 event.email(),
-                null,
                 "ACTIVE",
                 event.domainVersion(),
                 false
@@ -92,13 +91,12 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UserDeactivatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "USER",
+        publish(buildUserMessage(
                 event.aggregateId().toString(),
                 event.userName(),
-                event.firstName() + " " + event.lastName(),
+                event.firstName(),
+                event.lastName(),
                 event.email(),
-                null,
                 "INACTIVE",
                 event.domainVersion(),
                 true
@@ -109,12 +107,9 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(RoleCreatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "ROLE",
+        publish(buildRoleMessage(
                 event.aggregateId().toString(),
                 event.name(),
-                event.name(),     // displayName = name for roles
-                null,             // email: not applicable for ROLE
                 event.description(),
                 event.status().name(),
                 event.domainVersion(),
@@ -124,12 +119,9 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(RoleUpdatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "ROLE",
+        publish(buildRoleMessage(
                 event.aggregateId().toString(),
                 event.name(),
-                event.name(),
-                null,
                 event.description(),
                 "ACTIVE",
                 event.domainVersion(),
@@ -139,12 +131,9 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(RoleActivatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "ROLE",
+        publish(buildRoleMessage(
                 event.aggregateId().toString(),
                 event.name(),
-                event.name(),
-                null,
                 null,             // description not carried in activation event
                 "ACTIVE",
                 event.domainVersion(),
@@ -154,17 +143,44 @@ public class AuthzSubjectEventPublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(RoleDeactivatedEvent event) {
-        publish(new SubjectSyncMessage(
-                "ROLE",
+        publish(buildRoleMessage(
                 event.aggregateId().toString(),
                 event.name(),
-                event.name(),
-                null,
                 null,             // description not carried in deactivation event
                 "INACTIVE",
                 event.domainVersion(),
                 true
         ));
+    }
+
+    // --- Private Builders & Publisher ---
+
+    private SubjectSyncMessage buildUserMessage(String id, String userName, String firstName, String lastName, String email, String status, long version, boolean deleted) {
+        return new SubjectSyncMessage(
+                "USER",
+                id,
+                userName,
+                firstName + " " + lastName,
+                email,
+                null,             // description: not applicable for USER
+                status,
+                version,
+                deleted
+        );
+    }
+
+    private SubjectSyncMessage buildRoleMessage(String id, String name, String description, String status, long version, boolean deleted) {
+        return new SubjectSyncMessage(
+                "ROLE",
+                id,
+                name,
+                name,             // displayName = name for roles
+                null,             // email: not applicable for ROLE
+                description,
+                status,
+                version,
+                deleted
+        );
     }
 
     private void publish(SubjectSyncMessage message) {

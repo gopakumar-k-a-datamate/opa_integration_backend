@@ -2,8 +2,8 @@ package org.datamate.pharmacy.messaging;
 
 import org.datamate.authz.api.subject.SubjectManagementService;
 import org.datamate.authz.event.AuthzSubjectSyncEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -44,7 +44,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubjectSyncRabbitListener {
 
-    private static final Logger log = LoggerFactory.getLogger(SubjectSyncRabbitListener.class);
+    @EnableLogger
+    private Logger log;
 
     private final SubjectManagementService subjectManagementService;
 
