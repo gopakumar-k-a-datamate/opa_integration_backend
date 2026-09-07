@@ -39,7 +39,7 @@ public class AuthzSubjectEventPublisher {
     @EnableLogger
     private Logger log;
 
-    private final RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate; //todo change to a interface implementation
 
     public AuthzSubjectEventPublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;

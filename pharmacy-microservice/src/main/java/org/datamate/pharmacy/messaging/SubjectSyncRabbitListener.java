@@ -68,7 +68,7 @@ public class SubjectSyncRabbitListener {
                 message.subjectType(), message.subjectId(), message.version(), message.deleted());
 
         // ACL Mapping: translate pharmacy's local DTO into the framework's internal event
-        AuthzSubjectSyncEvent event = new AuthzSubjectSyncEvent(
+        AuthzSubjectSyncEvent event = new AuthzSubjectSyncEvent( //todo change to AuthzSubjectSyncCommand
                 message.subjectType(),
                 message.subjectId(),
                 message.subjectName(),

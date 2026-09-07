@@ -58,6 +58,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
                 });
     }
 
+    //todo check concurrency in repository level
     private boolean isStaleEvent(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
         if (entity.getId() != null && event.version() <= entity.getVersion()) {
             log.debug("Skipping stale subject sync event for {} {}. Event version {}, current version {}",
@@ -95,6 +96,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
         }
     }
 
+    //todo change to seperate class (for read check standard)
     @Override
     @Transactional(readOnly = true)
     public boolean subjectExists(SubjectType type, String subjectId) {
