@@ -39,13 +39,13 @@ public class RoleStagingSeeder {
         String checkSql = "SELECT COUNT(*) FROM role WHERE id = ?";
         Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, id);
         if (count != null && count > 0) {
-            jdbcTemplate.update("UPDATE role SET status = 'ACTIVE' WHERE id = ? AND status = 'INACTIVE'", id);
-            log.info("Role '{}' already exists (ensured ACTIVE).", name);
+            jdbcTemplate.update("UPDATE role SET status = 'ACTIVE', is_system = TRUE WHERE id = ?", id);
+            log.info("Role '{}' already exists (ensured ACTIVE & is_system=true).", name);
             return;
         }
 
-        String sql = "INSERT INTO role (id, name, description, status, created_at, updated_at) VALUES (?, ?, ?, 'ACTIVE', ?, ?)";
+        String sql = "INSERT INTO role (id, name, description, status, is_system, created_at, updated_at) VALUES (?, ?, ?, 'ACTIVE', TRUE, ?, ?)";
         jdbcTemplate.update(sql, id, name, description, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
-        log.info("Inserted role '{}' with status ACTIVE.", name);
+        log.info("Inserted role '{}' with status ACTIVE and is_system=true.", name);
     }
 }

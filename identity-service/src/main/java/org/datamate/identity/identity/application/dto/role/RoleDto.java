@@ -7,6 +7,7 @@ public record RoleDto(
         UUID id,
         String name,
         String description,
-        RoleStatus status
+        RoleStatus status,
+        boolean isSystem
 ) {}
 

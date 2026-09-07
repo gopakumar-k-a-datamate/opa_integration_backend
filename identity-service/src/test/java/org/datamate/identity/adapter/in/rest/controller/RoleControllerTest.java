@@ -98,7 +98,7 @@ class RoleControllerTest {
     @Test
     void shouldCreateRoleSuccessfullyWhenValidRequestProvided() throws Exception {
         RoleRequest request = new RoleRequest("DENTIST", "Clinical Dentist Role");
-        RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.INACTIVE);
+        RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.INACTIVE, false);
 
         when(createRoleUseCase.createRole(any(RoleRequest.class))).thenReturn(responseDto);
 
@@ -124,7 +124,7 @@ class RoleControllerTest {
 
     @Test
     void shouldGetRoleSuccessfully() throws Exception {
-        RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE);
+        RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE, false);
         when(getRoleUseCase.getRoleById(eq(roleId))).thenReturn(responseDto);
 
         mockMvc.perform(get("/api/v1/roles/" + roleId)
@@ -136,7 +136,7 @@ class RoleControllerTest {
 
     @Test
     void shouldListRolesSuccessfully() throws Exception {
-        RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE);
+        RoleDto responseDto = new RoleDto(roleId, "DENTIST", "Clinical Dentist Role", RoleStatus.ACTIVE, false);
         Paged<RoleDto> pagedResult = new Paged<>(List.of(responseDto), 1, 10, 1L, 1, false, false);
         when(listRolesUseCase.listRoles(any(RoleSearchCriteria.class), any(PageQuery.class))).thenReturn(pagedResult);
 

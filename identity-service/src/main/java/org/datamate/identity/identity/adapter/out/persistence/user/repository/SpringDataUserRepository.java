@@ -3,6 +3,8 @@ package org.datamate.identity.identity.adapter.out.persistence.user.repository;
 import org.datamate.identity.identity.adapter.out.persistence.user.entity.UserJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -16,4 +18,7 @@ public interface SpringDataUserRepository extends JpaRepository<UserJpaEntity, U
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, UUID id);
     boolean existsByUserNameAndIdNot(String userName, UUID id);
+
+    @Query("SELECT COUNT(u) FROM UserJpaEntity u JOIN u.roles r WHERE r.name = :roleName AND u.status = org.datamate.identity.identity.domain.model.user.enums.UserStatus.ACTIVE AND u.id != :exceptUserId")
+    long countActiveUsersWithRoleExcept(@Param("roleName") String roleName, @Param("exceptUserId") UUID exceptUserId);
 }

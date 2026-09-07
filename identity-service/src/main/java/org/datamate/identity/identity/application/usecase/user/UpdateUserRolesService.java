@@ -60,6 +60,16 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
             }
         }
 
+        boolean currentlyHasSecurityAdmin = user.getRoles() != null && user.getRoles().contains("SECURITY_ADMIN");
+        boolean willHaveSecurityAdmin = request.roles().contains("SECURITY_ADMIN");
+
+        if (currentlyHasSecurityAdmin && !willHaveSecurityAdmin) {
+            long otherActiveSecurityAdmins = userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", userId);
+            if (otherActiveSecurityAdmins == 0) {
+                throw new InvalidRoleAssignmentException("Cannot remove SECURITY_ADMIN: at least one active SECURITY_ADMIN must exist in the system.", "SECURITY_ADMIN");
+            }
+        }
+
         User updatedUser = user.assignRoles(request.roles(), adminUsername);
         User savedUser = userPort.save(updatedUser);
 

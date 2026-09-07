@@ -41,6 +41,9 @@ public class RoleJpaEntity extends BaseAuditableEntity {
     @Column(nullable = false)
     private RoleStatus status;
 
+    @Column(name = "is_system", nullable = false)
+    private boolean isSystem = false;
+
     @Column(name = "reference_system", length = 50)
     private String referenceSystem;
 

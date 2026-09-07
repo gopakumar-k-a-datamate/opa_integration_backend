@@ -234,4 +234,29 @@ class UpdateUserRolesServiceTest {
         assertNotNull(result);
         assertTrue(result.roles().contains("SECURITY_ADMIN"));
     }
+
+    @Test
+    void shouldThrowWhenRemovingSecurityAdminFromLastActiveSecurityAdmin() {
+        UUID userId = UUID.randomUUID();
+        User adminUser = User.reconstitute(
+                userId, "admin@123.com", "admin@123.com", "+12345",
+                "hash", "System", "Admin", null, null,
+                UserStatus.ACTIVE, List.of("SECURITY_ADMIN", "ADMIN"), false, 1L, 1L,
+                "system", LocalDateTime.now(), "system", LocalDateTime.now()
+        );
+
+        Role userRole = Role.reconstitute(
+                UUID.randomUUID(), "USER", "User Role", RoleStatus.ACTIVE,
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(adminUser));
+        when(rolePort.findAll()).thenReturn(List.of(userRole));
+        when(userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", userId)).thenReturn(0L);
+
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("USER"));
+        InvalidRoleAssignmentException ex = assertThrows(InvalidRoleAssignmentException.class,
+                () -> service.updateUserRoles(userId, request, "admin@123.com"));
+        assertTrue(ex.getMessage().contains("Cannot remove SECURITY_ADMIN"));
+    }
 }

@@ -7,6 +7,10 @@ import org.datamate.identity.identity.application.port.in.role.RoleManagementUse
 import org.datamate.identity.identity.application.port.out.role.RolePersistencePort;
 import org.springframework.stereotype.Service;
 
+import org.datamate.identity.identity.domain.model.role.entity.Role;
+import org.datamate.identity.identity.domain.exception.role.RoleNotFoundException;
+import org.datamate.identity.identity.domain.exception.role.InvalidRoleDataException;
+
 import java.util.UUID;
 
 @Service
@@ -21,6 +25,13 @@ public class RoleManagementService implements RoleManagementUseCase {
     @Override
     public void deleteRole(UUID id) {
         log.info("Deleting role with id {}", id);
+        Role role = rolePort.findById(id)
+                .orElseThrow(RoleNotFoundException::new);
+
+        if (role.isSystem()) {
+            throw new InvalidRoleDataException("role.validation.system.role", "Built-in system role '" + role.getName() + "' cannot be deleted.");
+        }
+
         rolePort.delete(id);
     }
 }

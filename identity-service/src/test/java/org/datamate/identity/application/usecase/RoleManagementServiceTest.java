@@ -33,9 +33,35 @@ class RoleManagementServiceTest {
     @Test
     void shouldDeleteRoleSuccessfully() {
         UUID roleId = UUID.randomUUID();
+        org.datamate.identity.identity.domain.model.role.entity.Role customRole = 
+                org.datamate.identity.identity.domain.model.role.entity.Role.reconstitute(
+                        roleId, "CUSTOM_ROLE", "Custom Desc", 
+                        org.datamate.identity.identity.domain.model.role.enums.RoleStatus.ACTIVE, 
+                        false, null, null, 1L, 1L, null, null, null, null
+                );
+        when(rolePort.findById(roleId)).thenReturn(java.util.Optional.of(customRole));
 
         roleManagementService.deleteRole(roleId);
 
         verify(rolePort).delete(roleId);
+    }
+
+    @Test
+    void shouldThrowWhenDeletingSystemRole() {
+        UUID roleId = UUID.randomUUID();
+        org.datamate.identity.identity.domain.model.role.entity.Role systemRole = 
+                org.datamate.identity.identity.domain.model.role.entity.Role.reconstitute(
+                        roleId, "SECURITY_ADMIN", "System Desc", 
+                        org.datamate.identity.identity.domain.model.role.enums.RoleStatus.ACTIVE, 
+                        true, null, null, 1L, 1L, null, null, null, null
+                );
+        when(rolePort.findById(roleId)).thenReturn(java.util.Optional.of(systemRole));
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                org.datamate.identity.identity.domain.exception.role.InvalidRoleDataException.class,
+                () -> roleManagementService.deleteRole(roleId)
+        );
+
+        verify(rolePort, never()).delete(roleId);
     }
 }

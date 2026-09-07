@@ -11,6 +11,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.datamate.identity.identity.domain.exception.user.InvalidUserDataException;
+import org.datamate.identity.identity.domain.model.user.enums.UserStatus;
+
 import java.util.UUID;
 
 @Service
@@ -32,6 +35,14 @@ public class DeactivateUserService implements DeactivateUserUseCase {
             log.error("User deactivation failed. User not found for ID: {}", id);
             return new UserNotFoundException();
         });
+
+        if (user.getRoles() != null && user.getRoles().contains("SECURITY_ADMIN") && user.getStatus() == UserStatus.ACTIVE) {
+            long otherActiveAdmins = userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", id);
+            if (otherActiveAdmins == 0) {
+                log.warn("Attempted to deactivate the last active SECURITY_ADMIN (user ID: {})", id);
+                throw new InvalidUserDataException("user.validation.last.security.admin", "Cannot deactivate user: this is the last active SECURITY_ADMIN account in the system.");
+            }
+        }
 
         User deactivatedUser = user.deactivate(adminUsername);
         userPort.save(deactivatedUser);

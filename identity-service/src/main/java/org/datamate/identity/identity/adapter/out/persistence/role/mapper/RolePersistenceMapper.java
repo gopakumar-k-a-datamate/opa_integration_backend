@@ -19,6 +19,7 @@ public class RolePersistenceMapper {
                 entity.getName(),
                 entity.getDescription(),
                 entity.getStatus(),
+                entity.isSystem(),
                 entity.getReferenceSystem(),
                 entity.getReferenceValue(),
                 entity.getVersion(),
@@ -37,6 +38,7 @@ public class RolePersistenceMapper {
         entity.setName(role.getName());
         entity.setDescription(role.getDescription());
         entity.setStatus(role.getStatus());
+        entity.setSystem(role.isSystem());
         entity.setReferenceSystem(role.getReferenceSystem());
         entity.setReferenceValue(role.getReferenceValue());
         entity.setVersion(role.getVersion());

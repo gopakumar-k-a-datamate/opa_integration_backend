@@ -16,6 +16,7 @@ import org.datamate.identity.identity.domain.event.user.UserDeactivatedEvent;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -77,5 +78,26 @@ class DeactivateUserServiceTest {
         verify(userPort, never()).save(any(User.class));
         verify(log).info("Starting deactivation of user ID: {} by admin: {}", userId, "admin_user");
         verify(log).error("User deactivation failed. User not found for ID: {}", userId);
+    }
+
+    @Test
+    void shouldThrowWhenDeactivatingLastActiveSecurityAdmin() {
+        UUID userId = UUID.randomUUID();
+        User adminUser = User.reconstitute(
+                userId, "admin@123.com", "admin@123.com", "+12345",
+                "hash", "System", "Admin", null, null,
+                UserStatus.ACTIVE, List.of("SECURITY_ADMIN", "ADMIN"), false, 1L, 1L,
+                "system", LocalDateTime.now(), "system", LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(adminUser));
+        when(userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", userId)).thenReturn(0L);
+
+        assertThrows(
+                org.datamate.identity.identity.domain.exception.user.InvalidUserDataException.class,
+                () -> deactivateUserService.deactivateUser(userId, "admin_user")
+        );
+
+        verify(userPort, never()).save(any(User.class));
     }
 }

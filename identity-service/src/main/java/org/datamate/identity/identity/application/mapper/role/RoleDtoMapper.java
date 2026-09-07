@@ -12,7 +12,7 @@ public class RoleDtoMapper {
 
     public RoleDto toDto(Role role) {
         if (role == null) return null;
-        return new RoleDto(role.getId(), role.getName(), role.getDescription(), role.getStatus());
+        return new RoleDto(role.getId(), role.getName(), role.getDescription(), role.getStatus(), role.isSystem());
     }
 
     public RoleSelectDto toSelectDto(Role role) {
