@@ -11,7 +11,6 @@ import org.datamate.identity.identity.domain.event.user.UserInformationUpdatedEv
 import org.datamate.identity.shared.config.messaging.RabbitConfig;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -39,10 +38,10 @@ public class AuthzSubjectEventPublisher {
     @EnableLogger
     private Logger log;
 
-    private final RabbitTemplate rabbitTemplate; //todo change to a interface implementation
+    private final MessagePublisher messagePublisher;
 
-    public AuthzSubjectEventPublisher(RabbitTemplate rabbitTemplate) {
-        this.rabbitTemplate = rabbitTemplate;
+    public AuthzSubjectEventPublisher(MessagePublisher messagePublisher) {
+        this.messagePublisher = messagePublisher;
     }
 
     // --- User Events ---
@@ -186,6 +185,6 @@ public class AuthzSubjectEventPublisher {
     private void publish(SubjectSyncMessage message) {
         log.info("Publishing SubjectSyncMessage: type={}, id={}, status={}, version={}, deleted={}",
                 message.subjectType(), message.subjectId(), message.status(), message.version(), message.deleted());
-        rabbitTemplate.convertAndSend(RabbitConfig.AUTHZ_SUBJECT_SYNC_EXCHANGE, "", message);
+        messagePublisher.publish(RabbitConfig.AUTHZ_SUBJECT_SYNC_EXCHANGE, "", message);
     }
 }
