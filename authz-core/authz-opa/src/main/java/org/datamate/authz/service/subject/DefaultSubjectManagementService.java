@@ -2,7 +2,7 @@ package org.datamate.authz.service.subject;
 
 import org.datamate.authz.api.subject.SubjectManagementService;
 import org.datamate.authz.dto.subject.AuthzSubjectDto;
-import org.datamate.authz.event.AuthzSubjectSyncEvent;
+import org.datamate.authz.event.AuthzSubjectSyncCommand;
 import org.datamate.authz.jpa.entity.AuthzSubjectJpaEntity;
 import org.datamate.authz.jpa.repository.AuthzSubjectJpaRepository;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
@@ -33,7 +33,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
 
     @Override
     @Transactional
-    public void apply(AuthzSubjectSyncEvent event) {
+    public void apply(AuthzSubjectSyncCommand event) {
         AuthzSubjectJpaEntity entity = findOrCreateSubject(event);
 
         if (isStaleEvent(entity, event)) {
@@ -46,7 +46,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
         subjectRepository.save(entity);
     }
 
-    private AuthzSubjectJpaEntity findOrCreateSubject(AuthzSubjectSyncEvent event) {
+    private AuthzSubjectJpaEntity findOrCreateSubject(AuthzSubjectSyncCommand event) {
         return subjectRepository
                 .findBySubjectTypeAndSubjectId(event.subjectType(), event.subjectId())
                 .orElseGet(() -> {
@@ -59,7 +59,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
     }
 
     //todo check concurrency in repository level
-    private boolean isStaleEvent(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
+    private boolean isStaleEvent(AuthzSubjectJpaEntity entity, AuthzSubjectSyncCommand event) {
         if (entity.getId() != null && event.version() <= entity.getVersion()) {
             log.debug("Skipping stale subject sync event for {} {}. Event version {}, current version {}",
                     event.subjectType(), event.subjectId(), event.version(), entity.getVersion());
@@ -68,7 +68,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
         return false;
     }
 
-    private void updateSubjectFields(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
+    private void updateSubjectFields(AuthzSubjectJpaEntity entity, AuthzSubjectSyncCommand event) {
         entity.setSubjectName(event.subjectName());
         entity.setDisplayName(event.displayName());
         entity.setEmail(event.email());
@@ -78,7 +78,7 @@ public class DefaultSubjectManagementService implements SubjectManagementService
         entity.setSyncedAt(LocalDateTime.now());
     }
 
-    private void handleSoftDeleteAndActivation(AuthzSubjectJpaEntity entity, AuthzSubjectSyncEvent event) {
+    private void handleSoftDeleteAndActivation(AuthzSubjectJpaEntity entity, AuthzSubjectSyncCommand event) {
         if (event.deleted()) {
             if (entity.getDeletedAt() == null) {
                 entity.setDeletedAt(LocalDateTime.now());

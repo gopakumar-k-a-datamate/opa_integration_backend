@@ -8,7 +8,7 @@ package org.datamate.authz.event;
  * It is <strong>not</strong> a shared cross-service messaging contract.
  * Consumer services receive the raw JSON from RabbitMQ into their own local DTO
  * (e.g., {@code SubjectSyncMessage}) and map it to this record before calling
- * {@link org.datamate.authz.api.subject.SubjectManagementService#apply(AuthzSubjectSyncEvent)}.</p>
+ * {@link org.datamate.authz.api.subject.SubjectManagementService#apply(AuthzSubjectSyncCommand)}.</p>
  *
  * <h2>Unified Subject Model</h2>
  * <p>Both USER and ROLE subjects are stored uniformly. Fields not applicable to a subject type
@@ -29,7 +29,7 @@ package org.datamate.authz.event;
  * @param version       Monotonically increasing domain version; guards out-of-order delivery
  * @param deleted       {@code true} = subject was deactivated (soft-delete the local copy)
  */
-public record AuthzSubjectSyncEvent(
+public record AuthzSubjectSyncCommand(
         String subjectType,
         String subjectId,
         String subjectName,

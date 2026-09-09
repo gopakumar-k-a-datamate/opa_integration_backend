@@ -1,7 +1,7 @@
 package org.datamate.authz.api.subject;
 
 import org.datamate.authz.dto.subject.AuthzSubjectDto;
-import org.datamate.authz.event.AuthzSubjectSyncEvent;
+import org.datamate.authz.event.AuthzSubjectSyncCommand;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public interface SubjectManagementService {
      *
      * @param event the inbound sync event
      */
-    void apply(AuthzSubjectSyncEvent event);
+    void apply(AuthzSubjectSyncCommand event);
 
     /**
      * Returns {@code true} if the given subject is known and currently active

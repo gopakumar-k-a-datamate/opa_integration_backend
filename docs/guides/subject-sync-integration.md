@@ -67,7 +67,7 @@ Create a standard RabbitMQ listener in your microservice. You need to map your l
 package org.datamate.your_service.messaging;
 
 import org.datamate.authz.api.subject.SubjectManagementService;
-import org.datamate.authz.event.AuthzSubjectSyncEvent;
+import org.datamate.authz.event.AuthzSubjectSyncCommand;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;

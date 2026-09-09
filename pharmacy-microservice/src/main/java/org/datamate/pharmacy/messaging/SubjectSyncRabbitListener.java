@@ -1,7 +1,7 @@
 package org.datamate.pharmacy.messaging;
 
 import org.datamate.authz.api.subject.SubjectManagementService;
-import org.datamate.authz.event.AuthzSubjectSyncEvent;
+import org.datamate.authz.event.AuthzSubjectSyncCommand;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
  *   <li>Receives raw JSON from RabbitMQ and deserializes it into the Pharmacy Service's
  *       own {@link SubjectSyncMessage} record (not an authz-core class).</li>
  *   <li>Maps the {@link SubjectSyncMessage} to the framework's internal
- *       {@link AuthzSubjectSyncEvent}.</li>
- *   <li>Delegates to {@link SubjectManagementService#apply(AuthzSubjectSyncEvent)} for
+ *       {@link AuthzSubjectSyncCommand}.</li>
+ *   <li>Delegates to {@link SubjectManagementService#apply(AuthzSubjectSyncCommand)} for
  *       all persistence logic (upsert, soft-delete, idempotency checks).</li>
  * </ol>
  *
@@ -68,7 +68,7 @@ public class SubjectSyncRabbitListener {
                 message.subjectType(), message.subjectId(), message.version(), message.deleted());
 
         // ACL Mapping: translate pharmacy's local DTO into the framework's internal event
-        AuthzSubjectSyncEvent event = new AuthzSubjectSyncEvent( //todo change to AuthzSubjectSyncCommand
+        AuthzSubjectSyncCommand event = new AuthzSubjectSyncCommand( 
                 message.subjectType(),
                 message.subjectId(),
                 message.subjectName(),
