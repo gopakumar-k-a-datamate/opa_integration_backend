@@ -120,3 +120,157 @@ public class MyDomainService {
 ```
 
 Remember: The `@PolicyResource` and `@PolicyField` annotations act **purely as runtime markers** to extract data for the OPA evaluation payload. They do not auto-register anything in the database!
+
+---
+
+## 6. Activate Authz Management Endpoints
+
+The library ships pre-built REST controllers for managing policies, condition fields, namespaces, subjects, and serving OPA bundles. These controllers follow a **Bean-Activated** pattern — most are **dormant by default** and only become active when you provide a named `EndpointAuthorization` bean.
+
+This ensures it is structurally impossible to expose a management endpoint without explicitly providing an authorization rule for it.
+
+### Endpoint Reference
+
+| Endpoint | Method | Bean Constant | Auto-Configured? | Purpose |
+|---|---|---|---|---|
+| `/internal/authz/bundle/{namespace}` | `GET` | `AuthzBeans.BUNDLE` | ✅ Yes | Serve compiled OPA bundle to sidecar |
+| `/internal/authz/subjects` | `GET` | `AuthzBeans.SUBJECTS` | ✅ Yes | List subjects (users/roles) |
+| `/internal/authz/fields/{permissionCode}` | `GET` | `AuthzBeans.FIELDS` | ❌ No | Get condition fields for a permission |
+| `/internal/authz/policies` | `GET` | `AuthzBeans.POLICIES` | ❌ No | Retrieve policies by subject + namespace |
+| `/internal/authz/policies` | `PUT` | `AuthzBeans.SAVE_POLICIES` | ❌ No | Create or update policies |
+| `/internal/authz/namespaces` | `GET` | `AuthzBeans.NAMESPACES` | ❌ No | List available namespaces |
+
+> **Auto-configured endpoints** work out of the box with open access (or API-key protection for Bundle). If you define your own `@Bean` with the same name, the auto-configured bean backs off and yours takes over.
+>
+> **Consumer-activated endpoints** will not exist at runtime unless you define the corresponding bean. There will be no dangling 404 routes — the controller is simply never registered with Spring MVC.
+
+### Scenario A: Shared Authorization Rule
+
+If all endpoints share the same authorization logic (e.g., "must have MANAGE_POLICIES permission"), define a single lambda and reuse it:
+
+```java
+@Configuration
+public class AuthzEndpointConfig {
+
+    private final EndpointAuthorization commonAuth = context -> {
+        if (!currentUserHas("MANAGE_POLICIES")) {
+            throw new AccessDeniedException("Not authorized");
+        }
+    };
+
+    @Bean(AuthzBeans.FIELDS)
+    public EndpointAuthorization fieldsAuth()       { return commonAuth; }
+
+    @Bean(AuthzBeans.POLICIES)
+    public EndpointAuthorization policiesAuth()      { return commonAuth; }
+
+    @Bean(AuthzBeans.SAVE_POLICIES)
+    public EndpointAuthorization savePoliciesAuth()  { return commonAuth; }
+
+    @Bean(AuthzBeans.NAMESPACES)
+    public EndpointAuthorization namespacesAuth()    { return commonAuth; }
+}
+```
+
+### Scenario B: Fine-Grained Authorization
+
+If different endpoints need different rules, define specific logic per bean. The `AuthorizationContext` is a sealed interface with type-safe variants for each endpoint:
+
+```java
+@Configuration
+public class AuthzEndpointConfig {
+
+    @Bean(AuthzBeans.FIELDS)
+    public EndpointAuthorization fieldsAuth() {
+        return context -> {
+            // Read-only — just requires authentication
+            if (!isAuthenticated()) {
+                throw new AccessDeniedException("Login required");
+            }
+        };
+    }
+
+    @Bean(AuthzBeans.SAVE_POLICIES)
+    public EndpointAuthorization saveAuth() {
+        return context -> {
+            // Write access — requires specific role
+            if (!currentUserHas("MANAGE_POLICIES_WRITE")) {
+                throw new AccessDeniedException("Write access required");
+            }
+        };
+    }
+}
+```
+
+The following `AuthorizationContext` subtypes are available for pattern matching:
+
+| Bean | Context Type | Fields |
+|---|---|---|
+| `FIELDS` | `FieldsAuthContext` | `permissionCode` |
+| `POLICIES` | `PoliciesAuthContext` | `subjectType`, `subjectId`, `namespace` |
+| `SAVE_POLICIES` | `SavePoliciesAuthContext` | `request` (the full `SavePoliciesRequest`) |
+| `NAMESPACES` | `NamespacesAuthContext` | *(none)* |
+| `BUNDLE` | `BundleAuthContext` | `namespace` |
+| `SUBJECTS` | `SubjectsAuthContext` | `type` |
+
+### Scenario C: Mixed Approach
+
+You can use library controllers for simple CRUD and write custom controllers for operations that need domain-specific logic. For example, activate the standard read endpoints but build a custom write controller:
+
+```java
+@Configuration
+public class AuthzEndpointConfig {
+
+    // Activate standard read endpoints (library controllers)
+    @Bean(AuthzBeans.FIELDS)
+    public EndpointAuthorization fieldsAuth() {
+        return ctx -> requirePermission("READ_POLICIES");
+    }
+
+    @Bean(AuthzBeans.POLICIES)
+    public EndpointAuthorization policiesAuth() {
+        return ctx -> requirePermission("READ_POLICIES");
+    }
+
+    // SAVE_POLICIES is NOT activated — we build our own controller instead
+}
+
+// Custom write controller with domain-specific validation
+@RestController
+public class CustomSavePoliciesController {
+
+    private final PolicyManagementService policyService;
+
+    @PutMapping("/api/my-service/authz/policies")
+    public void savePolicies(@RequestBody SavePoliciesRequest request) {
+        // Custom validation, auditing, side-effects...
+        policyService.savePolicies(request);
+    }
+}
+```
+
+### Overriding Auto-Configured Endpoints
+
+To override the default Bundle authorization (e.g., to add custom security beyond API-key):
+
+```java
+@Bean(AuthzBeans.BUNDLE)
+public EndpointAuthorization bundleAuth() {
+    return context -> {
+        if (context instanceof BundleAuthContext ctx) {
+            if (!allowedNamespaces.contains(ctx.namespace())) {
+                throw new AccessDeniedException("Namespace not allowed");
+            }
+        }
+    };
+}
+```
+
+To disable the Bundle endpoint entirely, set this in `application.yml`:
+
+```yaml
+datamate:
+  authz:
+    bundle:
+      enabled: false
+```
