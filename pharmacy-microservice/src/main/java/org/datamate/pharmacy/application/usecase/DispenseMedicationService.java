@@ -40,8 +40,11 @@ public class DispenseMedicationService {
         PatientDto patient = patientPort.getPatientById(request.patientId());
 
 
-        if (medication == null || patient == null) {
-            throw new IllegalArgumentException("Invalid medication or patient");
+        if (medication == null) {
+            throw new org.datamate.pharmacy.application.exception.MedicationNotFoundException(request.medicationId());
+        }
+        if (patient == null) {
+            throw new org.datamate.pharmacy.application.exception.PatientNotFoundException(request.patientId());
         }
         System.out.println("Medication Details");
         System.out.println("------------------");
@@ -57,7 +60,7 @@ public class DispenseMedicationService {
         System.out.println("Name: " + patient.name());
         System.out.println("Age: " + patient.age());
         if (medication.getCurrentStock() < request.quantity()) {
-            throw new IllegalStateException("Insufficient stock to dispense");
+            throw new org.datamate.pharmacy.application.exception.InsufficientStockException(medication.getName(), request.quantity(), medication.getCurrentStock());
         }
 
         log.info("Gathered Context -> Drug Class: {}, Patient Age: {}", medication.getDrugClass(), patient.age());

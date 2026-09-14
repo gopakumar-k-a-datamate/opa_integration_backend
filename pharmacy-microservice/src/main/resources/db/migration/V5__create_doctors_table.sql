@@ -5,7 +5,10 @@ CREATE TABLE doctors (
     name VARCHAR(255) NOT NULL,
     department VARCHAR(100),
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_date TIMESTAMP,
+    created_by VARCHAR(255),
+    last_modified_by VARCHAR(255)
 );
 
 CREATE INDEX idx_doctors_name
@@ -14,9 +17,9 @@ CREATE INDEX idx_doctors_name
 CREATE INDEX idx_doctors_active
     ON doctors(active);
 
-INSERT INTO doctors (id, name, department)
+INSERT INTO doctors (id, name, department, created_by)
 VALUES
-    ('MAIN', 'Main Doctor', 'ICU'),
-    ('SENIOR', 'Senior Doctor', 'CARDIOLOGY'),
-    ('JUNIOR', 'Junior Doctor', 'CARDIOLOGY'),
-    ('JUNIOR-2', 'Junior Doctor', 'GENERAL');
+    ('MAIN', 'Main Doctor', 'ICU', 'SYSTEM'),
+    ('SENIOR', 'Senior Doctor', 'CARDIOLOGY', 'SYSTEM'),
+    ('JUNIOR', 'Junior Doctor', 'CARDIOLOGY', 'SYSTEM'),
+    ('JUNIOR-2', 'Junior Doctor', 'GENERAL', 'SYSTEM');

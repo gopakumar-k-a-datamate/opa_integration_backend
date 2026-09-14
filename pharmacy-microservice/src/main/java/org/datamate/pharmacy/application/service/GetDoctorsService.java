@@ -1,12 +1,10 @@
 package org.datamate.pharmacy.application.service;
 
-
-
-import org.datamate.pharmacy.adapter.out.persistence.DoctorRepository;
 import org.datamate.authz.rest.dto.AllowedValuePageResponse;
 import org.datamate.authz.rest.dto.AllowedValueResponse;
 import org.datamate.pharmacy.application.port.in.GetDoctorsUseCase;
-import org.datamate.pharmacy.domain.entity.Doctor;
+import org.datamate.pharmacy.application.port.out.DoctorQueryPort;
+import org.datamate.pharmacy.domain.model.Doctor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +18,10 @@ import java.util.stream.Collectors;
 @Service
 public class GetDoctorsService implements GetDoctorsUseCase {
 
-    private final DoctorRepository doctorRepository;
+    private final DoctorQueryPort doctorQueryPort;
 
-    public GetDoctorsService(DoctorRepository doctorRepository) {
-        this.doctorRepository = doctorRepository;
+    public GetDoctorsService(DoctorQueryPort doctorQueryPort) {
+        this.doctorQueryPort = doctorQueryPort;
     }
 
     @Override
@@ -39,9 +37,9 @@ public class GetDoctorsService implements GetDoctorsUseCase {
         Page<Doctor> doctors;
 
         if (search == null || search.isBlank()) {
-            doctors = doctorRepository.findByActiveTrue(pageable);
+            doctors = doctorQueryPort.findActiveDoctors(pageable);
         } else {
-            doctors = doctorRepository.findByActiveTrueAndNameContainingIgnoreCase(search, pageable);
+            doctors = doctorQueryPort.searchActiveDoctors(search, pageable);
         }
 
         List<AllowedValueResponse> content = doctors
