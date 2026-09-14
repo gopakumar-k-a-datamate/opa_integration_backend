@@ -1,4 +1,4 @@
-package org.datamate.pharmacy.adapter.out;
+package org.datamate.pharmacy.adapter.out.persistence;
 
 import org.datamate.pharmacy.application.dto.MedicationDto;
 import org.datamate.pharmacy.application.port.out.MedicationPort;

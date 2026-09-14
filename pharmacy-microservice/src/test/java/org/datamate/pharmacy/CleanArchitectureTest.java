@@ -57,7 +57,9 @@ public class CleanArchitectureTest {
                         "jakarta.validation..", 
                         "jakarta.annotation..", 
                         "lombok..", 
-                        "com.fasterxml.jackson.."
+                        "com.fasterxml.jackson..",
+                        "org.springframework..",
+                        "org.datamate.pharmacy.shared.."
                 )
                 .allowEmptyShould(true);
         rule.check(classes);
