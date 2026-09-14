@@ -49,6 +49,7 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
+                .requestMatchers("/internal/authz/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/users/*/change-password").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/auth/logout").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/roles", "/api/v1/roles/**", "/api/v1/users", "/api/v1/users/**").hasAnyAuthority("SECURITY_ADMIN", "ROLE_SECURITY_ADMIN")
