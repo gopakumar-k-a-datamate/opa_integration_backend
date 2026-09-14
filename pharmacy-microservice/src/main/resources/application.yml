@@ -11,6 +11,15 @@ spring:
     baseline-version: "0"
     locations: classpath:db/migration
 
+  # RabbitMQ — Subject Sync consumer
+  # Binds to the auth.subject.sync Fanout exchange published by identity-service.
+  # Must match the broker settings used by identity-service.
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
 server:
   port: 8083
 
@@ -40,3 +49,4 @@ bedrock:
 logging:
   level:
     org.datamate.authz: DEBUG
+    org.datamate.pharmacy.messaging: DEBUG   # Logs subject sync receive/apply events

@@ -140,4 +140,21 @@ public class BedrockAuthzAutoConfiguration {
             };
         }
     }
+
+    /**
+     * Auto-activates the SubjectsController so consumers do not need to define
+     * their own @Bean(AuthzBeans.SUBJECTS) EndpointAuthorization if they want
+     * open access.
+     */
+    @Configuration(proxyBeanMethods = false)
+    public static class SubjectsEndpointConfiguration {
+
+        @Bean(AuthzBeans.SUBJECTS)
+        @ConditionalOnMissingBean(name = AuthzBeans.SUBJECTS)
+        public EndpointAuthorization subjectsAuthorization() {
+            return context -> {
+                // Open by default, consumers can override by defining a bean named AuthzBeans.SUBJECTS
+            };
+        }
+    }
 }

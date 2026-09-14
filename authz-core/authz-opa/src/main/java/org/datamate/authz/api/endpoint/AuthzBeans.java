@@ -14,6 +14,7 @@ public final class AuthzBeans {
     public static final String POLICIES = "policiesAuthorization";
     public static final String SAVE_POLICIES = "savePoliciesAuthorization";
     public static final String NAMESPACES = "namespacesAuthorization";
+    public static final String SUBJECTS = "subjectsAuthorization";
     public static final String BUNDLE = "bundleAuthorization";
 
     private AuthzBeans() {
