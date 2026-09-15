@@ -4,8 +4,10 @@ import org.datamate.pharmacy.adapter.out.persistence.entity.DoctorJpaEntity;
 import org.datamate.pharmacy.domain.model.Doctor;
 
 /**
+ * Anti-Corruption Layer (ACL) Mapper.
  * Maps between the pure domain model {@link Doctor} and the JPA entity {@link DoctorJpaEntity}.
  * Includes mapping for BaseAuditableEntity audit fields.
+ * Ensures that the application layer works purely with Domain objects.
  */
 public class DoctorJpaMapper {
 

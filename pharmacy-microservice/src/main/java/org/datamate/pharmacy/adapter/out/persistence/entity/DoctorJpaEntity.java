@@ -11,6 +11,9 @@ import lombok.Setter;
  * Extends BaseAuditableEntity for automatic audit fields
  * (createdDate, lastModifiedDate, createdBy, lastModifiedBy),
  * aligned with the dental project's entity convention.
+ *
+ * In Clean Architecture, JPA entities are an infrastructure concern and must
+ * not leak into the Domain layer. Therefore, this class lives in the Adapter layer.
  */
 @Entity
 @Table(name = "doctors")

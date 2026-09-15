@@ -9,6 +9,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+/**
+ * Outbound Adapter for Doctor persistence.
+ * Implements the {@link DoctorQueryPort} interface from the application layer.
+ * This ensures the application layer depends only on the interface (port),
+ * while the adapter handles the framework-specific Spring Data JPA implementation.
+ */
 @Component
 public class DoctorPersistenceAdapter implements DoctorQueryPort {
 

@@ -3,8 +3,10 @@ package org.datamate.pharmacy.domain.model;
 import java.time.LocalDateTime;
 
 /**
- * Pure domain model for Doctor.
+ * Pure Domain Model for Doctor.
  * Persistence-ignorant — no JPA/framework annotations (DDD tactical pattern).
+ * This entity belongs to the innermost ring of Clean Architecture.
+ * It is completely independent of the database schema (DoctorJpaEntity).
  */
 public class Doctor {
     private String id;

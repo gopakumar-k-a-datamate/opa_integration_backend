@@ -5,8 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Outbound port for querying doctor data.
+ * Outbound Port for querying doctor data.
+ * Defines what the application layer needs from the outside world.
  * Implemented by the persistence adapter in the adapter layer.
+ * This is a core concept of Hexagonal Architecture (Ports and Adapters).
  */
 public interface DoctorQueryPort {
     Page<Doctor> findActiveDoctors(Pageable pageable);
