@@ -1,13 +1,19 @@
 package org.datamate.authz.service.subject;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PaginationHelper;
 import org.datamate.authz.api.subject.SubjectManagementService;
 import org.datamate.authz.dto.subject.AuthzSubjectDto;
 import org.datamate.authz.event.AuthzSubjectSyncCommand;
 import org.datamate.authz.jpa.entity.AuthzSubjectJpaEntity;
 import org.datamate.authz.jpa.repository.AuthzSubjectJpaRepository;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
-import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
-import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.datamate.authz.shared.pagination.PaginationHelperMethods;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,6 +129,26 @@ public class DefaultSubjectManagementService implements SubjectManagementService
                 .stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Paged<AuthzSubjectDto> getSubjects(
+            SubjectType type, String search, PageQuery pageQuery) {
+
+        int validatedPage = PaginationHelper.validatePageNumber(pageQuery.page());
+        int validatedSize = PaginationHelper.validateLimit(pageQuery.size());
+        PageQuery validatedQuery = new PageQuery(validatedPage, validatedSize);
+
+        String typeStr = (type != null) ? type.name() : null;
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
+        Pageable pageable = PaginationHelperMethods.toPageable(validatedQuery);
+
+        Page<AuthzSubjectDto> dtoPage = subjectRepository
+                .searchSubjects(typeStr, searchParam, pageable)
+                .map(this::toDto);
+
+        return PaginationHelperMethods.toPaged(dtoPage);
     }
 
     @Override

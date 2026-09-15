@@ -3,6 +3,9 @@ package org.datamate.authz.service.policy;
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PaginationHelper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
@@ -16,6 +19,8 @@ import org.datamate.authz.api.subject.SubjectManagementService;
 import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
+import org.datamate.authz.dto.policy.PolicySearchCriteria;
+import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.exception.AuthzInvalidSyntaxException;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -26,10 +31,15 @@ import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.datamate.authz.rest.dto.PolicyItemRequest;
 import org.datamate.authz.rest.dto.SavePoliciesRequest;
+import org.datamate.authz.shared.pagination.PaginationHelperMethods;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -139,6 +149,69 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
         }
 
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PolicyGridItemDto> getPolicies(PolicySearchCriteria criteria) {
+        List<PolicyGridItemDto> allPolicies = getPolicies(criteria.subjectType(), criteria.subjectId(), criteria.namespace());
+        if (criteria.search() != null && !criteria.search().isBlank()) {
+            String lowerSearch = criteria.search().trim().toLowerCase();
+            return allPolicies.stream()
+                    .filter(p -> (p.permissionCode() != null && p.permissionCode().toLowerCase().contains(lowerSearch)) ||
+                            (p.resourceName() != null && p.resourceName().toLowerCase().contains(lowerSearch)) ||
+                            (p.action() != null && p.action().toLowerCase().contains(lowerSearch)))
+                    .toList();
+        }
+        return allPolicies;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Paged<PolicyGridItemDto> getPolicies(
+            PolicySearchCriteria criteria, PageQuery pageQuery) {
+        return getPolicies(criteria.subjectType(), criteria.subjectId(), criteria.namespace(), criteria.search(), pageQuery);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Paged<PolicyGridItemDto> getPolicies(
+            SubjectType subjectType, String subjectId, String namespace, String search,
+            PageQuery pageQuery) {
+
+        int validatedPage = PaginationHelper.validatePageNumber(pageQuery.page());
+        int validatedSize = PaginationHelper.validateLimit(pageQuery.size());
+        PageQuery validatedQuery = new PageQuery(validatedPage, validatedSize);
+
+        List<PolicyGridItemDto> filtered = getPolicies(new PolicySearchCriteria(subjectType, subjectId, namespace, search));
+
+        int start = (validatedPage - 1) * validatedSize;
+        int end = Math.min(start + validatedSize, filtered.size());
+        List<PolicyGridItemDto> pageContent = (start <= filtered.size()) ? filtered.subList(start, end) : Collections.emptyList();
+
+        Page<PolicyGridItemDto> page = new PageImpl<>(
+                pageContent,
+                PaginationHelperMethods.toPageable(validatedQuery),
+                filtered.size()
+        );
+
+        return PaginationHelperMethods.toPaged(page);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Paged<SubjectDto> getSubjects(
+            SubjectType subjectType, String search,
+            PageQuery pageQuery) {
+
+        int validatedPage = PaginationHelper.validatePageNumber(pageQuery.page());
+        int validatedSize = PaginationHelper.validateLimit(pageQuery.size());
+        PageQuery validatedQuery = new PageQuery(validatedPage, validatedSize);
+
+        Pageable pageable = PaginationHelperMethods.toPageable(validatedQuery);
+        Page<SubjectDto> page = policyRepository.findSubjects(subjectType, search, pageable);
+
+        return PaginationHelperMethods.toPaged(page);
     }
 
     private PolicyGridItemDto toPolicyGridItemDto(Permission permission, Resource resource, Policy policy) {
