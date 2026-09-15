@@ -113,7 +113,14 @@ cd pharmacy-microservice
 mvn spring-boot:run
 ```
 
-### 4. Swagger UI
+### 4. Standalone vs Integrated Mode (Identity Service)
+
+Thanks to the **Federated Architecture**, you do NOT strictly need to run the `identity-service` to test the Pharmacy domain logic:
+
+* **Standalone Mode (Recommended for Pod 2):** Run only the Pharmacy microservice (with OPA and RabbitMQ). The service has its own local `authz_subject` table. As long as this table is seeded with test users/roles (e.g., via Flyway), you can test endpoints in Postman/Swagger by passing a mock JWT payload or using the dev fallback mechanism.
+* **Integrated Mode (End-to-End):** Run both the Identity Service and the Pharmacy Service. This is only necessary if you want to test the full event-driven synchronization workflow (e.g., creating a new user in Identity Admin UI and seeing it propagate to Pharmacy) or test real cryptographically signed JWT validation.
+
+### 5. Swagger UI
 Once running, access the API documentation at:
 http://localhost:8080/swagger-ui.html
 
