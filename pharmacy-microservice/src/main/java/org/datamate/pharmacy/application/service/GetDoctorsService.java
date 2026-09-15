@@ -1,6 +1,7 @@
 package org.datamate.pharmacy.application.service;
 
-import org.datamate.authz.rest.dto.AllowedValuePageResponse;
+import com.datamate.bedrock.framework.common.pagination.PaginatedResponse;
+import com.datamate.bedrock.framework.common.pagination.PaginationHelper;
 import org.datamate.authz.rest.dto.AllowedValueResponse;
 import org.datamate.pharmacy.application.port.in.GetDoctorsUseCase;
 import org.datamate.pharmacy.application.port.out.DoctorQueryPort;
@@ -26,7 +27,7 @@ public class GetDoctorsService implements GetDoctorsUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public AllowedValuePageResponse execute(int page, int size, String search) {
+    public PaginatedResponse<AllowedValueResponse> execute(int page, int size, String search) {
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -51,12 +52,16 @@ public class GetDoctorsService implements GetDoctorsUseCase {
                 ))
                 .collect(Collectors.toList());
 
-        return new AllowedValuePageResponse(
+        return new PaginatedResponse<>(
                 content,
-                doctors.getNumber(),
-                doctors.getSize(),
-                doctors.getTotalElements(),
-                doctors.isLast()
+                new PaginatedResponse.PageMetadata(
+                        PaginationHelper.toOneIndexed(doctors.getNumber()),
+                        doctors.getSize(),
+                        doctors.getTotalElements(),
+                        doctors.getTotalPages()
+                ),
+                doctors.hasNext(),
+                doctors.hasPrevious()
         );
     }
 }
