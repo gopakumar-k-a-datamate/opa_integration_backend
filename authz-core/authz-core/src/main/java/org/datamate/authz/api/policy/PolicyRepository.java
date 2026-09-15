@@ -1,8 +1,11 @@
 package org.datamate.authz.api.policy;
 
+import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -17,6 +20,10 @@ public interface PolicyRepository {
 
     /** Active policies for a specific subject — used by the Admin UI grid. */
     List<Policy> findBySubject(SubjectType subjectType, String subjectId);
+
+    /** Paginated distinct subjects filtered by optional subjectType and search keyword. */
+    Page<SubjectDto> findSubjects(
+            SubjectType subjectType, String search, Pageable pageable);
 
     /** Active policies that reference a given field name inside their expression_json. */
     List<Policy> findEnabledReferencingField(Long permissionId, String fieldName);

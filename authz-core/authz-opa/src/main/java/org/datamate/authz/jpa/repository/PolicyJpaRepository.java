@@ -1,7 +1,10 @@
 package org.datamate.authz.jpa.repository;
 
+import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.jpa.entity.PolicyJpaEntity;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,5 +41,18 @@ public interface PolicyJpaRepository extends JpaRepository<PolicyJpaEntity, Long
     List<PolicyJpaEntity> findEnabledReferencingField(
             @Param("permissionId") Long permissionId,
             @Param("fieldName") String fieldName);
+
+    /**
+     * Finds distinct active subjects matching subjectType and search term.
+     */
+    @Query("SELECT DISTINCT new org.datamate.authz.dto.policy.SubjectDto(p.subjectType, p.subjectId) " +
+           "FROM PolicyJpaEntity p " +
+           "WHERE p.deletedAt IS NULL " +
+           "AND (:subjectType IS NULL OR p.subjectType = :subjectType) " +
+           "AND (:search IS NULL OR LOWER(p.subjectId) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<SubjectDto> findSubjects(
+            @Param("subjectType") SubjectType subjectType,
+            @Param("search") String search,
+            Pageable pageable);
 }
 
