@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.flywaydb.core.Flyway;
@@ -39,7 +40,7 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 @AutoConfiguration(before = FlywayAutoConfiguration.class)
 @EnableAspectJAutoProxy
-@ComponentScan(basePackages = "org.datamate.authz")
+@Import(AuthzComponentScanner.class)
 @EnableConfigurationProperties({ OpaProperties.class, BundleProperties.class })
 public class BedrockAuthzAutoConfiguration {
 
