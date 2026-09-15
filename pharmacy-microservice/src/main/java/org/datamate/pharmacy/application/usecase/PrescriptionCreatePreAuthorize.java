@@ -9,6 +9,11 @@ import org.datamate.pharmacy.application.port.out.PatientPort;
 import org.datamate.pharmacy.application.port.out.PractitionerPort;
 import org.springframework.stereotype.Component;
 
+/**
+ * Bridge component for Pattern 2 (@PreAuthorize).
+ * This bean is invoked via SpEL in {@link CreatePrescriptionService}.
+ * It gathers context from ports, builds the policy resource, and calls the PolicyEnforcer.
+ */
 @Component("prescriptionAuthorizor")
 public class PrescriptionCreatePreAuthorize {
 

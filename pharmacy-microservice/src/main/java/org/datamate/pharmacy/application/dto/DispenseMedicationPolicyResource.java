@@ -4,6 +4,11 @@ import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.datamate.authz.model.policy.enumtype.FieldType;
 
+/**
+ * OPA Policy Resource for dispensing medication.
+ * The annotations define the namespace, resource, action, and dynamic fields
+ * that OPA uses to evaluate the ABAC rules.
+ */
 @PolicyResource(namespace = "pharmacy", resourceName = "medication", action = "dispense", description = "Dispense a medication to a patient")
 public class DispenseMedicationPolicyResource {
 

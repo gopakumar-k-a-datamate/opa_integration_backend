@@ -6,6 +6,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Application Use Case for reading prescriptions.
+ * Demonstrates 'Pattern 3: Unconditional / Pure RBAC'.
+ * The {@link ReadPrescriptionPolicyResource} contains no fields,
+ * so the OPA policy only checks if the user holds the required role.
+ */
 @Service
 public class ReadPrescriptionService {
 
