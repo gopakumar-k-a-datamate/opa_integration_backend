@@ -2,6 +2,7 @@ package org.datamate.authz.starter.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 
 /**
  * Standard configuration class to enable component scanning for authz-core and authz-opa components.
@@ -9,6 +10,12 @@ import org.springframework.context.annotation.Configuration;
  * directly on an @AutoConfiguration class.
  */
 @Configuration(proxyBeanMethods = false)
-@ComponentScan(basePackages = "org.datamate.authz")
+@ComponentScan(
+    basePackages = "org.datamate.authz",
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = BedrockAuthzAutoConfiguration.class
+    )
+)
 public class AuthzComponentScanner {
 }
