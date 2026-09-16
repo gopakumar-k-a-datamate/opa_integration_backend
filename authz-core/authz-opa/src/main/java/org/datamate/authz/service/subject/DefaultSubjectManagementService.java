@@ -17,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.datamate.authz.jpa.specification.AuthzSubjectSpecification;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -144,8 +147,15 @@ public class DefaultSubjectManagementService implements SubjectManagementService
         String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
         Pageable pageable = PaginationHelperMethods.toPageable(validatedQuery);
 
+        Specification<AuthzSubjectJpaEntity> spec = 
+                Specification.allOf(
+                        AuthzSubjectSpecification.isNotDeleted(),
+                        AuthzSubjectSpecification.hasSubjectType(typeStr),
+                        AuthzSubjectSpecification.containsSearch(searchParam)
+                );
+
         Page<AuthzSubjectDto> dtoPage = subjectRepository
-                .searchSubjects(typeStr, searchParam, pageable)
+                .findAll(spec, pageable)
                 .map(this::toDto);
 
         return PaginationHelperMethods.toPaged(dtoPage);
