@@ -4,8 +4,7 @@ import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import org.datamate.authz.api.endpoint.EndpointAuthorization;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.dto.policy.PolicySearchCriteria;
-import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.datamate.authz.dto.policy.PolicySearchQuery;
 import org.datamate.authz.service.policy.PolicyManagementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ class PoliciesControllerTest {
                 1L, null, null, true, null, null, false, false, null
         );
 
-        when(policyService.getPolicies(any(PolicySearchCriteria.class)))
+        when(policyService.getPolicies(any(PolicySearchQuery.class)))
                 .thenReturn(List.of(item));
 
         mockMvc.perform(get("/internal/authz/policies")
@@ -66,7 +65,7 @@ class PoliciesControllerTest {
                 List.of(item), 1, 5, 1, 1, false, false
         );
 
-        when(policyService.getPolicies(any(PolicySearchCriteria.class), any(PageQuery.class)))
+        when(policyService.getPolicies(any(PolicySearchQuery.class), any(PageQuery.class)))
                 .thenReturn(paged);
 
         mockMvc.perform(get("/internal/authz/policies")

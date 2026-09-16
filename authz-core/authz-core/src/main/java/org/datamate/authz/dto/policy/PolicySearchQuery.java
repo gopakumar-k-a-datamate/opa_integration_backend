@@ -10,7 +10,7 @@ import org.datamate.authz.model.policy.enumtype.SubjectType;
  * @param namespace   Module namespace
  * @param search      Optional search keyword (permissionCode, resourceName, action)
  */
-public record PolicySearchCriteria(
+public record PolicySearchQuery(
         SubjectType subjectType,
         String subjectId,
         String namespace,

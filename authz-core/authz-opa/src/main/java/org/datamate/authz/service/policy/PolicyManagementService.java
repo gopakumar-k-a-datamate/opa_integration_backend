@@ -4,7 +4,7 @@ import com.datamate.bedrock.framework.common.pagination.PageQuery;
 import com.datamate.bedrock.framework.common.pagination.Paged;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.dto.policy.PolicySearchCriteria;
+import org.datamate.authz.dto.policy.PolicySearchQuery;
 import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.datamate.authz.rest.dto.SavePoliciesRequest;
@@ -33,15 +33,15 @@ public interface PolicyManagementService {
     List<PolicyGridItemDto> getPolicies(SubjectType subjectType, String subjectId, String namespace);
 
     /**
-     * Get searchable policies for a given search criteria.
+     * Get searchable policies for a given search policySearchQuery.
      */
-    List<PolicyGridItemDto> getPolicies(PolicySearchCriteria criteria);
+    List<PolicyGridItemDto> getPolicies(PolicySearchQuery policySearchQuery);
 
     /**
      * Get paginated & searchable policies using PolicySearchCriteria and Bedrock PageQuery.
      */
     Paged<PolicyGridItemDto> getPolicies(
-            PolicySearchCriteria criteria,
+            PolicySearchQuery policySearchQuery,
             PageQuery pageQuery);
 
     /**

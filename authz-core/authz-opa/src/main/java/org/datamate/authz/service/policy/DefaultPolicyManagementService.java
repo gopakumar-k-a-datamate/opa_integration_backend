@@ -16,10 +16,9 @@ import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
 import org.datamate.authz.api.subject.SubjectManagementService;
-import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
-import org.datamate.authz.dto.policy.PolicySearchCriteria;
+import org.datamate.authz.dto.policy.PolicySearchQuery;
 import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.exception.AuthzInvalidSyntaxException;
@@ -153,10 +152,10 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PolicyGridItemDto> getPolicies(PolicySearchCriteria criteria) {
-        List<PolicyGridItemDto> allPolicies = getPolicies(criteria.subjectType(), criteria.subjectId(), criteria.namespace());
-        if (criteria.search() != null && !criteria.search().isBlank()) {
-            String lowerSearch = criteria.search().trim().toLowerCase();
+    public List<PolicyGridItemDto> getPolicies(PolicySearchQuery policySearchQuery) {
+        List<PolicyGridItemDto> allPolicies = getPolicies(policySearchQuery.subjectType(), policySearchQuery.subjectId(), policySearchQuery.namespace());
+        if (policySearchQuery.search() != null && !policySearchQuery.search().isBlank()) {
+            String lowerSearch = policySearchQuery.search().trim().toLowerCase();
             return allPolicies.stream()
                     .filter(p -> (p.permissionCode() != null && p.permissionCode().toLowerCase().contains(lowerSearch)) ||
                             (p.resourceName() != null && p.resourceName().toLowerCase().contains(lowerSearch)) ||
@@ -169,8 +168,8 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
     @Override
     @Transactional(readOnly = true)
     public Paged<PolicyGridItemDto> getPolicies(
-            PolicySearchCriteria criteria, PageQuery pageQuery) {
-        return getPolicies(criteria.subjectType(), criteria.subjectId(), criteria.namespace(), criteria.search(), pageQuery);
+            PolicySearchQuery policySearchQuery, PageQuery pageQuery) {
+        return getPolicies(policySearchQuery.subjectType(), policySearchQuery.subjectId(), policySearchQuery.namespace(), policySearchQuery.search(), pageQuery);
     }
 
     @Override
@@ -183,7 +182,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
         int validatedSize = PaginationHelper.validateLimit(pageQuery.size());
         PageQuery validatedQuery = new PageQuery(validatedPage, validatedSize);
 
-        List<PolicyGridItemDto> filtered = getPolicies(new PolicySearchCriteria(subjectType, subjectId, namespace, search));
+        List<PolicyGridItemDto> filtered = getPolicies(new PolicySearchQuery(subjectType, subjectId, namespace, search));
 
         int start = (validatedPage - 1) * validatedSize;
         int end = Math.min(start + validatedSize, filtered.size());
