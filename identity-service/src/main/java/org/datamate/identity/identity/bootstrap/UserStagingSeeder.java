@@ -7,6 +7,11 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import org.datamate.identity.identity.domain.event.user.UserCreatedEvent;
+import org.datamate.identity.identity.domain.model.user.enums.UserStatus;
+import java.util.List;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,10 +24,12 @@ public class UserStagingSeeder {
     private Logger log;
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Transactional
     public void seed() {
         log.info("Seeding Users...");
-        
+
         String commonPassword = passwordEncoder.encode("password");
 
         UUID adminId = insertUser("admin@123.com", commonPassword, "System", "Admin");
@@ -55,7 +62,11 @@ public class UserStagingSeeder {
         String checkSql = "SELECT id FROM users WHERE user_name = ?";
         try {
             UUID existingId = jdbcTemplate.queryForObject(checkSql, UUID.class, userName);
-            log.info("User '{}' already exists. Skipping.", userName);
+            log.info("User '{}' already exists. Synchronizing to RabbitMQ anyway.", userName);
+            String status = userName.startsWith("support") ? "INACTIVE" : "ACTIVE";
+            eventPublisher.publishEvent(new UserCreatedEvent(
+                    existingId, 1L, userName, userName, null, firstName, lastName, UserStatus.valueOf(status), List.of(), "system"
+            ));
             return existingId;
         } catch (EmptyResultDataAccessException e) {
             // Does not exist, proceed to insert
@@ -66,6 +77,11 @@ public class UserStagingSeeder {
         String sql = "INSERT INTO users (id, user_name, email, password_hash, first_name, last_name, status, version, domain_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, ?, ?) RETURNING id";
         UUID newId = jdbcTemplate.queryForObject(sql, UUID.class, newUserId, userName, userName, passwordHash, firstName, lastName, status, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()));
         log.info("Inserted user '{}' with id {}.", userName, newId);
+
+        eventPublisher.publishEvent(new UserCreatedEvent(
+                newId, 1L, userName, userName, null, firstName, lastName, UserStatus.valueOf(status), List.of(), "system"
+        ));
+
         return newId;
     }
 
