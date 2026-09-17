@@ -24,10 +24,10 @@ To leverage the core authorization logic, the programmatic `PolicyEnforcer`, and
 
 ## 2. Database & Flyway Configuration
 
-Because we follow a **Database-First** paradigm, your new service must physically own and manage its authorization schema.
+Because we follow a **Database-First** paradigm, your new service must physically own and manage its authorization schema. However, you do **not** need to manually manage the base table structures!
 
-1. **Base Tables:** Copy or include the initial Flyway migration script (e.g., `V1__create_authz_tables.sql`) to create the `authz_resource`, `authz_permission`, `authz_condition_field`, and `authz_policy` tables.
-2. **Populate Data:** Create subsequent migration scripts (e.g., `V2__insert_domain_resources.sql`) to register your specific domain resources, permissions, and condition fields. (Refer to the `database-first-migration-guide.md` for specific SQL examples).
+1. **Automatic Base Tables:** The `bedrock-authz-starter` library contains an internal Flyway instance that automatically runs on application startup. It provisions all required authz tables (e.g., `authz_policy`, `authz_resource`) into a dedicated schema without interfering with your application's default Flyway execution.
+2. **Populate Data (Optional):** If you wish to seed default resources, permissions, or policies using Flyway, you can create a standard migration script (e.g., `V2__insert_domain_resources.sql`) in your application. Because the library's Flyway runs first, you can safely reference the authz tables (using the schema prefix you configure below).
 
 ---
 
@@ -54,10 +54,15 @@ bundles:
 default_authorization_decision: /app/authz/<your_namespace>/allow
 
 # 2. Java Application Configuration
+database:
+  # The schema where the library will automatically provision all authz_* tables. 
+  # This isolates authz tables from your consumer application's public schema.
+  schema: my_app_authz   # defaults to "public" if omitted
+
 # The endpoint the application will POST to for policy evaluation
 evaluation_url: http://localhost:8181/v1/data/app/authz/<your_namespace>/allow
 ```
-*(Replace `<your_namespace>` and the `8080` port to match your specific service).*
+*(Replace `<your_namespace>`, the schema name, and the `8080` port to match your specific service).*
 
 ---
 
