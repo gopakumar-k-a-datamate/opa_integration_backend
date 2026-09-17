@@ -1,14 +1,18 @@
 package org.datamate.authz.jpa.repository;
 
 
-import org.datamate.authz.jpa.entity.PolicyJpaEntity;
-import org.datamate.authz.jpa.repository.PolicyJpaRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
+import org.datamate.authz.dto.policy.SubjectDto;
+import org.datamate.authz.exception.AuthzStaleDataException;
+import org.datamate.authz.jpa.entity.PolicyJpaEntity;
+import org.datamate.authz.jpa.specification.PolicySpecification;
 import org.datamate.authz.model.policy.entity.Policy;
 
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
-import org.datamate.authz.exception.AuthzStaleDataException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -41,6 +45,22 @@ public class JpaPolicyRepository implements PolicyRepository {
         return repository
                 .findBySubjectTypeAndSubjectIdAndDeletedAtIsNull(subjectType, subjectId)
                 .stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public Page<SubjectDto> findSubjects(
+            SubjectType subjectType, String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
+
+        Specification<PolicyJpaEntity> spec = 
+                Specification.allOf(
+                        PolicySpecification.isNotDeleted(),
+                        PolicySpecification.hasSubjectType(subjectType),
+                        PolicySpecification.containsSubjectSearch(searchParam)
+                );
+
+        return repository.findAll(spec, pageable)
+                .map(p -> new SubjectDto(p.getSubjectType(), p.getSubjectId()));
     }
 
     @Override

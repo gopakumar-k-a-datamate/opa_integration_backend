@@ -1,5 +1,6 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
@@ -14,6 +15,7 @@ import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import org.datamate.authz.model.policy.enumtype.Status;
+import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +49,7 @@ class DefaultPolicyCompilerTest {
     @Mock private PolicyValidation validation;
     @Mock private TarGzBundleService bundleBuilder;
     
-    @Mock private com.datamate.bedrock.framework.common.logging.service.Logger log;
+    @Mock private Logger log;
 
     private DefaultPolicyCompiler compiler;
 
@@ -63,7 +69,7 @@ class DefaultPolicyCompilerTest {
                 regoGen
         );
         
-        java.lang.reflect.Field logField = DefaultPolicyCompiler.class.getDeclaredField("log");
+        Field logField = DefaultPolicyCompiler.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(compiler, log);
     }
@@ -115,8 +121,8 @@ class DefaultPolicyCompilerTest {
 
         // We need the hash to match. For an empty policy set, generate the rego, hash it, and mock the DB
         ObjectMapper mapper = new ObjectMapper();
-        org.datamate.authz.compiler.generator.RegoGenerator gen = new org.datamate.authz.compiler.generator.RegoGenerator(mapper, new org.datamate.authz.compiler.AstBuilder());
-        String rego = gen.generate("finance", List.of(), java.util.Map.of(10L, "finance:read"));
+        RegoGenerator gen = new RegoGenerator(mapper, new AstBuilder());
+        String rego = gen.generate("finance", List.of(), Map.of(10L, "finance:read"));
         
         String hash = computeMd5(rego.getBytes());
         PolicyBundleCache cache = mock(PolicyBundleCache.class);
@@ -137,7 +143,7 @@ class DefaultPolicyCompilerTest {
         when(permissionRepository.findAllActive()).thenReturn(List.of());
         when(policyRepository.findAllEnabled()).thenReturn(List.of());
 
-        when(validation.validate(anyString())).thenReturn(new RegoValidationResult(false, List.of(new org.datamate.authz.model.policy.valueobject.RegoValidationError(1, 1, "Syntax error"))));
+        when(validation.validate(anyString())).thenReturn(new RegoValidationResult(false, List.of(new RegoValidationError(1, 1, "Syntax error"))));
 
         assertThrows(PolicyCompilationException.class, () -> compiler.recompile("finance"));
     }
@@ -199,7 +205,7 @@ class DefaultPolicyCompilerTest {
 
     private String computeMd5(byte[] data) {
         try {
-            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("MD5").digest(data));
+            return HexFormat.of().formatHex(MessageDigest.getInstance("MD5").digest(data));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
