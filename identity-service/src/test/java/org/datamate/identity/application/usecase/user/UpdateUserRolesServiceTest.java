@@ -178,7 +178,7 @@ class UpdateUserRolesServiceTest {
     }
 
     @Test
-    void shouldThrowInvalidRoleAssignmentExceptionWhenNonSecurityAdminAssignsSecurityAdmin() {
+    void shouldThrowInvalidRoleAssignmentExceptionWhenNonPolicyAdminAssignsPolicyAdmin() {
         UUID userId = UUID.randomUUID();
         User existingUser = User.reconstitute(
                 userId, "test_user", "test@example.com", "+12345",
@@ -187,13 +187,13 @@ class UpdateUserRolesServiceTest {
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
-        Role secAdminRole = Role.reconstitute(
-                UUID.randomUUID(), "SECURITY_ADMIN", "Security Admin", RoleStatus.ACTIVE,
+        Role polAdminRole = Role.reconstitute(
+                UUID.randomUUID(), "POLICY_ADMIN", "Policy Admin", RoleStatus.ACTIVE,
                 null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(rolePort.findAll()).thenReturn(List.of(secAdminRole));
+        when(rolePort.findAll()).thenReturn(List.of(polAdminRole));
         when(userPort.findByUserNameOrEmail("standard_admin", "standard_admin")).thenReturn(Optional.of(
                 User.reconstitute(
                         UUID.randomUUID(), "standard_admin", "standard@example.com", "+12345",
@@ -203,14 +203,14 @@ class UpdateUserRolesServiceTest {
                 )
         ));
 
-        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("SECURITY_ADMIN"));
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("POLICY_ADMIN"));
         InvalidRoleAssignmentException ex = assertThrows(InvalidRoleAssignmentException.class,
                 () -> service.updateUserRoles(userId, request, "standard_admin"));
-        assertTrue(ex.getMessage().contains("Only a SECURITY_ADMIN can assign the SECURITY_ADMIN role"));
+        assertTrue(ex.getMessage().contains("Only a POLICY_ADMIN can assign the POLICY_ADMIN role"));
     }
 
     @Test
-    void shouldAllowSecurityAdminToAssignSecurityAdminRole() {
+    void shouldAllowPolicyAdminToAssignPolicyAdminRole() {
         UUID userId = UUID.randomUUID();
         User existingUser = User.reconstitute(
                 userId, "test_user", "test@example.com", "+12345",
@@ -219,29 +219,29 @@ class UpdateUserRolesServiceTest {
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
-        Role secAdminRole = Role.reconstitute(
-                UUID.randomUUID(), "SECURITY_ADMIN", "Security Admin", RoleStatus.ACTIVE,
+        Role polAdminRole = Role.reconstitute(
+                UUID.randomUUID(), "POLICY_ADMIN", "Policy Admin", RoleStatus.ACTIVE,
                 null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(rolePort.findAll()).thenReturn(List.of(secAdminRole));
+        when(rolePort.findAll()).thenReturn(List.of(polAdminRole));
         when(userPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("SECURITY_ADMIN"));
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("POLICY_ADMIN"));
         UserDto result = service.updateUserRoles(userId, request, "admin@123.com");
 
         assertNotNull(result);
-        assertTrue(result.roles().contains("SECURITY_ADMIN"));
+        assertTrue(result.roles().contains("POLICY_ADMIN"));
     }
 
     @Test
-    void shouldThrowWhenRemovingSecurityAdminFromLastActiveSecurityAdmin() {
+    void shouldThrowWhenRemovingPolicyAdminFromLastActivePolicyAdmin() {
         UUID userId = UUID.randomUUID();
         User adminUser = User.reconstitute(
                 userId, "admin@123.com", "admin@123.com", "+12345",
                 "hash", "System", "Admin", null, null,
-                UserStatus.ACTIVE, List.of("SECURITY_ADMIN", "ADMIN"), false, 1L, 1L,
+                UserStatus.ACTIVE, List.of("POLICY_ADMIN", "ADMIN"), false, 1L, 1L,
                 "system", LocalDateTime.now(), "system", LocalDateTime.now()
         );
 
@@ -252,11 +252,11 @@ class UpdateUserRolesServiceTest {
 
         when(userPort.findById(userId)).thenReturn(Optional.of(adminUser));
         when(rolePort.findAll()).thenReturn(List.of(userRole));
-        when(userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", userId)).thenReturn(0L);
+        when(userPort.countActiveUsersWithRoleExcept("POLICY_ADMIN", userId)).thenReturn(0L);
 
         UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("USER"));
         InvalidRoleAssignmentException ex = assertThrows(InvalidRoleAssignmentException.class,
                 () -> service.updateUserRoles(userId, request, "admin@123.com"));
-        assertTrue(ex.getMessage().contains("Cannot remove SECURITY_ADMIN"));
+        assertTrue(ex.getMessage().contains("Cannot remove POLICY_ADMIN"));
     }
 }

@@ -81,17 +81,17 @@ class DeactivateUserServiceTest {
     }
 
     @Test
-    void shouldThrowWhenDeactivatingLastActiveSecurityAdmin() {
+    void shouldThrowWhenDeactivatingLastActivePolicyAdmin() {
         UUID userId = UUID.randomUUID();
         User adminUser = User.reconstitute(
                 userId, "admin@123.com", "admin@123.com", "+12345",
                 "hash", "System", "Admin", null, null,
-                UserStatus.ACTIVE, List.of("SECURITY_ADMIN", "ADMIN"), false, 1L, 1L,
+                UserStatus.ACTIVE, List.of("POLICY_ADMIN", "ADMIN"), false, 1L, 1L,
                 "system", LocalDateTime.now(), "system", LocalDateTime.now()
         );
 
         when(userPort.findById(userId)).thenReturn(Optional.of(adminUser));
-        when(userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", userId)).thenReturn(0L);
+        when(userPort.countActiveUsersWithRoleExcept("POLICY_ADMIN", userId)).thenReturn(0L);
 
         assertThrows(
                 org.datamate.identity.identity.domain.exception.user.InvalidUserDataException.class,

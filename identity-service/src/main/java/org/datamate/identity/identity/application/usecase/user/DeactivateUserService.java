@@ -36,11 +36,11 @@ public class DeactivateUserService implements DeactivateUserUseCase {
             return new UserNotFoundException();
         });
 
-        if (user.getRoles() != null && user.getRoles().contains("SECURITY_ADMIN") && user.getStatus() == UserStatus.ACTIVE) {
-            long otherActiveAdmins = userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", id);
+        if (user.getRoles() != null && user.getRoles().contains("POLICY_ADMIN") && user.getStatus() == UserStatus.ACTIVE) {
+            long otherActiveAdmins = userPort.countActiveUsersWithRoleExcept("POLICY_ADMIN", id);
             if (otherActiveAdmins == 0) {
-                log.warn("Attempted to deactivate the last active SECURITY_ADMIN (user ID: {})", id);
-                throw new InvalidUserDataException("user.validation.last.security.admin", "Cannot deactivate user: this is the last active SECURITY_ADMIN account in the system.");
+                log.warn("Attempted to deactivate the last active POLICY_ADMIN (user ID: {})", id);
+                throw new InvalidUserDataException("user.validation.last.policy.admin", "Cannot deactivate user: this is the last active POLICY_ADMIN account in the system.");
             }
         }
 

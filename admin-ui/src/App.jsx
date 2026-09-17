@@ -13,10 +13,13 @@ function App() {
   useEffect(() => {
     const loadModules = async () => {
       try {
-        // Fetch from microservice (falling back to empty arrays if offline)
-        const pharmacyModules = await fetchNamespaces(8083).catch(() => []);
+        // Fetch from microservices (falling back to empty arrays if offline)
+        const [pharmacyModules, identityModules] = await Promise.all([
+          fetchNamespaces(8083).catch(() => []),
+          fetchNamespaces(8085).catch(() => [])
+        ]);
         
-        const combined = [...new Set([...pharmacyModules])];
+        const combined = [...new Set([...pharmacyModules, ...identityModules])];
         if (combined.length > 0) {
           setAvailableModules(combined);
         }

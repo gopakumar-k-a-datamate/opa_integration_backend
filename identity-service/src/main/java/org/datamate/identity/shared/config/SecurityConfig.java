@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -49,10 +50,15 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
+                // OPA sidecar bundle polling and Admin UI policy management
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/internal/authz/bundle/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/internal/authz/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/internal/authz/policies").permitAll()
+                // Subject discovery endpoints for Admin UI
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/roles", "/api/v1/roles/select", "/api/v1/users").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/users/*/change-password").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/auth/logout").authenticated()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/roles", "/api/v1/roles/**", "/api/v1/users", "/api/v1/users/**").hasAnyAuthority("SECURITY_ADMIN", "ROLE_SECURITY_ADMIN")
-                .requestMatchers("/api/v1/roles", "/api/v1/roles/**", "/api/v1/users", "/api/v1/users/**").hasAnyAuthority("SECURITY_ADMIN", "ROLE_SECURITY_ADMIN")
+                // All other endpoints require authentication and are enforced dynamically by OPA PEP
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -76,5 +82,9 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+
     }
 }
+
+
+

@@ -1,7 +1,11 @@
 const getApiUrl = (identifier) => {
-  // identifier can be a namespace (e.g. 'pharmacy') or a permissionCode (e.g. 'pharmacy:prescription:view')
+  // identifier can be a namespace (e.g. 'pharmacy', 'identity') or a permissionCode (e.g. 'pharmacy:prescription:view')
   if (!identifier) return 'http://localhost:8083';
   
+  if (identifier.startsWith('identity')) {
+    return 'http://localhost:8085'; // identity-service
+  }
+
   if (identifier.startsWith('pharmacy')) {
     return 'http://localhost:8083'; // pharmacy-microservice
   }
@@ -68,10 +72,10 @@ export const fetchRoles = async () => {
   // Identity Service runs on port 8085
   const baseUrl = 'http://localhost:8085';
   try {
-    const res = await fetch(`${baseUrl}/api/v1/roles`);
+    const res = await fetch(`${baseUrl}/internal/authz/roles`);
     if (!res.ok) throw new Error('Failed to fetch roles');
     const data = await res.json();
-    return data.content || data; // Handle Paged<RoleDto> format
+    return data.content || data; // Handle List<RoleSelectDto> format
   } catch (err) {
     console.error(`Identity Service ${baseUrl} unavailable:`, err);
     throw new Error('Not available');
@@ -81,10 +85,10 @@ export const fetchRoles = async () => {
 export const fetchUsers = async () => {
   const baseUrl = 'http://localhost:8085';
   try {
-    const res = await fetch(`${baseUrl}/api/v1/users`);
+    const res = await fetch(`${baseUrl}/internal/authz/users`);
     if (!res.ok) throw new Error('Failed to fetch users');
     const data = await res.json();
-    return data.content || data; // Handle Paged<UserResponseDto> format
+    return data.content || data; // Handle List<UserResponseDto> format
   } catch (err) {
     console.error(`Identity Service ${baseUrl} unavailable:`, err);
     throw new Error('Not available');

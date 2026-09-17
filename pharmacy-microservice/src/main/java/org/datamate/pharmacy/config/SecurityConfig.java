@@ -6,6 +6,7 @@ import com.datamate.bedrock.framework.common.security.jwt.service.JwtTokenServic
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,8 +43,19 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/internal/authz/**").permitAll()
-                .anyRequest().permitAll()
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/actuator/**",
+                    "/error"
+                ).permitAll()
+                // OPA sidecar bundle polling and Admin UI policy management
+                .requestMatchers(HttpMethod.GET, "/internal/authz/bundle/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/internal/authz/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/internal/authz/policies").permitAll()
+                // All other endpoints require authentication
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

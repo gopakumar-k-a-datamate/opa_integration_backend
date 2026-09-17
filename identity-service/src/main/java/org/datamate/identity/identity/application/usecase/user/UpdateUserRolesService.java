@@ -47,26 +47,26 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
                 throw new InvalidRoleAssignmentException(roleName);
             }
 
-            if ("SECURITY_ADMIN".equalsIgnoreCase(roleName)) {
-                boolean isCallerSecurityAdmin = adminUsername != null && (
+            if ("POLICY_ADMIN".equalsIgnoreCase(roleName)) {
+                boolean isCallerPolicyAdmin = adminUsername != null && (
                         adminUsername.equalsIgnoreCase("admin@123.com") ||
                         userPort.findByUserNameOrEmail(adminUsername, adminUsername)
-                                .map(u -> u.getRoles().contains("SECURITY_ADMIN"))
+                                .map(u -> u.getRoles().contains("POLICY_ADMIN"))
                                 .orElse(false)
                 );
-                if (!isCallerSecurityAdmin) {
-                    throw new InvalidRoleAssignmentException("Access Denied: Only a SECURITY_ADMIN can assign the SECURITY_ADMIN role.", roleName);
+                if (!isCallerPolicyAdmin) {
+                    throw new InvalidRoleAssignmentException("Access Denied: Only a POLICY_ADMIN can assign the POLICY_ADMIN role.", roleName);
                 }
             }
         }
 
-        boolean currentlyHasSecurityAdmin = user.getRoles() != null && user.getRoles().contains("SECURITY_ADMIN");
-        boolean willHaveSecurityAdmin = request.roles().contains("SECURITY_ADMIN");
+        boolean currentlyHasPolicyAdmin = user.getRoles() != null && user.getRoles().contains("POLICY_ADMIN");
+        boolean willHavePolicyAdmin = request.roles().contains("POLICY_ADMIN");
 
-        if (currentlyHasSecurityAdmin && !willHaveSecurityAdmin) {
-            long otherActiveSecurityAdmins = userPort.countActiveUsersWithRoleExcept("SECURITY_ADMIN", userId);
-            if (otherActiveSecurityAdmins == 0) {
-                throw new InvalidRoleAssignmentException("Cannot remove SECURITY_ADMIN: at least one active SECURITY_ADMIN must exist in the system.", "SECURITY_ADMIN");
+        if (currentlyHasPolicyAdmin && !willHavePolicyAdmin) {
+            long otherActivePolicyAdmins = userPort.countActiveUsersWithRoleExcept("POLICY_ADMIN", userId);
+            if (otherActivePolicyAdmins == 0) {
+                throw new InvalidRoleAssignmentException("Cannot remove POLICY_ADMIN: at least one active POLICY_ADMIN must exist in the system.", "POLICY_ADMIN");
             }
         }
 
