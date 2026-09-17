@@ -4,6 +4,7 @@ import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
+import org.datamate.authz.compiler.ast.ValueType;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.compiler.AstBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,11 +18,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class RegoGenerator {
+
+    private static final Pattern VALID_FIELD_PATH_PATTERN = Pattern.compile("^[a-zA-Z0-9_.]+$");
 
     private final ObjectMapper objectMapper;
     private final AstBuilder astBuilder;
@@ -45,6 +49,41 @@ public class RegoGenerator {
     public RegoGenerator(ObjectMapper objectMapper, AstBuilder astBuilder) {
         this.objectMapper = objectMapper;
         this.astBuilder = astBuilder;
+    }
+
+    private String sanitizeFieldPath(String fieldPath) {
+        if (fieldPath == null || fieldPath.trim().isEmpty()) {
+            throw new AuthzInvalidPayloadException("Field path cannot be null or empty.");
+        }
+        String trimmed = fieldPath.trim();
+        if (!VALID_FIELD_PATH_PATTERN.matcher(trimmed).matches()) {
+            throw new AuthzInvalidPayloadException("Invalid characters in field path '" + fieldPath + "'. Only alphanumeric, dots, and underscores are allowed.");
+        }
+        return trimmed;
+    }
+
+    private String formatPath(String rawPath) {
+        String clean = sanitizeFieldPath(rawPath);
+        if (clean.startsWith("input.")) {
+            return clean;
+        }
+        if (clean.startsWith("user.") || clean.startsWith("resource.")) {
+            return "input." + clean;
+        }
+        return "input.resource." + clean;
+    }
+
+    private String formatFieldSet(JsonNode arrayNode) {
+        if (!arrayNode.isArray()) {
+            return formatPath(arrayNode.asText());
+        }
+        StringBuilder sb = new StringBuilder("{");
+        for (int i = 0; i < arrayNode.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(formatPath(arrayNode.get(i).asText()));
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     public String generate(String namespace, List<Policy> policies, Map<Long, String> permCodeLookup) {
@@ -159,25 +198,39 @@ public class RegoGenerator {
             return;
         }
 
-        String field = cond.getField();
+        String leftPath = formatPath(cond.getField());
         String comp = cond.getComparison().toLowerCase();
+        ValueType vType = cond.getValueType() != null ? cond.getValueType() : ValueType.VALUE;
 
-        if (comp.equals("in")) {
-            sb.append("    input.resource.").append(field).append(" in ").append(formatSetValue(cond.getValue())).append("\n");
-        } else if (comp.equals("not_in") || comp.equals("not in")) {
-            sb.append("    not input.resource.").append(field).append(" in ").append(formatSetValue(cond.getValue())).append("\n");
-        } else if (comp.equals("contains")) {
-            sb.append("    contains(input.resource.").append(field).append(", ").append(formatValue(cond.getValue())).append(")\n");
-        } else {
-            sb.append("    input.resource.")
-                    .append(field)
-                    .append(" ")
-                    .append(cond.getComparison())
-                    .append(" ")
-                    .append(formatValue(cond.getValue()))
-                    .append("\n");
+        switch (vType) {
+            case FIELD:
+                String rightPath = formatPath(cond.getValue().asText());
+                sb.append("    ").append(leftPath).append(" ").append(cond.getComparison()).append(" ").append(rightPath).append("\n");
+                break;
+            case FIELD_LIST:
+                sb.append("    ").append(leftPath).append(" in ").append(formatFieldSet(cond.getValue())).append("\n");
+                break;
+            case VALUE:
+            default:
+                if (comp.equals("in")) {
+                    sb.append("    ").append(leftPath).append(" in ").append(formatSetValue(cond.getValue())).append("\n");
+                } else if (comp.equals("not_in") || comp.equals("not in")) {
+                    sb.append("    not ").append(leftPath).append(" in ").append(formatSetValue(cond.getValue())).append("\n");
+                } else if (comp.equals("contains")) {
+                    sb.append("    contains(").append(leftPath).append(", ").append(formatValue(cond.getValue())).append(")\n");
+                } else {
+                    sb.append("    ")
+                            .append(leftPath)
+                            .append(" ")
+                            .append(cond.getComparison())
+                            .append(" ")
+                            .append(formatValue(cond.getValue()))
+                            .append("\n");
+                }
+                break;
         }
     }
+
 
     private void generateRuleHeader(Policy policy, String permissionCode, StringBuilder sb) {
         if (policy.isDeny()) {
