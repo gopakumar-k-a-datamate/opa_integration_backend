@@ -1,4 +1,4 @@
-package org.datamate.authz.rest.dto;
+package org.datamate.authz.rest.controller;
 
 import org.datamate.authz.dto.subject.AuthzSubjectDto;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.datamate.authz.api.subject.SubjectManagementService;
+import org.datamate.authz.api.endpoint.AuthorizationContext;
+import org.datamate.authz.api.endpoint.AuthorizationContext.SubjectsAuthContext;
 import org.datamate.authz.api.endpoint.AuthzBeans;
 import org.datamate.authz.api.endpoint.EndpointAuthorization;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,7 +33,7 @@ public class SubjectsController {
     public ResponseEntity<List<AuthzSubjectDto>> listSubjects(
             @RequestParam("type") SubjectType type) {
         
-        authorization.authorize(new org.datamate.authz.api.endpoint.AuthorizationContext.SubjectsAuthContext(type));
+        authorization.authorize(new SubjectsAuthContext(type));
         return ResponseEntity.ok(subjectManagementService.listSubjects(type));
     }
 }
