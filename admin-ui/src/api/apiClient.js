@@ -28,7 +28,10 @@ export const fetchPolicies = async (subjectType, subjectId, namespace) => {
 export const fetchFields = async (permissionCode) => {
   const baseUrl = getApiUrl(permissionCode);
   try {
-    const res = await fetch(`${baseUrl}/internal/authz/permissions/${permissionCode}/fields`);
+    let res = await fetch(`${baseUrl}/internal/authz/fields/${permissionCode}`);
+    if (!res.ok) {
+      res = await fetch(`${baseUrl}/internal/authz/permissions/${permissionCode}/fields`);
+    }
     if (!res.ok) throw new Error('Failed to fetch');
     return await res.json();
   } catch (err) {

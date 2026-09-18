@@ -51,7 +51,7 @@ class RoleManagementServiceTest {
         UUID roleId = UUID.randomUUID();
         org.datamate.identity.identity.domain.model.role.entity.Role systemRole = 
                 org.datamate.identity.identity.domain.model.role.entity.Role.reconstitute(
-                        roleId, "SECURITY_ADMIN", "System Desc", 
+                        roleId, "POLICY_ADMIN", "System Desc", 
                         org.datamate.identity.identity.domain.model.role.enums.RoleStatus.ACTIVE, 
                         true, null, null, 1L, 1L, null, null, null, null
                 );

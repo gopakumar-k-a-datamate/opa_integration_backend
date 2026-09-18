@@ -33,7 +33,6 @@ public class UserStagingSeeder {
 
         if (adminId != null) {
             insertUserRole(adminId, RoleStagingSeeder.POLICY_ADMIN_ID); // POLICY_ADMIN
-            insertUserRole(adminId, RoleStagingSeeder.SECURITY_ADMIN_ID); // SECURITY_ADMIN
             insertUserRole(adminId, RoleStagingSeeder.ADMIN_ID); // ADMIN
             insertUserRole(adminId, RoleStagingSeeder.USER_ID); // USER
         }

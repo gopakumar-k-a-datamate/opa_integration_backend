@@ -18,7 +18,6 @@ public class RoleStagingSeeder {
     private final JdbcTemplate jdbcTemplate;
 
     public static final UUID POLICY_ADMIN_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    public static final UUID SECURITY_ADMIN_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
     public static final UUID ADMIN_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     public static final UUID USER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
     public static final UUID MANAGER_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
@@ -29,8 +28,6 @@ public class RoleStagingSeeder {
         log.info("Seeding Roles...");
         
         insertRole(POLICY_ADMIN_ID, "POLICY_ADMIN", "Root Policy Administrator with OPA authoring rights");
-        
-        insertRole(SECURITY_ADMIN_ID, "SECURITY_ADMIN", "System & Security Administrator Role");
         insertRole(ADMIN_ID, "ADMIN", "Administrator Role");
         insertRole(USER_ID, "USER", "Standard User Role");
         insertRole(MANAGER_ID, "MANAGER", "Manager Role");

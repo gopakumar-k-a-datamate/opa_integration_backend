@@ -43,11 +43,6 @@ public class AuthzPolicyController {
         return ResponseEntity.ok(policyManagementService.getConditionFields(permissionCode));
     }
 
-    @GetMapping("/namespaces")
-    public ResponseEntity<List<String>> getNamespaces() {
-        return ResponseEntity.ok(policyManagementService.getNamespaces());
-    }
-
     @GetMapping("/roles")
     public ResponseEntity<List<RoleSelectDto>> getRoles() {
         return ResponseEntity.ok(selectRolesUseCase.selectRoles(null));
@@ -60,20 +55,5 @@ public class AuthzPolicyController {
                 new PageQuery(1, 1000)
         );
         return ResponseEntity.ok(paged.content());
-    }
-
-    @GetMapping("/policies")
-    public ResponseEntity<List<PolicyGridItemDto>> getPolicies(
-            @RequestParam SubjectType subjectType,
-            @RequestParam String subjectId,
-            @RequestParam String namespace) {
-        return ResponseEntity.ok(policyManagementService.getPolicies(subjectType, subjectId, namespace));
-    }
-
-    @PutMapping("/policies")
-    public ResponseEntity<Map<String, String>> savePolicies(
-            @Valid @RequestBody SavePoliciesRequest request) {
-        policyManagementService.savePolicies(request);
-        return ResponseEntity.ok(Map.of("message", "Policies updated successfully. OPA bundle regenerated."));
     }
 }

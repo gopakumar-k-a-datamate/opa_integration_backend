@@ -126,6 +126,5 @@ ON CONFLICT (permission_id, field_name) DO NOTHING;
 -- ============================================================
 INSERT INTO role (id, name, description, status, is_system, version, domain_version, created_at, updated_at)
 VALUES 
-    ('00000000-0000-0000-0000-000000000000', 'POLICY_ADMIN', 'Root Policy Administrator capable of authoring OPA policies', 'ACTIVE', true, 0, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('00000000-0000-0000-0000-000000000001', 'SECURITY_ADMIN', 'Security Administrator with system governance rights', 'ACTIVE', true, 0, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ('00000000-0000-0000-0000-000000000000', 'POLICY_ADMIN', 'Root Policy Administrator capable of authoring OPA policies', 'ACTIVE', true, 0, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO UPDATE SET is_system = true, status = 'ACTIVE';

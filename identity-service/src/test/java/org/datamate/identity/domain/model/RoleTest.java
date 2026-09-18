@@ -131,10 +131,10 @@ class RoleTest {
     }
 
     @Test
-    void shouldThrowInvalidRoleDataExceptionWhenDeactivatingSecurityAdmin() {
+    void shouldThrowInvalidRoleDataExceptionWhenDeactivatingPolicyAdmin() {
         Role role = Role.reconstitute(
                 roleId,
-                "SECURITY_ADMIN",
+                "POLICY_ADMIN",
                 "Description",
                 RoleStatus.ACTIVE,
                 true,
@@ -153,10 +153,10 @@ class RoleTest {
     }
 
     @Test
-    void shouldThrowInvalidRoleDataExceptionWhenRenamingSecurityAdmin() {
+    void shouldThrowInvalidRoleDataExceptionWhenRenamingPolicyAdmin() {
         Role role = Role.reconstitute(
                 roleId,
-                "SECURITY_ADMIN",
+                "POLICY_ADMIN",
                 "Description",
                 RoleStatus.ACTIVE,
                 true,
@@ -177,8 +177,8 @@ class RoleTest {
     @Test
     void shouldMaintainDistinctRolesInSet() {
         org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity r1 = new org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity();
-        r1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
-        r1.setName("SECURITY_ADMIN");
+        r1.setId(UUID.fromString("00000000-0000-0000-0000-000000000000"));
+        r1.setName("POLICY_ADMIN");
 
         org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity r2 = new org.datamate.identity.identity.adapter.out.persistence.role.entity.RoleJpaEntity();
         r2.setId(UUID.fromString("11111111-1111-1111-1111-111111111111"));
