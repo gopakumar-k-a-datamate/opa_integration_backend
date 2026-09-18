@@ -14,6 +14,7 @@ import org.datamate.authz.model.policy.entity.Permission;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.entity.PolicyBundleCache;
 import org.datamate.authz.model.policy.enumtype.Status;
+import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -83,7 +85,7 @@ class DefaultPolicyCompilerTest {
         when(policy.getId()).thenReturn(100L);
         when(policy.getPermissionId()).thenReturn(10L);
         when(policy.isDeprecated()).thenReturn(false);
-        when(policy.getExpressionJson()).thenReturn("{\"field\":\"amount\",\"comparison\":\"EQUALS\",\"value\":\"100\"}");
+        when(policy.getExpressionJson()).thenReturn("{\"field\":\"amount\",\"comparison\":\"EQUALS\",\"value\":\"100\",\"valueType\":\"VALUE\"}");
         when(policyRepository.findAllEnabled()).thenReturn(List.of(policy));
 
         when(validation.validate(anyString())).thenReturn(new RegoValidationResult(true, List.of()));
@@ -115,8 +117,8 @@ class DefaultPolicyCompilerTest {
 
         // We need the hash to match. For an empty policy set, generate the rego, hash it, and mock the DB
         ObjectMapper mapper = new ObjectMapper();
-        org.datamate.authz.compiler.generator.RegoGenerator gen = new org.datamate.authz.compiler.generator.RegoGenerator(mapper, new org.datamate.authz.compiler.AstBuilder());
-        String rego = gen.generate("finance", List.of(), java.util.Map.of(10L, "finance:read"));
+        RegoGenerator gen = new RegoGenerator(mapper, new AstBuilder());
+        String rego = gen.generate("finance", List.of(), Map.of(10L, "finance:read"));
         
         String hash = computeMd5(rego.getBytes());
         PolicyBundleCache cache = mock(PolicyBundleCache.class);
@@ -137,7 +139,7 @@ class DefaultPolicyCompilerTest {
         when(permissionRepository.findAllActive()).thenReturn(List.of());
         when(policyRepository.findAllEnabled()).thenReturn(List.of());
 
-        when(validation.validate(anyString())).thenReturn(new RegoValidationResult(false, List.of(new org.datamate.authz.model.policy.valueobject.RegoValidationError(1, 1, "Syntax error"))));
+        when(validation.validate(anyString())).thenReturn(new RegoValidationResult(false, List.of(new RegoValidationError(1, 1, "Syntax error"))));
 
         assertThrows(PolicyCompilationException.class, () -> compiler.recompile("finance"));
     }

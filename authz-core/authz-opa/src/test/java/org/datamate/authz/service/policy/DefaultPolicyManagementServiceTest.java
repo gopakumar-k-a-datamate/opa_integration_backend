@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
-import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
+import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
+import org.datamate.authz.api.subject.SubjectManagementService;
+import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
@@ -19,16 +21,20 @@ import org.datamate.authz.model.policy.entity.Resource;
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.datamate.authz.rest.dto.PolicyItemRequest;
 import org.datamate.authz.rest.dto.SavePoliciesRequest;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,20 +55,20 @@ class DefaultPolicyManagementServiceTest {
     @Mock private PolicyBundleCacheRepository bundleCacheRepository;
     @Mock private PolicyValidation validation;
     @Mock private ObjectMapper objectMapper;
-    @org.mockito.Spy private org.datamate.authz.compiler.AstBuilder astBuilder = new org.datamate.authz.compiler.AstBuilder();
-    @Mock private org.datamate.authz.api.subject.SubjectManagementService subjectManagementService;
+    @Spy private AstBuilder astBuilder = new AstBuilder();
+    @Mock private SubjectManagementService subjectManagementService;
 
-    @Mock private com.datamate.bedrock.framework.common.logging.service.Logger log;
+    @Mock private Logger log;
 
     @InjectMocks
     private DefaultPolicyManagementService service;
 
     @BeforeEach
     void setUp() throws Exception {
-        java.lang.reflect.Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
+        Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(service, log);
-        org.mockito.Mockito.lenient().when(subjectManagementService.subjectExists(any(), anyString())).thenReturn(true);
+        lenient().when(subjectManagementService.subjectExists(any(), anyString())).thenReturn(true);
     }
 
     @Test
@@ -209,7 +215,7 @@ class DefaultPolicyManagementServiceTest {
 
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
         when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(validation.validate("invalid rego")).thenReturn(new RegoValidationResult(false, List.of(new org.datamate.authz.model.policy.valueobject.RegoValidationError(1, 1, "Syntax error"))));
+        when(validation.validate("invalid rego")).thenReturn(new RegoValidationResult(false, List.of(new RegoValidationError(1, 1, "Syntax error"))));
 
         assertThrows(AuthzInvalidSyntaxException.class, () -> service.savePolicies(req));
     }
