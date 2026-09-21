@@ -65,15 +65,25 @@ export const savePolicies = async (subjectType, subjectId, namespace, policies) 
 };
 
 export const fetchRoles = async () => {
-  // Identity Service runs on port 8085
   const baseUrl = 'http://localhost:8085';
   try {
     const res = await fetch(`${baseUrl}/api/v1/roles`);
-    if (!res.ok) throw new Error('Failed to fetch roles');
-    const data = await res.json();
-    return data.content || data; // Handle Paged<RoleDto> format
+    if (res.ok) {
+      const data = await res.json();
+      return data.content || data;
+    }
   } catch (err) {
-    console.error(`Identity Service ${baseUrl} unavailable:`, err);
+    console.warn(`Identity Service ${baseUrl} unavailable, falling back to local microservice authz_subject projection...`);
+  }
+
+  // Fallback to local microservice projected subjects endpoint
+  try {
+    const res = await fetch(`http://localhost:8083/internal/authz/subjects?type=ROLE`);
+    if (!res.ok) throw new Error('Failed to fetch roles from local backend');
+    const data = await res.json();
+    return data.map(item => ({ id: item.subjectId, name: item.subjectName, displayName: item.displayName }));
+  } catch (err) {
+    console.error('Failed to fetch roles from fallback endpoint:', err);
     throw new Error('Not available');
   }
 };
@@ -82,11 +92,22 @@ export const fetchUsers = async () => {
   const baseUrl = 'http://localhost:8085';
   try {
     const res = await fetch(`${baseUrl}/api/v1/users`);
-    if (!res.ok) throw new Error('Failed to fetch users');
-    const data = await res.json();
-    return data.content || data; // Handle Paged<UserResponseDto> format
+    if (res.ok) {
+      const data = await res.json();
+      return data.content || data;
+    }
   } catch (err) {
-    console.error(`Identity Service ${baseUrl} unavailable:`, err);
+    console.warn(`Identity Service ${baseUrl} unavailable, falling back to local microservice authz_subject projection...`);
+  }
+
+  // Fallback to local microservice projected subjects endpoint
+  try {
+    const res = await fetch(`http://localhost:8083/internal/authz/subjects?type=USER`);
+    if (!res.ok) throw new Error('Failed to fetch users from local backend');
+    const data = await res.json();
+    return data.map(item => ({ id: item.subjectId, email: item.subjectName, displayName: item.displayName }));
+  } catch (err) {
+    console.error('Failed to fetch users from fallback endpoint:', err);
     throw new Error('Not available');
   }
 };

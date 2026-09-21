@@ -20,9 +20,9 @@ const SubjectSelector = ({ subjectType, setSubjectType, subjectId, setSubjectId 
         
         // Auto-select first item if subjectId is empty and data is loaded
         if (subjectType === 'ROLE' && !subjectId && rolesData.length > 0) {
-            setSubjectId(rolesData[0].name);
+            setSubjectId(rolesData[0].id || rolesData[0].name);
         } else if (subjectType === 'USER' && !subjectId && usersData.length > 0) {
-            setSubjectId(usersData[0].email);
+            setSubjectId(usersData[0].id || usersData[0].email);
         }
       } catch (err) {
         console.error("Failed to load subjects", err);
@@ -37,9 +37,9 @@ const SubjectSelector = ({ subjectType, setSubjectType, subjectId, setSubjectId 
     const newType = e.target.value;
     setSubjectType(newType);
     if (newType === 'ROLE' && roles.length > 0) {
-        setSubjectId(roles[0].name);
+        setSubjectId(roles[0].id || roles[0].name);
     } else if (newType === 'USER' && users.length > 0) {
-        setSubjectId(users[0].email);
+        setSubjectId(users[0].id || users[0].email);
     } else {
         setSubjectId('');
     }
@@ -67,9 +67,12 @@ const SubjectSelector = ({ subjectType, setSubjectType, subjectId, setSubjectId 
         disabled={loading || options.length === 0}
       >
         {options.map(opt => {
-          const value = subjectType === 'ROLE' ? opt.name : opt.email;
-          const label = subjectType === 'ROLE' ? opt.name : `${opt.firstName} ${opt.lastName} (${opt.email})`;
-          return <option key={value} value={value}>{label}</option>
+          const value = opt.id || (subjectType === 'ROLE' ? opt.name : opt.email);
+          const nameLabel = opt.name || opt.displayName || opt.email || 'Subject';
+          const label = subjectType === 'ROLE'
+            ? `${nameLabel}${opt.id ? ` (${opt.id.substring(0, 8)}...)` : ''}`
+            : `${opt.firstName || ''} ${opt.lastName || ''} (${opt.email || opt.id || ''})`.trim();
+          return <option key={opt.id || value} value={value}>{label}</option>
         })}
       </select>
     </div>
