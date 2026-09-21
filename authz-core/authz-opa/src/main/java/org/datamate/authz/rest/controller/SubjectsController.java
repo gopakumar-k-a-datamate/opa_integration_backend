@@ -26,7 +26,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/internal/authz/subjects")
-@ConditionalOnBean(name = AuthzBeans.SUBJECTS)
 public class SubjectsController {
 
     private final SubjectManagementService subjectManagementService;
