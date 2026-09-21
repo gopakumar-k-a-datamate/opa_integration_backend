@@ -12,7 +12,7 @@ public class ConditionNode implements AstNode {
         this.field = field;
         this.comparison = comparison;
         this.value = value;
-        this.valueType = valueType != null ? valueType : ValueType.VALUE;
+        this.valueType = valueType;
     }
 
     public ConditionNode(String field, String comparison, JsonNode value) {
