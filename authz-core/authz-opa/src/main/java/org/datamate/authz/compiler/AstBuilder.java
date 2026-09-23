@@ -4,6 +4,7 @@ import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
+import org.datamate.authz.compiler.ast.ValueType;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import org.springframework.stereotype.Component;
@@ -76,11 +77,23 @@ public class AstBuilder {
         if (!json.has("value")) {
             throw new AuthzInvalidPayloadException("Invalid AST: Condition node is missing the 'value' attribute.");
         }
+        if (!json.hasNonNull("valueType")) {
+            throw new AuthzInvalidPayloadException("Invalid AST: Condition node is missing the 'valueType' attribute ('VALUE', 'FIELD', or 'FIELD_LIST').");
+        }
+
+        ValueType valueType;
+        try {
+            valueType = ValueType.valueOf(json.get("valueType").asText().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new AuthzInvalidPayloadException("Invalid AST: Unknown valueType '" + json.get("valueType").asText() + "'.");
+        }
 
         return new ConditionNode(
                 json.get("field").asText(),
                 json.get("comparison").asText(),
-                json.get("value")
+                json.get("value"),
+                valueType
         );
     }
 }
+

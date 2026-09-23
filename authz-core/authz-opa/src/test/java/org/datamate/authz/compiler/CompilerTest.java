@@ -29,12 +29,14 @@ public class CompilerTest {
                 {
                   "field": "amount",
                   "comparison": "<=",
-                  "value": 10000
+                  "value": 10000,
+                  "valueType": "VALUE"
                 },
                 {
                   "field": "bank",
                   "comparison": "!=",
-                  "value": "CASH"
+                  "value": "CASH",
+                  "valueType": "VALUE"
                 }
               ]
             },
@@ -44,12 +46,14 @@ public class CompilerTest {
                 {
                   "field": "bank",
                   "comparison": "!=",
-                  "value": "CASH"
+                  "value": "CASH",
+                  "valueType": "VALUE"
                 },
                 {
                   "field": "type",
                   "comparison": "==",
-                  "value": "EXPENSE"
+                  "value": "EXPENSE",
+                  "valueType": "VALUE"
                 }
               ]
             }
@@ -115,24 +119,28 @@ public class CompilerTest {
                 {
                   "field": "totalAmount",
                   "comparison": "<=",
-                  "value": 20000
+                  "value": 20000,
+                  "valueType": "VALUE"
                 },
                 {
                   "field": "discountPercentage",
                   "comparison": "<=",
-                  "value": 5
+                  "value": 5,
+                  "valueType": "VALUE"
                 },
                 {
                   "field": "isFullyPaid",
                   "comparison": "==",
-                  "value": true
+                  "value": true,
+                  "valueType": "VALUE"
                 }
               ]
             },
             {
               "field": "insuranceProvider",
               "comparison": "==",
-              "value": "BLUE_CROSS"
+              "value": "BLUE_CROSS",
+              "valueType": "VALUE"
             }
           ]
         }
@@ -144,7 +152,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(101L, "clinic:visit:create");
         String actualRego = generator.generate("clinic", List.of(policy), permCodeLookup);
 
@@ -200,15 +208,15 @@ public class CompilerTest {
                 {
                   "operator": "AND",
                   "children": [
-                    { "field": "totalAmount", "comparison": ">", "value": 50000 },
-                    { "field": "isPaid", "comparison": "==", "value": false }
+                    { "field": "totalAmount", "comparison": ">", "value": 50000, "valueType": "VALUE" },
+                    { "field": "isPaid", "comparison": "==", "value": false, "valueType": "VALUE" }
                   ]
                 },
                 {
                   "operator": "AND",
                   "children": [
-                    { "field": "dueDate", "comparison": "<", "value": "2026-12-31" },
-                    { "field": "insuranceProvider", "comparison": "==", "value": "MEDICARE" }
+                    { "field": "dueDate", "comparison": "<", "value": "2026-12-31", "valueType": "VALUE" },
+                    { "field": "insuranceProvider", "comparison": "==", "value": "MEDICARE", "valueType": "VALUE" }
                   ]
                 }
               ]
@@ -216,8 +224,8 @@ public class CompilerTest {
             {
               "operator": "OR",
               "children": [
-                { "field": "discountPercentage", "comparison": "<=", "value": 10 },
-                { "field": "insuranceProvider", "comparison": "==", "value": "BLUE_CROSS" }
+                { "field": "discountPercentage", "comparison": "<=", "value": 10, "valueType": "VALUE" },
+                { "field": "insuranceProvider", "comparison": "==", "value": "BLUE_CROSS", "valueType": "VALUE" }
               ]
             }
           ]
@@ -230,7 +238,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(102L, "clinic:billing:approve");
         String actualRego = generator.generate("clinic", List.of(policy), permCodeLookup);
 
@@ -294,12 +302,14 @@ public class CompilerTest {
             {
               "field": "status",
               "comparison": "in",
-              "value": ["ACTIVE", "PENDING"]
+              "value": ["ACTIVE", "PENDING"],
+              "valueType": "VALUE"
             },
             {
               "field": "category",
               "comparison": "not_in",
-              "value": ["ARCHIVED", "DELETED"]
+              "value": ["ARCHIVED", "DELETED"],
+              "valueType": "VALUE"
             }
           ]
         }
@@ -311,7 +321,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(103L, "system:record:read");
         String actualRego = generator.generate("system", List.of(policy), permCodeLookup);
 
