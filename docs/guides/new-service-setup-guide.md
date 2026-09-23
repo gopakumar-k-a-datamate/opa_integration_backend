@@ -24,10 +24,66 @@ To leverage the core authorization logic, the programmatic `PolicyEnforcer`, and
 
 ## 2. Database & Flyway Configuration
 
-Because we follow a **Database-First** paradigm, your new service must physically own and manage its authorization schema.
+Because we follow a **Database-First** paradigm, your new service must physically own and manage its authorization schema. However, you do **not** need to manually manage the base table structures!
 
-1. **Base Tables:** Copy or include the initial Flyway migration script (e.g., `V1__create_authz_tables.sql`) to create the `authz_resource`, `authz_permission`, `authz_condition_field`, and `authz_policy` tables.
-2. **Populate Data:** Create subsequent migration scripts (e.g., `V2__insert_domain_resources.sql`) to register your specific domain resources, permissions, and condition fields. (Refer to the `database-first-migration-guide.md` for specific SQL examples).
+1. **Automatic Base Tables:** The `bedrock-authz-starter` library contains an internal Flyway instance that automatically runs on application startup. It provisions all required authz tables (e.g., `authz_policy`, `authz_resource`) into a dedicated schema without interfering with your application's default Flyway execution.
+2. **Populate Data (Optional):** If you wish to seed default resources, permissions, or policies using Flyway, you can create a standard migration script (e.g., `V2__insert_domain_resources.sql`) in your application. Because the library's Flyway runs first, you can safely reference the authz tables (using the schema prefix you configure below).
+
+### How Schema Isolation Works
+
+When you set `database.schema` in your `opa-config.yaml` (e.g., `schema: pharmacy`), the library uses **two independent mechanisms** to isolate authz tables from your application's tables:
+
+#### Dual Flyway Instances
+
+The library creates its **own** Flyway instance completely separate from your application's Spring-managed Flyway. The two never interfere with each other:
+
+| | Library Flyway (authz) | Application Flyway (yours) |
+|---|---|---|
+| **Migration location** | `classpath:db/authz-migration` (bundled in the library JAR) | Your app's location (e.g., `classpath:db/migration`) |
+| **History table** | `authz_flyway_schema_history` | `flyway_schema_history` (Spring Boot default) |
+| **Target schema** | From `opa-config.yaml` → `database.schema` | From `spring.flyway.schemas` or the database default |
+| **Runs when** | `@PostConstruct` — **before** Spring's Flyway auto-configuration | Spring Boot Flyway auto-config — **after** the library's |
+| **Creates schema** | Yes (auto-creates the target schema if it doesn't exist) | Depends on your `spring.flyway.*` settings |
+
+Because the library's Flyway only processes SQL files from `classpath:db/authz-migration`, it will **never** touch or run your application's migration scripts, and vice versa.
+
+#### Hibernate Schema Redirection (`AuthzSchemaIntegrator`)
+
+The library's JPA entities (e.g., `@Table(name = "authz_policy")`) do not hardcode a schema in their annotations. Instead, the library registers a **Hibernate Integrator** that intercepts Hibernate's boot process and rewrites the schema for authz tables only.
+
+This works via a **hardcoded whitelist** of known authz table names:
+
+```
+authz_resource, authz_permission, authz_condition_field,
+authz_policy, authz_policy_bundle_cache, authz_subject,
+authz_resource_audit, authz_permission_audit, authz_policy_audit
+```
+
+During Hibernate startup, the integrator iterates **all** mapped tables and calls `table.setSchema(targetSchema)` **only** for tables whose name matches this whitelist. Every other table — from your application, your modules, or any other library — is left completely untouched in whatever schema it was originally mapped to.
+
+#### Resulting Database Layout
+
+```
+┌──────────────────────────────────────────────────┐
+│                 Same Database                    │
+│                                                  │
+│  ┌─ "public" schema ──────────────────────┐      │
+│  │  your_table_a, your_table_b, ...       │      │  ← Your app/module tables (UNTOUCHED)
+│  │  flyway_schema_history                 │      │
+│  └────────────────────────────────────────┘      │
+│                                                  │
+│  ┌─ "my_app_authz" schema ───────────────┐      │
+│  │  authz_policy, authz_resource, ...     │      │  ← Only these 9 tables are moved here
+│  │  authz_flyway_schema_history           │      │
+│  └────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────┘
+```
+
+> [!IMPORTANT]
+> **Safe for Modular Monoliths:** If your consumer application is a modular monolith where multiple modules share a single database and `SessionFactory`, setting `database.schema` will **only** affect the 9 whitelisted authz tables. All other module tables (e.g., `drugs`, `prescriptions`, `orders`, `accounts`) remain in their original schema. The whitelist-based approach guarantees there is no cross-contamination.
+
+> [!NOTE]
+> If `database.schema` is set to `"public"` or omitted entirely, both mechanisms become no-ops — the authz tables are created in the default `public` schema alongside your application tables, and the Hibernate integrator is not registered.
 
 ---
 
@@ -54,10 +110,17 @@ bundles:
 default_authorization_decision: /app/authz/<your_namespace>/allow
 
 # 2. Java Application Configuration
+database:
+  # The schema where the library will automatically provision all authz_* tables.
+  # Only the 9 known authz_* tables are placed here; your application/module tables
+  # are never affected. Safe for modular monoliths.
+  # See "How Schema Isolation Works" in Section 2 for details.
+  schema: my_app_authz   # defaults to "public" if omitted
+
 # The endpoint the application will POST to for policy evaluation
 evaluation_url: http://localhost:8181/v1/data/app/authz/<your_namespace>/allow
 ```
-*(Replace `<your_namespace>` and the `8080` port to match your specific service).*
+*(Replace `<your_namespace>`, the schema name, and the `8080` port to match your specific service).*
 
 ---
 
