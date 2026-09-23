@@ -144,7 +144,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(101L, "clinic:visit:create");
         String actualRego = generator.generate("clinic", List.of(policy), permCodeLookup);
 
@@ -230,7 +230,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(102L, "clinic:billing:approve");
         String actualRego = generator.generate("clinic", List.of(policy), permCodeLookup);
 
@@ -311,7 +311,7 @@ public class CompilerTest {
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
-        RegoGenerator generator = new RegoGenerator(new com.fasterxml.jackson.databind.ObjectMapper(), new AstBuilder());
+        RegoGenerator generator = new RegoGenerator(new ObjectMapper(), new AstBuilder());
         Map<Long, String> permCodeLookup = Map.of(103L, "system:record:read");
         String actualRego = generator.generate("system", List.of(policy), permCodeLookup);
 

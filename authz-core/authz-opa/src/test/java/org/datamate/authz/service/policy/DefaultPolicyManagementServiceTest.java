@@ -1,5 +1,8 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
@@ -8,8 +11,11 @@ import org.datamate.authz.jpa.repository.PolicyBundleCacheRepository;
 import org.datamate.authz.api.policy.PolicyRepository;
 import org.datamate.authz.api.policy.PolicyValidation;
 import org.datamate.authz.api.policy.ResourceRepository;
+import org.datamate.authz.api.subject.SubjectManagementService;
+import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
+import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.exception.AuthzInvalidSyntaxException;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -19,6 +25,7 @@ import org.datamate.authz.model.policy.entity.Resource;
 import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
+import org.datamate.authz.model.policy.valueobject.RegoValidationError;
 import org.datamate.authz.model.policy.valueobject.RegoValidationResult;
 import org.datamate.authz.rest.dto.PolicyItemRequest;
 import org.datamate.authz.rest.dto.SavePoliciesRequest;
@@ -27,8 +34,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,20 +61,20 @@ class DefaultPolicyManagementServiceTest {
     @Mock private PolicyBundleCacheRepository bundleCacheRepository;
     @Mock private PolicyValidation validation;
     @Mock private ObjectMapper objectMapper;
-    @org.mockito.Spy private org.datamate.authz.compiler.AstBuilder astBuilder = new org.datamate.authz.compiler.AstBuilder();
-    @Mock private org.datamate.authz.api.subject.SubjectManagementService subjectManagementService;
+    @Spy private AstBuilder astBuilder = new AstBuilder();
+    @Mock private SubjectManagementService subjectManagementService;
 
-    @Mock private com.datamate.bedrock.framework.common.logging.service.Logger log;
+    @Mock private Logger log;
 
     @InjectMocks
     private DefaultPolicyManagementService service;
 
     @BeforeEach
     void setUp() throws Exception {
-        java.lang.reflect.Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
+        Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(service, log);
-        org.mockito.Mockito.lenient().when(subjectManagementService.subjectExists(any(), anyString())).thenReturn(true);
+        Mockito.lenient().when(subjectManagementService.subjectExists(any(), anyString())).thenReturn(true);
     }
 
     @Test
@@ -209,7 +221,7 @@ class DefaultPolicyManagementServiceTest {
 
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
         when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(validation.validate("invalid rego")).thenReturn(new RegoValidationResult(false, List.of(new org.datamate.authz.model.policy.valueobject.RegoValidationError(1, 1, "Syntax error"))));
+        when(validation.validate("invalid rego")).thenReturn(new RegoValidationResult(false, List.of(new RegoValidationError(1, 1, "Syntax error"))));
 
         assertThrows(AuthzInvalidSyntaxException.class, () -> service.savePolicies(req));
     }
@@ -273,5 +285,53 @@ class DefaultPolicyManagementServiceTest {
 
         verify(policyRepository).softDelete(100L, "Removed policy in state sync.");
         verify(bundleCacheRepository).upsertBundle("finance", null, null);
+    }
+
+    @Test
+    void getPolicies_paginated_and_search() {
+        Resource r = mock(Resource.class);
+        when(r.getId()).thenReturn(1L);
+        when(r.getNamespace()).thenReturn("finance");
+        when(r.getName()).thenReturn("journal");
+
+        Permission p1 = mock(Permission.class);
+        when(p1.getId()).thenReturn(10L);
+        when(p1.getResourceId()).thenReturn(1L);
+        when(p1.getCode()).thenReturn("finance:journal:create");
+        when(p1.getAction()).thenReturn("create");
+
+        Permission p2 = mock(Permission.class);
+        when(p2.getId()).thenReturn(20L);
+        when(p2.getResourceId()).thenReturn(1L);
+        when(p2.getCode()).thenReturn("finance:journal:read");
+        when(p2.getAction()).thenReturn("read");
+
+        when(resourceRepository.findAllActive()).thenReturn(List.of(r));
+        when(permissionRepository.findAllActive()).thenReturn(List.of(p1, p2));
+        when(policyRepository.findBySubject(SubjectType.ROLE, "ACCOUNTANT")).thenReturn(List.of());
+
+        PageQuery pageQuery = new PageQuery(1, 10);
+        Paged<PolicyGridItemDto> result = service.getPolicies(SubjectType.ROLE, "ACCOUNTANT", "finance", "create", pageQuery);
+
+        assertNotNull(result);
+        assertEquals(1, result.content().size());
+        assertEquals("finance:journal:create", result.content().get(0).permissionCode());
+        assertEquals(1, result.totalElements());
+    }
+
+    @Test
+    void getSubjects_paginated() {
+        SubjectDto subject = new SubjectDto(SubjectType.ROLE, "ACCOUNTANT");
+        Page<SubjectDto> mockPage = new PageImpl<>(List.of(subject));
+
+        when(policyRepository.findSubjects(eq(SubjectType.ROLE), eq("ACC"), any())).thenReturn(mockPage);
+
+        PageQuery pageQuery = new PageQuery(1, 10);
+        Paged<SubjectDto> result = service.getSubjects(SubjectType.ROLE, "ACC", pageQuery);
+
+        assertNotNull(result);
+        assertEquals(1, result.content().size());
+        assertEquals("ACCOUNTANT", result.content().get(0).subjectId());
+        assertEquals(1, result.totalElements());
     }
 }

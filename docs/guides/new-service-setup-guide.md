@@ -197,11 +197,13 @@ This ensures it is structurally impossible to expose a management endpoint witho
 | Endpoint | Method | Bean Constant | Auto-Configured? | Purpose |
 |---|---|---|---|---|
 | `/internal/authz/bundle/{namespace}` | `GET` | `AuthzBeans.BUNDLE` | ✅ Yes | Serve compiled OPA bundle to sidecar |
-| `/internal/authz/subjects` | `GET` | `AuthzBeans.SUBJECTS` | ✅ Yes | List subjects (users/roles) |
+| `/internal/authz/subjects` | `GET` | `AuthzBeans.SUBJECTS` | ✅ Yes | List, search, & paginate subjects (users/roles) |
 | `/internal/authz/fields/{permissionCode}` | `GET` | `AuthzBeans.FIELDS` | ❌ No | Get condition fields for a permission |
-| `/internal/authz/policies` | `GET` | `AuthzBeans.POLICIES` | ❌ No | Retrieve policies by subject + namespace |
+| `/internal/authz/policies` | `GET` | `AuthzBeans.POLICIES` | ❌ No | Retrieve, search, & paginate policies by subject + namespace |
 | `/internal/authz/policies` | `PUT` | `AuthzBeans.SAVE_POLICIES` | ❌ No | Create or update policies |
 | `/internal/authz/namespaces` | `GET` | `AuthzBeans.NAMESPACES` | ❌ No | List available namespaces |
+
+> **Note on Pagination & Search:** For details on pagination parameters (`page`, `size`) and search filtering on `/internal/authz/policies` and `/internal/authz/subjects`, see [OPA Pagination & Search Guide](opa-pagination-and-search-guide.md).
 
 > **Auto-configured endpoints** work out of the box with open access (or API-key protection for Bundle). If you define your own `@Bean` with the same name, the auto-configured bean backs off and yours takes over.
 >

@@ -1,5 +1,7 @@
 package org.datamate.authz.api.subject;
 
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
 import org.datamate.authz.dto.subject.AuthzSubjectDto;
 import org.datamate.authz.event.AuthzSubjectSyncCommand;
 import org.datamate.authz.model.policy.enumtype.SubjectType;
@@ -42,6 +44,17 @@ public interface SubjectManagementService {
      * @return list of active subjects
      */
     List<AuthzSubjectDto> listSubjects(SubjectType type);
+
+    /**
+     * Search and list subjects with Bedrock PageQuery pagination.
+     *
+     * @param type      the subject type to filter by (optional)
+     * @param search    search keyword for subjectId or displayName (optional)
+     * @param pageQuery pagination parameters
+     * @return paginated subjects
+     */
+    Paged<AuthzSubjectDto> getSubjects(
+            SubjectType type, String search, PageQuery pageQuery);
 
     /**
      * Look up a single subject by its type and ID.
