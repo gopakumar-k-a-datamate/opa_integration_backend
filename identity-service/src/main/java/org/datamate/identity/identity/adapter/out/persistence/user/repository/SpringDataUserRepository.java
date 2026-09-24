@@ -19,6 +19,6 @@ public interface SpringDataUserRepository extends JpaRepository<UserJpaEntity, U
     boolean existsByEmailAndIdNot(String email, UUID id);
     boolean existsByUserNameAndIdNot(String userName, UUID id);
 
-    @Query("SELECT COUNT(u) FROM UserJpaEntity u JOIN u.roles r WHERE r.name = :roleName AND u.status = org.datamate.identity.identity.domain.model.user.enums.UserStatus.ACTIVE AND u.id != :exceptUserId")
+    @Query("SELECT COUNT(u) FROM UserJpaEntity u JOIN u.roles r WHERE (r.name = :roleName OR CAST(r.id AS string) = :roleName) AND u.status = org.datamate.identity.identity.domain.model.user.enums.UserStatus.ACTIVE AND u.id != :exceptUserId")
     long countActiveUsersWithRoleExcept(@Param("roleName") String roleName, @Param("exceptUserId") UUID exceptUserId);
 }

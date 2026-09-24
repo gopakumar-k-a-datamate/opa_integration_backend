@@ -70,12 +70,12 @@ class UpdateUserRolesServiceTest {
         UserDto result = service.updateUserRoles(userId, request, "admin_user");
 
         assertNotNull(result);
-        assertEquals(List.of("ADMIN"), result.roles());
+        assertEquals(List.of(adminRole.getId().toString()), result.roles());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userPort).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
-        assertEquals(List.of("ADMIN"), savedUser.getRoles());
+        assertEquals(List.of(adminRole.getId().toString()), savedUser.getRoles());
 
         verify(eventPublisher).publishEvent(any(UserRolesUpdatedEvent.class));
     }
@@ -86,7 +86,7 @@ class UpdateUserRolesServiceTest {
         User existingUser = User.reconstitute(
                 userId, "test_user", "test@example.com", "+12345",
                 "hash", "John", "Doe", "ELLIDER", "EXT-1",
-                UserStatus.ACTIVE, List.of("ADMIN"), false, 1L, 1L,
+                UserStatus.ACTIVE, List.of(UUID.randomUUID().toString()), false, 1L, 1L,
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
@@ -126,7 +126,7 @@ class UpdateUserRolesServiceTest {
         UserDto result = service.updateUserRoles(userId, request, "admin_user");
 
         assertNotNull(result);
-        assertEquals(List.of("ADMIN"), result.roles());
+        assertEquals(List.of(adminRole.getId().toString()), result.roles());
     }
 
     @Test
@@ -232,7 +232,7 @@ class UpdateUserRolesServiceTest {
         UserDto result = service.updateUserRoles(userId, request, "admin@123.com");
 
         assertNotNull(result);
-        assertTrue(result.roles().contains("POLICY_ADMIN"));
+        assertTrue(result.roles().contains(polAdminRole.getId().toString()));
     }
 
     @Test

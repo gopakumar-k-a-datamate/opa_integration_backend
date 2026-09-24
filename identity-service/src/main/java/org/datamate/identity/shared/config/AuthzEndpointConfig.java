@@ -8,19 +8,25 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.datamate.identity.identity.domain.constant.IdentityConstants;
+
 @Configuration
 public class AuthzEndpointConfig {
 
+    public static final String POLICY_ADMIN_ROLE_ID = IdentityConstants.POLICY_ADMIN_ROLE_ID_STRING;
+
     /**
-     * Common authorization rule: only POLICY_ADMIN can manage policies.
+     * Common authorization rule: only POLICY_ADMIN (by UUID or name) can manage policies.
      * Reused across all activated endpoints.
      */
+
+    //move to seperate class
     private final EndpointAuthorization policyAdminAuth = context -> {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             boolean hasAdmin = auth.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("POLICY_ADMIN") ||
-                                   a.getAuthority().equals("ROLE_POLICY_ADMIN"));
+                    .anyMatch(a -> a.getAuthority().equals(POLICY_ADMIN_ROLE_ID) ||
+                                   a.getAuthority().equals("ROLE_" + POLICY_ADMIN_ROLE_ID);
             if (!hasAdmin) {
                 throw new AccessDeniedException("Access Denied: POLICY_ADMIN authority required");
             }
