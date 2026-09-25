@@ -189,7 +189,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
 
         log.info("Processing SavePoliciesRequest for Subject: [{} {}], Namespace: '{}'", subjectType, subjectId, targetNamespace);
 
-        if (!subjectManagementService.subjectExists(subjectType, subjectId)) {
+        if (!subjectManagementService.subjectExistsAndActive(subjectType, subjectId)) {
             throw new AuthzInvalidPayloadException(
                 String.format("Subject %s with ID '%s' is not registered or is inactive in the authorization database.", subjectType, subjectId)
             );

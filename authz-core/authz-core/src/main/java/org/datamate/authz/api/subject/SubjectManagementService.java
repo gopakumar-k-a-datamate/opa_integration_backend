@@ -36,6 +36,17 @@ public interface SubjectManagementService {
     boolean subjectExists(SubjectType type, String subjectId);
 
     /**
+     * Returns {@code true} if the given subject exists, is not soft-deleted,
+     * and is currently active (status {@code ACTIVE}) in the local projection.
+     * Used for policy validation where inactive subjects must be rejected.
+     *
+     * @param type      the subject type ({@code USER} or {@code ROLE})
+     * @param subjectId the IdP-issued identifier
+     * @return {@code true} when the subject exists, is active and not soft-deleted
+     */
+    boolean subjectExistsAndActive(SubjectType type, String subjectId);
+
+    /**
      * List all active (non-deleted) subjects of a given type.
      * 
      * @param type the subject type to filter by
