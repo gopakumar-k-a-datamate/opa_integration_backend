@@ -105,6 +105,12 @@ public class DefaultSubjectManagementService implements SubjectManagementService
                 .orElse(false);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public boolean subjectExistsAndActive(SubjectType type, String subjectId) {
+        return subjectRepository.existsBySubjectTypeAndSubjectIdAndDeletedAtIsNullAndStatusIgnoreCase(type.name(), subjectId, "ACTIVE");
+    }
+
     private AuthzSubjectDto toDto(AuthzSubjectJpaEntity e) {
         return new AuthzSubjectDto(
                 e.getSubjectId(),
