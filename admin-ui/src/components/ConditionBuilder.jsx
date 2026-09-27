@@ -5,8 +5,64 @@ import DynamicDropdown from './DynamicDropdown';
 
 const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => {
   const selectedField = fields.find(f => f.fieldName === rule.field);
+  const valueType = rule.valueType || 'VALUE';
+
+  const handleValueTypeChange = (e) => {
+    const newType = e.target.value;
+    let newVal = rule.value;
+    if (newType === 'FIELD' || newType === 'FIELD_LIST') {
+      newVal = typeof rule.value === 'string' ? rule.value : '';
+    }
+    onChange({ ...rule, valueType: newType, value: newVal });
+  };
 
   const renderValueInput = () => {
+    if (valueType === 'FIELD' || valueType === 'FIELD_LIST') {
+      const userFieldSuggestions = [
+        'user.location',
+        'user.department',
+        'user.id',
+        'user.email',
+        'user.roles'
+      ];
+      const resourceFieldSuggestions = fields.map(f => f.fieldName.startsWith('resource.') ? f.fieldName : `resource.${f.fieldName}`);
+      const allSuggestions = [...userFieldSuggestions, ...resourceFieldSuggestions];
+
+      return (
+        <div style={{ flex: 1, display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <select 
+            value={allSuggestions.includes(rule.value) ? rule.value : '__custom__'}
+            onChange={e => {
+              if (e.target.value !== '__custom__') {
+                onChange({ ...rule, value: e.target.value });
+              }
+            }}
+            style={{ padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px', maxWidth: '180px' }}
+          >
+            <option value="">Select Field...</option>
+            <optgroup label="User Context">
+              {userFieldSuggestions.map(sf => (
+                <option key={sf} value={sf}>{sf}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Resource Fields">
+              {resourceFieldSuggestions.map(rf => (
+                <option key={rf} value={rf}>{rf}</option>
+              ))}
+            </optgroup>
+            <option value="__custom__">Custom path...</option>
+          </select>
+          <input 
+            type="text" 
+            placeholder={valueType === 'FIELD' ? "e.g. user.location" : "e.g. resource.allowedDepartments"} 
+            value={typeof rule.value === 'string' ? rule.value : ''} 
+            onChange={e => onChange({ ...rule, value: e.target.value })}
+            style={{ flex: 1, padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+          />
+        </div>
+      );
+    }
+
     const isArrayOp = rule.comparison === 'in' || rule.comparison === 'not_in';
 
     if (isArrayOp) {
@@ -106,7 +162,7 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
     if (newField?.fieldType === 'BOOLEAN') defaultValue = true;
     else if (newField?.allowedValues?.length > 0) defaultValue = newField.allowedValues[0];
 
-    onChange({ ...rule, field: newFieldName, value: defaultValue });
+    onChange({ ...rule, field: newFieldName, value: defaultValue, valueType: valueType });
   };
 
   return (
@@ -118,11 +174,11 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
       </select>
       <select value={rule.comparison || '=='} onChange={e => {
           const newComp = e.target.value;
-          const isArray = newComp === 'in' || newComp === 'not_in';
+          const isArray = (newComp === 'in' || newComp === 'not_in') && valueType === 'VALUE';
           let newVal = rule.value;
           if (isArray && !Array.isArray(newVal)) newVal = newVal ? [String(newVal)] : [];
           if (!isArray && Array.isArray(newVal)) newVal = newVal[0] || '';
-          onChange({ ...rule, comparison: newComp, value: newVal });
+          onChange({ ...rule, comparison: newComp, value: newVal, valueType: valueType });
         }} style={{ padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
         <option value="==">==</option>
         <option value="!=">!=</option>
@@ -133,6 +189,11 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
         <option value=">=">&gt;=</option>
         <option value="<">&lt;</option>
         <option value=">">&gt;</option>
+      </select>
+      <select value={valueType} onChange={handleValueTypeChange} style={{ padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px', minWidth: '120px' }}>
+        <option value="VALUE">Static Value</option>
+        <option value="FIELD">Field Comparison</option>
+        <option value="FIELD_LIST">Field List</option>
       </select>
       {renderValueInput()}
       <button className="btn" style={{ padding: '0.4rem 0.6rem', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5' }} onClick={onRemove}>✕</button>
@@ -165,7 +226,8 @@ const ConditionGroup = ({ node, fields, permissionCode, onChange, onRemove, isRo
     const newRule = { 
       field: defaultField?.fieldName || '', 
       comparison: '==', 
-      value: defaultValue 
+      value: defaultValue,
+      valueType: 'VALUE'
     };
     const newChildren = [...(node.children || []), newRule];
     onChange({ ...node, children: newChildren });
@@ -312,11 +374,22 @@ const generatePreview = (node, fields, depth = 0, isRoot = true) => {
   
   // It's a rule
   const fieldDisplay = fields.find(f => f.fieldName === node.field)?.displayName || node.field || 'Unknown Field';
+  const vType = node.valueType || 'VALUE';
   let valStr = '';
-  if (Array.isArray(node.value)) valStr = `[${node.value.filter(v => v !== '').map(v => `"${v}"`).join(', ')}]`;
-  else if (typeof node.value === 'string') valStr = `"${node.value}"`;
-  else if (node.value === undefined || node.value === null) valStr = 'null';
-  else valStr = String(node.value);
+
+  if (vType === 'FIELD') {
+    valStr = `${node.value || ''} (Field)`;
+  } else if (vType === 'FIELD_LIST') {
+    valStr = `${node.value || ''} (Field List)`;
+  } else if (Array.isArray(node.value)) {
+    valStr = `[${node.value.filter(v => v !== '').map(v => `"${v}"`).join(', ')}]`;
+  } else if (typeof node.value === 'string') {
+    valStr = `"${node.value}"`;
+  } else if (node.value === undefined || node.value === null) {
+    valStr = 'null';
+  } else {
+    valStr = String(node.value);
+  }
   
   return `${indent}${fieldDisplay} ${node.comparison || '=='} ${valStr}`;
 };
