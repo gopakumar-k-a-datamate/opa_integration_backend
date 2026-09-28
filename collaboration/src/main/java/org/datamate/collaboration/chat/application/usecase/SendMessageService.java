@@ -3,15 +3,13 @@ package org.datamate.collaboration.chat.application.usecase;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
-import org.datamate.collaboration.chat.application.port.in.GetMessagesUseCase;
+import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
 import org.datamate.collaboration.chat.domain.model.Message;
 import org.datamate.collaboration.chat.domain.model.Thread;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +17,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Application Service orchestrating the core messaging use cases.
+ * Application Service for sending messages.
  * <p>
- * Implements both {@link SendMessageUseCase} and {@link GetMessagesUseCase}.
- * This is the single entry point for all messaging business logic, including
- * the lazy, idempotent Thread creation strategy defined in the Architecture Specification.
+ * Implements {@link SendMessageUseCase}. This handles the command side of messaging.
  * <p>
  * <strong>Lazy Thread Creation:</strong> Because Domain Services generate the {@code threadId}
  * externally, the Chat Service does not expose a {@code POST /api/threads} endpoint.
@@ -33,7 +29,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-public class MessageService implements SendMessageUseCase, GetMessagesUseCase {
+public class SendMessageService implements SendMessageUseCase {
 
     @EnableLogger
     private Logger logger;
@@ -43,18 +39,17 @@ public class MessageService implements SendMessageUseCase, GetMessagesUseCase {
 
     @Override
     @Transactional
-    public void sendMessage(SendMessageCommand command) {
-        ensureThreadExists(command.threadId());
+    public void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
+        ensureThreadExists(threadId);
 
-        Message message = Message.builder()
-                .id(UUID.randomUUID())
-                .threadId(command.threadId())
-                .senderId(command.senderId())
-                .text(command.text())
-                .file(false)
-                .systemMessage(false)
-                .timestamp(Instant.now())
-                .build();
+        Message message = Message.create(
+                threadId,
+                senderId,
+                request.text(),
+                false,
+                false,
+                null
+        );
 
         messageRepository.save(message);
 
@@ -62,19 +57,8 @@ public class MessageService implements SendMessageUseCase, GetMessagesUseCase {
         // for REST-to-WebSocket fanout across all server nodes.
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Message> getMessages(UUID threadId, Pageable pageable) {
-        return messageRepository.findByThreadId(threadId, pageable);
-    }
-
     /**
      * Idempotent lazy Thread creation.
-     * <p>
-     * Uses {@code existsById} (a cheap COUNT/EXISTS SQL) to avoid loading the full entity.
-     * If the thread does not exist, it is created. If a concurrent transaction creates
-     * the same thread between the check and the insert, the resulting
-     * {@link DataIntegrityViolationException} is caught and safely ignored.
      */
     private void ensureThreadExists(UUID threadId) {
         if (!threadRepository.existsById(threadId)) {

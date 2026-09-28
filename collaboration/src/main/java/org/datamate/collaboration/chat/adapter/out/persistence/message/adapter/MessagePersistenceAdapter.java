@@ -50,15 +50,15 @@ public class MessagePersistenceAdapter implements MessageRepositoryPort {
     }
 
     private Message toDomain(MessageJpaEntity entity) {
-        return Message.builder()
-                .id(entity.getId())
-                .threadId(entity.getThreadId())
-                .senderId(entity.getSenderId())
-                .text(entity.getText())
-                .file(entity.isFile())
-                .systemMessage(entity.isSystemMessage())
-                .attachmentId(entity.getAttachmentId())
-                .timestamp(entity.getTimestamp())
-                .build();
+        return Message.restore(
+                entity.getId(),
+                entity.getThreadId(),
+                entity.getSenderId(),
+                entity.getText(),
+                entity.isFile(),
+                entity.isSystemMessage(),
+                entity.getAttachmentId(),
+                entity.getTimestamp()
+        );
     }
 }

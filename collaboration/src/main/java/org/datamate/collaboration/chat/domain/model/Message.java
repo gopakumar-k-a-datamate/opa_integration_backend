@@ -1,5 +1,6 @@
 package org.datamate.collaboration.chat.domain.model;
 
+import lombok.Getter;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
  * <p>
  * Pure Domain Entity — no Spring, JPA, or framework annotations.
  */
+@Getter
 public class Message {
 
     private final UUID id;
@@ -29,34 +31,45 @@ public class Message {
     private final UUID attachmentId;
     private final Instant timestamp;
 
-    private Message(Builder builder) {
-        requireNonNull(builder.id, "messageId");
-        requireNonNull(builder.threadId, "threadId");
-        requireNonNull(builder.senderId, "senderId");
-        requireNonNull(builder.timestamp, "timestamp");
+    private Message(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, Instant timestamp) {
+        requireNonNull(id, "messageId");
+        requireNonNull(threadId, "threadId");
+        requireNonNull(senderId, "senderId");
+        requireNonNull(timestamp, "timestamp");
 
-        this.id = builder.id;
-        this.threadId = builder.threadId;
-        this.senderId = builder.senderId;
-        this.text = builder.text;
-        this.file = builder.file;
-        this.systemMessage = builder.systemMessage;
-        this.attachmentId = builder.attachmentId;
-        this.timestamp = builder.timestamp;
+        this.id = id;
+        this.threadId = threadId;
+        this.senderId = senderId;
+        this.text = text;
+        this.file = file;
+        this.systemMessage = systemMessage;
+        this.attachmentId = attachmentId;
+        this.timestamp = timestamp;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    /**
+     * Factory method for creating a brand new Message.
+     * Encapsulates ID generation and timestamping within the domain.
+     */
+    public static Message create(UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId) {
+        return new Message(
+                UUID.randomUUID(),
+                threadId,
+                senderId,
+                text,
+                file,
+                systemMessage,
+                attachmentId,
+                Instant.now()
+        );
     }
 
-    public UUID getId() { return id; }
-    public UUID getThreadId() { return threadId; }
-    public String getSenderId() { return senderId; }
-    public String getText() { return text; }
-    public boolean isFile() { return file; }
-    public boolean isSystemMessage() { return systemMessage; }
-    public UUID getAttachmentId() { return attachmentId; }
-    public Instant getTimestamp() { return timestamp; }
+    /**
+     * Factory method for reconstituting an existing Message from persistence.
+     */
+    public static Message restore(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, Instant timestamp) {
+        return new Message(id, threadId, senderId, text, file, systemMessage, attachmentId, timestamp);
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -78,30 +91,6 @@ public class Message {
         if (value == null) {
             throw new DomainValidationException(
                     CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), fieldName);
-        }
-    }
-
-    public static class Builder {
-        private UUID id;
-        private UUID threadId;
-        private String senderId;
-        private String text;
-        private boolean file;
-        private boolean systemMessage;
-        private UUID attachmentId;
-        private Instant timestamp;
-
-        public Builder id(UUID id) { this.id = id; return this; }
-        public Builder threadId(UUID threadId) { this.threadId = threadId; return this; }
-        public Builder senderId(String senderId) { this.senderId = senderId; return this; }
-        public Builder text(String text) { this.text = text; return this; }
-        public Builder file(boolean file) { this.file = file; return this; }
-        public Builder systemMessage(boolean systemMessage) { this.systemMessage = systemMessage; return this; }
-        public Builder attachmentId(UUID attachmentId) { this.attachmentId = attachmentId; return this; }
-        public Builder timestamp(Instant timestamp) { this.timestamp = timestamp; return this; }
-
-        public Message build() {
-            return new Message(this);
         }
     }
 }

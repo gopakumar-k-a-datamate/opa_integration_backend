@@ -5,13 +5,11 @@ import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.GetMessagesUseCase;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
-import org.datamate.collaboration.chat.domain.model.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -41,38 +39,22 @@ public class ChatController {
     private final GetMessagesUseCase getMessagesUseCase;
 
     @PostMapping
-    public ResponseEntity<Void> sendMessage(
+    @ResponseStatus(HttpStatus.CREATED)
+    public void sendMessage(
             @PathVariable UUID threadId,
             @Valid @RequestBody SendMessageRequest request,
             // TODO (Epic 3.1): Extract senderId from Security Principal (Ticket JWT)
             @RequestHeader("X-Sender-Id") String senderId) {
 
-        sendMessageUseCase.sendMessage(
-                new SendMessageUseCase.SendMessageCommand(threadId, senderId, request.text())
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        sendMessageUseCase.sendMessage(threadId, senderId, request);
     }
 
     @GetMapping
-    public ResponseEntity<Page<MessageDto>> getMessages(
+    public Page<MessageDto> getMessages(
             @PathVariable UUID threadId,
             @PageableDefault(size = 20, sort = "timestamp", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        Page<Message> messages = getMessagesUseCase.getMessages(threadId, pageable);
-        return ResponseEntity.ok(messages.map(this::toResponse));
-    }
-
-    private MessageDto toResponse(Message message) {
-        return new MessageDto(
-                message.getId(),
-                message.getSenderId(),
-                message.getText(),
-                message.isFile(),
-                message.isSystemMessage(),
-                message.getAttachmentId(),
-                message.getTimestamp()
-        );
+        return getMessagesUseCase.getMessages(threadId, pageable);
     }
 }

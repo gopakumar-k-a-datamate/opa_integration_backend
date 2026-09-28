@@ -1,5 +1,6 @@
 package org.datamate.collaboration.chat.domain.model;
 
+import lombok.Getter;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
  * <p>
  * Pure Domain Entity — no Spring, JPA, or framework annotations.
  */
+@Getter
 public class Thread {
 
     private final UUID id;
@@ -24,10 +26,6 @@ public class Thread {
                     CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "threadId");
         }
         this.id = id;
-    }
-
-    public UUID getId() {
-        return id;
     }
 
     @Override

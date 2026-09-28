@@ -47,13 +47,13 @@ public class AttachmentPersistenceAdapter implements AttachmentRepositoryPort {
     }
 
     private Attachment toDomain(AttachmentJpaEntity entity) {
-        return Attachment.builder()
-                .id(entity.getId())
-                .fileName(entity.getFileName())
-                .mimeType(entity.getMimeType())
-                .fileSize(entity.getFileSize())
-                .uploadUrl(entity.getUploadUrl())
-                .previewUrl(entity.getPreviewUrl())
-                .build();
+        return Attachment.restore(
+                entity.getId(),
+                entity.getFileName(),
+                entity.getMimeType(),
+                entity.getFileSize(),
+                entity.getUploadUrl(),
+                entity.getPreviewUrl()
+        );
     }
 }
