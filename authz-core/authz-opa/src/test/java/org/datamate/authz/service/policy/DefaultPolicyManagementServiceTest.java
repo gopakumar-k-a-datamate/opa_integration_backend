@@ -68,7 +68,7 @@ class DefaultPolicyManagementServiceTest {
         Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(service, log);
-        lenient().when(subjectManagementService.subjectExists(any(), anyString())).thenReturn(true);
+        lenient().when(subjectManagementService.subjectExistsAndActive(any(), anyString())).thenReturn(true);
     }
 
     @Test

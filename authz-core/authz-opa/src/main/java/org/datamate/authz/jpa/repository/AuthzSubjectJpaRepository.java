@@ -14,5 +14,7 @@ public interface AuthzSubjectJpaRepository extends JpaRepository<AuthzSubjectJpa
 
     boolean existsBySubjectTypeAndSubjectIdAndDeletedAtIsNull(String subjectType, String subjectId);
 
+    boolean existsBySubjectTypeAndSubjectIdAndDeletedAtIsNullAndStatusIgnoreCase(String subjectType, String subjectId, String status);
+
     List<AuthzSubjectJpaEntity> findAllBySubjectTypeAndDeletedAtIsNull(String subjectType);
 }
