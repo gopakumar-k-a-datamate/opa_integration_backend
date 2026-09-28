@@ -1,10 +1,10 @@
 package org.datamate.collaboration.chat.application.port.in;
 
 import org.datamate.collaboration.chat.application.dto.MessageDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
 import java.util.UUID;
 
 public interface GetMessagesUseCase {
-    Page<MessageDto> getMessages(UUID threadId, Pageable pageable);
+    Paged<MessageDto> getMessages(UUID threadId, PageQuery query);
 }

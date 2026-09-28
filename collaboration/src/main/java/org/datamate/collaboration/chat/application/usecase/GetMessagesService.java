@@ -5,8 +5,8 @@ import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.mapper.MessageMapper;
 import org.datamate.collaboration.chat.application.port.in.GetMessagesUseCase;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +27,8 @@ public class GetMessagesService implements GetMessagesUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MessageDto> getMessages(UUID threadId, Pageable pageable) {
-        return messageRepository.findByThreadId(threadId, pageable)
+    public Paged<MessageDto> getMessages(UUID threadId, PageQuery query) {
+        return messageRepository.findByThreadId(threadId, query)
                 .map(messageMapper::toDto);
     }
 }

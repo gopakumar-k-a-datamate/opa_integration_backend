@@ -5,10 +5,9 @@ import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.GetMessagesUseCase;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PaginatedResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,11 +49,13 @@ public class ChatController {
     }
 
     @GetMapping
-    public Page<MessageDto> getMessages(
+    public PaginatedResponse<MessageDto> getMessages(
             @PathVariable UUID threadId,
-            @PageableDefault(size = 20, sort = "timestamp", direction = Sort.Direction.DESC)
-            Pageable pageable) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
-        return getMessagesUseCase.getMessages(threadId, pageable);
+        PageQuery query = new PageQuery(page, size);
+        Paged<MessageDto> paged = getMessagesUseCase.getMessages(threadId, query);
+        return PaginatedResponse.of(paged);
     }
 }
