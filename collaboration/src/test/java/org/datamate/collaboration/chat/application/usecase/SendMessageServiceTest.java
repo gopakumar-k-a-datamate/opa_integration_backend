@@ -1,9 +1,13 @@
 package org.datamate.collaboration.chat.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.storage.application.port.StorageService;
+import com.datamate.bedrock.framework.storage.domain.model.StorageObject;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
+import org.datamate.collaboration.chat.application.port.out.AttachmentRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
+import org.datamate.collaboration.chat.domain.model.Attachment;
 import org.datamate.collaboration.chat.domain.model.Message;
 import org.datamate.collaboration.chat.domain.model.Thread;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,13 +19,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +41,12 @@ class SendMessageServiceTest {
 
     @Mock
     private ThreadRepositoryPort threadRepository;
+
+    @Mock
+    private AttachmentRepositoryPort attachmentRepository;
+
+    @Mock
+    private StorageService storageService;
 
     @Mock
     private Logger logger;
@@ -48,6 +62,7 @@ class SendMessageServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(sendMessageService, "logger", logger);
+        ReflectionTestUtils.setField(sendMessageService, "defaultBucket", "chat-attachments");
         threadId = UUID.randomUUID();
         senderId = "user-john";
         text = "Hello, World!";
@@ -110,18 +125,52 @@ class SendMessageServiceTest {
     }
 
     @Test
-    @DisplayName("should generate unique message ID for each invocation")
-    void shouldGenerateUniqueMessageId() {
+    @DisplayName("should persist message with attachment when file is provided")
+    void shouldPersistMessage_WithAttachment_WhenFileProvided() {
         when(threadRepository.existsById(threadId)).thenReturn(true);
+        when(storageService.bucketExists("chat-attachments")).thenReturn(true);
+        when(storageService.upload(eq("chat-attachments"), anyString(), any(InputStream.class), anyString(), anyLong()))
+                .thenReturn(StorageObject.builder()
+                        .bucketName("chat-attachments")
+                        .objectKey("threads/" + threadId + "/doc.pdf")
+                        .size(100L)
+                        .contentType("application/pdf")
+                        .build());
 
-        sendMessageService.sendMessage(threadId, senderId, request);
-        sendMessageService.sendMessage(threadId, senderId, request);
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "doc.pdf", "application/pdf", "dummy pdf content".getBytes()
+        );
 
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageRepository, times(2)).save(captor.capture());
+        sendMessageService.sendMessageWithAttachment(threadId, senderId, "Attached PDF", file);
 
-        List<Message> savedMessages = captor.getAllValues();
-        assertThat(savedMessages.get(0).getId())
-                .isNotEqualTo(savedMessages.get(1).getId());
+        verify(attachmentRepository).save(any(Attachment.class));
+
+        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository).save(messageCaptor.capture());
+
+        Message saved = messageCaptor.getValue();
+        assertThat(saved.isFile()).isTrue();
+        assertThat(saved.getAttachmentId()).isNotNull();
+        assertThat(saved.getText()).isEqualTo("Attached PDF");
+    }
+
+    @Test
+    @DisplayName("should reject blocked file extension")
+    void shouldRejectBlockedFileExtension() {
+        MockMultipartFile blockedFile = new MockMultipartFile(
+                "file", "malicious.exe", "application/octet-stream", "bad content".getBytes()
+        );
+
+        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, blockedFile))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("File type not allowed");
+    }
+
+    @Test
+    @DisplayName("should reject when both text and file are empty")
+    void shouldReject_WhenBothTextAndFileEmpty() {
+        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, "  ", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Message text or file attachment must be provided");
     }
 }

@@ -1,14 +1,22 @@
 package org.datamate.collaboration.chat.application.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import java.util.UUID;
 
 /**
  * Inbound DTO for sending a new message.
- * Only carries the text payload — {@code threadId} and {@code senderId}
- * are extracted from the authenticated security principal (Ticket JWT).
+ * Supports text and optional attachmentId.
  */
 public record SendMessageRequest(
-        @NotBlank(message = "Message text must not be blank")
-        String text
+        String text,
+        UUID attachmentId
 ) {
+    public SendMessageRequest {
+        if ((text == null || text.trim().isEmpty()) && attachmentId == null) {
+            throw new IllegalArgumentException("Message text or attachmentId must be provided");
+        }
+    }
+
+    public SendMessageRequest(String text) {
+        this(text, null);
+    }
 }

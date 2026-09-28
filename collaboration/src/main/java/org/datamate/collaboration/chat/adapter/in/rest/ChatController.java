@@ -1,17 +1,19 @@
 package org.datamate.collaboration.chat.adapter.in.rest;
 
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
+import com.datamate.bedrock.framework.common.pagination.PaginatedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.GetMessagesUseCase;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
-import com.datamate.bedrock.framework.common.pagination.PageQuery;
-import com.datamate.bedrock.framework.common.pagination.Paged;
-import com.datamate.bedrock.framework.common.pagination.PaginatedResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
 import java.util.UUID;
 
 /**
@@ -19,15 +21,11 @@ import java.util.UUID;
  * <p>
  * Exposes the messaging API contracts defined in the Architecture Specification (Section 4):
  * <ul>
- *   <li>{@code POST /api/threads/{threadId}/messages} — Send a new message</li>
- *   <li>{@code GET  /api/threads/{threadId}/messages} — Fetch paginated chat history</li>
+ *   <li>{@code POST /api/threads/{threadId}/messages} - Send a new message (supports JSON or multipart attachment)</li>
+ *   <li>{@code GET  /api/threads/{threadId}/messages} - Fetch paginated chat history</li>
  * </ul>
  * <p>
- * Depends only on Application Ports ({@link SendMessageUseCase}, {@link GetMessagesUseCase}),
- * never on domain services or persistence adapters directly.
- * <p>
- * <strong>TODO (Epic 3.1):</strong> Replace temporary {@code X-Sender-Id} header
- * with the authenticated security principal from the Ticket JWT.
+ * Follows the RMS multi-part attachment pattern where text and files can be sent in a single request.
  */
 @RestController
 @RequestMapping("/api/threads/{threadId}/messages")
@@ -37,7 +35,7 @@ public class ChatController {
     private final SendMessageUseCase sendMessageUseCase;
     private final GetMessagesUseCase getMessagesUseCase;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public void sendMessage(
             @PathVariable UUID threadId,
@@ -46,6 +44,18 @@ public class ChatController {
             @RequestHeader("X-Sender-Id") String senderId) {
 
         sendMessageUseCase.sendMessage(threadId, senderId, request);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void sendMessageWithAttachment(
+            @PathVariable UUID threadId,
+            @RequestParam(value = "text", required = false) String text,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            // TODO (Epic 3.1): Extract senderId from Security Principal (Ticket JWT)
+            @RequestHeader("X-Sender-Id") String senderId) {
+
+        sendMessageUseCase.sendMessageWithAttachment(threadId, senderId, text, file);
     }
 
     @GetMapping
