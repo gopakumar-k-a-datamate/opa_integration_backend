@@ -31,7 +31,7 @@ public class AttachmentJpaEntity {
     @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    @Column(name = "mime_type", nullable = false)
+    @Column(name = "file_type", nullable = false)
     private String mimeType;
 
     @Column(name = "file_size", nullable = false)

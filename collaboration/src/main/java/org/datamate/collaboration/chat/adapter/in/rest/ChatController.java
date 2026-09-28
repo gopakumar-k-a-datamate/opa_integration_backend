@@ -14,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.Valid;
+import java.security.Principal;
 import java.util.UUID;
 
 /**
@@ -40,10 +42,9 @@ public class ChatController {
     public void sendMessage(
             @PathVariable UUID threadId,
             @Valid @RequestBody SendMessageRequest request,
-            // TODO (Epic 3.1): Extract senderId from Security Principal (Ticket JWT)
-            @RequestHeader("X-Sender-Id") String senderId) {
+            Principal principal) {
 
-        sendMessageUseCase.sendMessage(threadId, senderId, request);
+        sendMessageUseCase.sendMessage(threadId, principal.getName(), request);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
