@@ -1,18 +1,44 @@
 package org.datamate.collaboration.chat.domain.model;
 
+import org.datamate.collaboration.exception.CollaborationErrorCodes;
+import org.datamate.collaboration.exception.DomainValidationException;
+
 import java.util.UUID;
 
 /**
- * Pure Domain Entity. No Spring or JPA annotations allowed here.
+ * Thread Aggregate Root.
+ * <p>
+ * Represents a conversation thread. The {@code id} is always generated externally
+ * by Domain Services (e.g., EMR, Finance), enabling cross-domain chat inheritance
+ * when domain entities transform (e.g., Purchase Request → Purchase Order).
+ * <p>
+ * Pure Domain Entity — no Spring, JPA, or framework annotations.
  */
 public class Thread {
-    private UUID id;
+
+    private final UUID id;
 
     public Thread(UUID id) {
+        if (id == null) {
+            throw new DomainValidationException(
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "threadId");
+        }
         this.id = id;
     }
 
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Thread that)) return false;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }
