@@ -3,6 +3,20 @@ import { fetchFields } from '../api/apiClient';
 import Editor from '@monaco-editor/react';
 import DynamicDropdown from './DynamicDropdown';
 
+const getFieldLabel = (fieldPath, fields = []) => {
+  if (!fieldPath) return '';
+  if (fieldPath.startsWith('resource.')) {
+    const rawName = fieldPath.substring(9);
+    const matched = fields.find(f => f.fieldName === rawName || f.fieldName === fieldPath);
+    return matched?.displayName || rawName;
+  }
+  if (fieldPath.startsWith('user.')) {
+    const rawName = fieldPath.substring(5);
+    return `user${rawName.charAt(0).toUpperCase() + rawName.slice(1)}`;
+  }
+  return fieldPath;
+};
+
 const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => {
   const selectedField = fields.find(f => f.fieldName === rule.field);
   const valueType = rule.valueType || 'VALUE';
@@ -13,10 +27,125 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
     if (newType === 'FIELD' || newType === 'FIELD_LIST') {
       newVal = typeof rule.value === 'string' ? rule.value : '';
     }
-    onChange({ ...rule, valueType: newType, value: newVal });
+    onChange({ 
+      ...rule, 
+      valueType: newType, 
+      value: newVal,
+      compareTo: newType === 'MATH_EXPRESSION' ? (rule.compareTo || 'VALUE') : undefined,
+      mathOperations: newType === 'MATH_EXPRESSION' ? (rule.mathOperations || []) : undefined
+    });
   };
 
   const renderValueInput = () => {
+    if (valueType === 'MATH_EXPRESSION') {
+      const mathOps = rule.mathOperations || [];
+      const userFieldSuggestions = [];
+      const numericTypes = ['NUMBER', 'INTEGER', 'DECIMAL', 'LONG', 'FLOAT', 'DOUBLE', 'BIGDECIMAL'];
+      const numericFields = fields.filter(f => !f.fieldType || numericTypes.includes(String(f.fieldType).toUpperCase()));
+      const resourceFieldSuggestions = (numericFields.length > 0 ? numericFields : fields)
+        .map(f => f.fieldName.startsWith('resource.') ? f.fieldName : `resource.${f.fieldName}`);
+      const allSuggestions = [...userFieldSuggestions, ...resourceFieldSuggestions];
+
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Math Operations:</div>
+          {mathOps.map((op, i) => (
+             <div key={i} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+               <select value={op.mathOperator} onChange={e => {
+                  const newOps = [...mathOps];
+                  newOps[i] = { ...op, mathOperator: e.target.value };
+                  onChange({ ...rule, mathOperations: newOps });
+               }} style={{ padding: '0.2rem', borderRadius: '4px' }}>
+                 <option value="ADD">+</option>
+                 <option value="SUBTRACT">-</option>
+                 <option value="MULTIPLY">*</option>
+                 <option value="DIVIDE">/</option>
+               </select>
+               <select value={op.operandType} onChange={e => {
+                  const newOps = [...mathOps];
+                  newOps[i] = { ...op, operandType: e.target.value, value: '' };
+                  onChange({ ...rule, mathOperations: newOps });
+               }} style={{ padding: '0.2rem', borderRadius: '4px' }}>
+                 <option value="VALUE">Static</option>
+                 <option value="FIELD">Field</option>
+               </select>
+               {op.operandType === 'FIELD' ? (
+                 <select 
+                   value={op.value || ''}
+                   onChange={e => {
+                     const newOps = [...mathOps];
+                     newOps[i] = { ...op, value: e.target.value };
+                     onChange({ ...rule, mathOperations: newOps });
+                   }}
+                   style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                 >
+                   <option value="">Select Field...</option>
+                   {userFieldSuggestions.length > 0 && (
+                     <optgroup label="User Context">
+                       {userFieldSuggestions.map(sf => (
+                         <option key={sf} value={sf}>{getFieldLabel(sf, fields)}</option>
+                       ))}
+                     </optgroup>
+                   )}
+                   <optgroup label="Resource Fields">
+                     {resourceFieldSuggestions.map(rf => (
+                       <option key={rf} value={rf}>{getFieldLabel(rf, fields)}</option>
+                     ))}
+                   </optgroup>
+                 </select>
+               ) : (
+                 <input type="text" placeholder="Number" value={op.value || ''} onChange={e => {
+                    const newOps = [...mathOps];
+                    newOps[i] = { ...op, value: e.target.value };
+                    onChange({ ...rule, mathOperations: newOps });
+                 }} style={{ flex: 1, padding: '0.2rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}/>
+               )}
+               <button className="btn" style={{ padding: '0.2rem 0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5' }} onClick={() => {
+                  const newOps = mathOps.filter((_, idx) => idx !== i);
+                  onChange({ ...rule, mathOperations: newOps });
+               }}>✕</button>
+             </div>
+          ))}
+          <button className="btn" style={{ alignSelf: 'flex-start', fontSize: '0.8rem', padding: '0.3rem 0.6rem' }} onClick={() => {
+             onChange({ ...rule, mathOperations: [...mathOps, { mathOperator: 'ADD', operandType: 'VALUE', value: '' }] });
+          }}>+ Add Math Op</button>
+
+          <div style={{ height: '1px', background: 'var(--border-color)', margin: '0.5rem 0' }}></div>
+
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Compare Against:</div>
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            <select value={rule.compareTo || 'VALUE'} onChange={e => onChange({ ...rule, compareTo: e.target.value, value: '' })} style={{ padding: '0.3rem', borderRadius: '4px' }}>
+               <option value="VALUE">Static Value</option>
+               <option value="FIELD">Field</option>
+            </select>
+            {rule.compareTo === 'FIELD' ? (
+              <select 
+                value={rule.value || ''}
+                onChange={e => onChange({ ...rule, value: e.target.value })}
+                style={{ flex: 1, padding: '0.3rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+              >
+                <option value="">Select Field...</option>
+                {userFieldSuggestions.length > 0 && (
+                  <optgroup label="User Context">
+                    {userFieldSuggestions.map(sf => (
+                      <option key={sf} value={sf}>{getFieldLabel(sf, fields)}</option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="Resource Fields">
+                  {resourceFieldSuggestions.map(rf => (
+                    <option key={rf} value={rf}>{getFieldLabel(rf, fields)}</option>
+                  ))}
+                </optgroup>
+              </select>
+            ) : (
+              <input type="text" placeholder="Target value" value={rule.value || ''} onChange={e => onChange({ ...rule, value: e.target.value })} style={{ flex: 1, padding: '0.3rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}/>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (valueType === 'FIELD' || valueType === 'FIELD_LIST') {
       const userFieldSuggestions = [
         'user.location',
@@ -42,12 +171,12 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
             <option value="">Select Field...</option>
             <optgroup label="User Context">
               {userFieldSuggestions.map(sf => (
-                <option key={sf} value={sf}>{sf}</option>
+                <option key={sf} value={sf}>{getFieldLabel(sf, fields)}</option>
               ))}
             </optgroup>
             <optgroup label="Resource Fields">
               {resourceFieldSuggestions.map(rf => (
-                <option key={rf} value={rf}>{rf}</option>
+                <option key={rf} value={rf}>{getFieldLabel(rf, fields)}</option>
               ))}
             </optgroup>
             <option value="__custom__">Custom path...</option>
@@ -166,7 +295,7 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
   };
 
   return (
-    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', width: '100%', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', width: '100%', alignItems: valueType === 'MATH_EXPRESSION' ? 'flex-start' : 'center' }}>
       <select value={rule.field || ''} onChange={handleFieldChange} style={{ padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '4px', minWidth: '150px' }}>
         {fields.map(f => (
           <option key={f.fieldName} value={f.fieldName}>{f.displayName}</option>
@@ -194,6 +323,7 @@ const ConditionRule = ({ rule, fields, permissionCode, onChange, onRemove }) => 
         <option value="VALUE">Static Value</option>
         <option value="FIELD">Field Comparison</option>
         <option value="FIELD_LIST">Field List</option>
+        <option value="MATH_EXPRESSION">Math Expression</option>
       </select>
       {renderValueInput()}
       <button className="btn" style={{ padding: '0.4rem 0.6rem', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5' }} onClick={onRemove}>✕</button>
@@ -376,6 +506,18 @@ const generatePreview = (node, fields, depth = 0, isRoot = true) => {
   const fieldDisplay = fields.find(f => f.fieldName === node.field)?.displayName || node.field || 'Unknown Field';
   const vType = node.valueType || 'VALUE';
   let valStr = '';
+
+  if (vType === 'MATH_EXPRESSION') {
+    let mathStr = fieldDisplay;
+    if (node.mathOperations) {
+      node.mathOperations.forEach(op => {
+        let opSym = op.mathOperator === 'MULTIPLY' ? '*' : op.mathOperator === 'DIVIDE' ? '/' : op.mathOperator === 'SUBTRACT' ? '-' : '+';
+        mathStr = `(${mathStr} ${opSym} ${op.value})`;
+      });
+    }
+    const targetStr = node.compareTo === 'FIELD' ? `${node.value || ''} (Field)` : `"${node.value || ''}"`;
+    return `${indent}${mathStr} ${node.comparison || '=='} ${targetStr}`;
+  }
 
   if (vType === 'FIELD') {
     valStr = `${node.value || ''} (Field)`;
