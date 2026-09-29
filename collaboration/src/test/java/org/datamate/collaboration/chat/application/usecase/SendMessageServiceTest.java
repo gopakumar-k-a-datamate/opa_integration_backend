@@ -21,17 +21,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -107,8 +104,8 @@ class SendMessageServiceTest {
     }
 
     @Test
-    @DisplayName("should persist message with correct fields")
-    void shouldPersistMessage_WithCorrectFields() {
+    @DisplayName("should persist text message with correct fields")
+    void shouldPersistTextMessage_WithCorrectFields() {
         when(threadRepository.existsById(threadId)).thenReturn(true);
 
         sendMessageService.sendMessage(threadId, senderId, request);
@@ -128,86 +125,113 @@ class SendMessageServiceTest {
     }
 
     @Test
-    @DisplayName("should persist message with attachment when file is provided")
-    void shouldPersistMessage_WithAttachment_WhenFileProvided() {
+    @DisplayName("should persist message with attachment when attachmentUrls is provided (RMS flow)")
+    void shouldPersistMessage_WithAttachmentUrls_WhenProvided() {
         when(threadRepository.existsById(threadId)).thenReturn(true);
-        when(storageService.bucketExists("chat-attachments")).thenReturn(true);
-        when(storageService.upload(eq("chat-attachments"), anyString(), any(InputStream.class), anyString(), anyLong()))
+        when(storageService.getMetadata(eq("chat-attachments"), eq("12345_document.pdf")))
                 .thenReturn(StorageObject.builder()
                         .bucketName("chat-attachments")
-                        .objectKey("threads/" + threadId + "/doc.pdf")
-                        .size(100L)
+                        .objectKey("12345_document.pdf")
                         .contentType("application/pdf")
+                        .size(2048L)
                         .build());
 
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "doc.pdf", "application/pdf", "dummy pdf content".getBytes()
+        SendMessageRequest attachmentRequest = new SendMessageRequest(
+                "Here is the document",
+                List.of("http://localhost:9000/chat-attachments/12345_document.pdf")
         );
 
-        sendMessageService.sendMessageWithAttachment(threadId, senderId, "Attached PDF", file);
+        sendMessageService.sendMessage(threadId, senderId, attachmentRequest);
+
+        ArgumentCaptor<Attachment> attachmentCaptor = ArgumentCaptor.forClass(Attachment.class);
+        verify(attachmentRepository).save(attachmentCaptor.capture());
+        Attachment savedAttachment = attachmentCaptor.getValue();
+        assertThat(savedAttachment.getFileName()).isEqualTo("document.pdf");
+        assertThat(savedAttachment.getMimeType()).isEqualTo("application/pdf");
+        assertThat(savedAttachment.getFileSize()).isEqualTo(2048L);
+        assertThat(savedAttachment.getUploadUrl()).isEqualTo("http://localhost:9000/chat-attachments/12345_document.pdf");
+
+        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository).save(messageCaptor.capture());
+        Message savedMessage = messageCaptor.getValue();
+        assertThat(savedMessage.isFile()).isTrue();
+        assertThat(savedMessage.getAttachmentId()).isEqualTo(savedAttachment.getId());
+        assertThat(savedMessage.getText()).isEqualTo("Here is the document");
+    }
+
+    @Test
+    @DisplayName("should persist message when only attachmentUrls is provided and text is empty (captionless attachment)")
+    void shouldPersistMessage_WhenOnlyAttachmentUrlsProvided() {
+        when(threadRepository.existsById(threadId)).thenReturn(true);
+
+        SendMessageRequest captionlessRequest = new SendMessageRequest(
+                null,
+                List.of("http://localhost:9000/chat-attachments/photo.png")
+        );
+
+        sendMessageService.sendMessage(threadId, senderId, captionlessRequest);
 
         verify(attachmentRepository).save(any(Attachment.class));
 
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(messageRepository).save(messageCaptor.capture());
-
         Message saved = messageCaptor.getValue();
         assertThat(saved.isFile()).isTrue();
         assertThat(saved.getAttachmentId()).isNotNull();
-        assertThat(saved.getText()).isEqualTo("Attached PDF");
+        assertThat(saved.getText()).isNull();
     }
 
     @Test
-    @DisplayName("should reject blocked file extension with DomainValidationException")
-    void shouldRejectBlockedFileExtension() {
-        MockMultipartFile blockedFile = new MockMultipartFile(
-                "file", "malicious.exe", "application/octet-stream", "bad content".getBytes()
+    @DisplayName("should persist message when direct attachmentId is provided")
+    void shouldPersistMessage_WhenDirectAttachmentIdProvided() {
+        when(threadRepository.existsById(threadId)).thenReturn(true);
+        UUID existingAttachmentId = UUID.randomUUID();
+
+        SendMessageRequest directIdRequest = new SendMessageRequest("Message with existing ID", existingAttachmentId);
+
+        sendMessageService.sendMessage(threadId, senderId, directIdRequest);
+
+        verify(attachmentRepository, never()).save(any(Attachment.class));
+
+        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository).save(messageCaptor.capture());
+        Message saved = messageCaptor.getValue();
+        assertThat(saved.isFile()).isTrue();
+        assertThat(saved.getAttachmentId()).isEqualTo(existingAttachmentId);
+    }
+
+    @Test
+    @DisplayName("should reject blocked file extension in attachmentUrls")
+    void shouldRejectBlockedFileExtension_InAttachmentUrls() {
+        SendMessageRequest blockedRequest = new SendMessageRequest(
+                "Malicious file",
+                List.of("http://localhost:9000/chat-attachments/trojan.exe")
         );
 
-        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, blockedFile))
+        assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, blockedRequest))
                 .isInstanceOf(DomainValidationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FILE_TYPE_BLOCKED.code());
     }
 
     @Test
-    @DisplayName("should reject when both text and file are empty with DomainValidationException")
-    void shouldReject_WhenBothTextAndFileEmpty() {
-        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, "  ", null))
+    @DisplayName("should reject when both text and attachment are missing")
+    void shouldReject_WhenBothTextAndAttachmentMissing() {
+        SendMessageRequest emptyRequest = new SendMessageRequest("   ", null, null);
+
+        assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, emptyRequest))
                 .isInstanceOf(DomainValidationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code());
     }
 
     @Test
-    @DisplayName("should reject when sending message with empty text and no attachment")
-    void shouldReject_WhenSendingMessageWithEmptyTextAndNoAttachment() {
-        SendMessageRequest invalidRequest = new SendMessageRequest("   ", null);
-
-        assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, invalidRequest))
-                .isInstanceOf(DomainValidationException.class)
-                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code());
-    }
-
-    @Test
-    @DisplayName("should reject when file size exceeds 5MB")
-    void shouldReject_WhenFileSizeExceedsLimit() {
-        byte[] largeContent = new byte[6 * 1024 * 1024];
-        MockMultipartFile largeFile = new MockMultipartFile(
-                "file", "large.pdf", "application/pdf", largeContent
+    @DisplayName("should reject when attachment URL is blank")
+    void shouldReject_WhenAttachmentUrlIsBlank() {
+        SendMessageRequest blankUrlRequest = new SendMessageRequest(
+                null,
+                List.of("   ")
         );
 
-        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, largeFile))
-                .isInstanceOf(DomainValidationException.class)
-                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FILE_SIZE_EXCEEDED.code());
-    }
-
-    @Test
-    @DisplayName("should reject when file name is blank")
-    void shouldReject_WhenFileNameIsBlank() {
-        MockMultipartFile emptyNameFile = new MockMultipartFile(
-                "file", "   ", "application/pdf", "content".getBytes()
-        );
-
-        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, emptyNameFile))
+        assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, blankUrlRequest))
                 .isInstanceOf(DomainValidationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FIELD_BLANK.code());
     }

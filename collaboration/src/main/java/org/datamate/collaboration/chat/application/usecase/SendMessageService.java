@@ -19,23 +19,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Application Service for sending messages.
  * <p>
- * Implements {@link SendMessageUseCase}. This handles the command side of messaging.
- * Supports sending pure text messages as well as messages with file attachments (matching RMS).
+ * Implements {@link SendMessageUseCase}. Handles the command side of messaging.
+ * Follows the RMS standard: the frontend uploads files to cloud storage (MinIO) first,
+ * and sends a JSON payload containing the message text and/or attachmentUrls.
  */
 @Service
 @RequiredArgsConstructor
 public class SendMessageService implements SendMessageUseCase {
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit matching RMS
     private static final List<String> BLOCKED_EXTENSIONS = List.of(".xml", ".bpmn", ".exe", ".bat", ".sh");
 
     @EnableLogger
@@ -52,102 +50,102 @@ public class SendMessageService implements SendMessageUseCase {
     @Override
     @Transactional
     public void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
-        if (request == null || ((request.text() == null || request.text().trim().isEmpty()) && request.attachmentId() == null)) {
+        if (request == null) {
             throw new DomainValidationException(
-                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or attachmentId");
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "request");
         }
-        ensureThreadExists(threadId);
 
-        boolean isFile = request.attachmentId() != null;
-        Message message = Message.create(
-                threadId,
-                senderId,
-                request.text(),
-                isFile,
-                false,
-                request.attachmentId()
-        );
+        boolean hasText = request.text() != null && !request.text().trim().isEmpty();
+        boolean hasAttachmentUrls = request.attachmentUrls() != null && !request.attachmentUrls().isEmpty();
+        boolean hasAttachmentId = request.attachmentId() != null;
 
-        messageRepository.save(message);
-    }
-
-    @Override
-    @Transactional
-    public void sendMessageWithAttachment(UUID threadId, String senderId, String text, MultipartFile file) {
-        if ((text == null || text.trim().isEmpty()) && (file == null || file.isEmpty())) {
+        if (!hasText && !hasAttachmentUrls && !hasAttachmentId) {
             throw new DomainValidationException(
-                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or file");
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or attachmentUrls");
         }
 
         ensureThreadExists(threadId);
 
-        UUID attachmentId = null;
-        boolean isFile = false;
+        UUID resolvedAttachmentId = request.attachmentId();
+        boolean isFile = resolvedAttachmentId != null;
 
-        if (file != null && !file.isEmpty()) {
-            String originalFilename = file.getOriginalFilename();
-            if (originalFilename == null || originalFilename.isBlank()) {
+        if (hasAttachmentUrls) {
+            String attachmentUrl = request.attachmentUrls().get(0);
+            if (attachmentUrl == null || attachmentUrl.isBlank()) {
                 throw new DomainValidationException(
-                        CollaborationErrorCodes.FIELD_BLANK.code(), "fileName");
+                        CollaborationErrorCodes.FIELD_BLANK.code(), "attachmentUrl");
             }
 
-            String lower = originalFilename.toLowerCase();
+            String objectKeyOrFileName = attachmentUrl.contains("/")
+                    ? attachmentUrl.substring(attachmentUrl.lastIndexOf('/') + 1)
+                    : attachmentUrl;
+
+            // Security check: validate against blocked extensions
+            String lower = objectKeyOrFileName.toLowerCase();
             String matchedExtension = BLOCKED_EXTENSIONS.stream()
                     .filter(lower::endsWith)
                     .findFirst()
                     .orElse(null);
             if (matchedExtension != null) {
                 throw new DomainValidationException(
-                        CollaborationErrorCodes.FILE_TYPE_BLOCKED.code(), originalFilename, matchedExtension);
+                        CollaborationErrorCodes.FILE_TYPE_BLOCKED.code(), objectKeyOrFileName, matchedExtension);
             }
 
-            if (file.getSize() > MAX_FILE_SIZE) {
-                throw new DomainValidationException(
-                        CollaborationErrorCodes.FILE_SIZE_EXCEEDED.code(), originalFilename, file.getSize(), MAX_FILE_SIZE);
-            }
+            // Extract friendly filename without timestamp prefix if present
+            String fileName = objectKeyOrFileName.contains("_")
+                    ? objectKeyOrFileName.substring(objectKeyOrFileName.indexOf('_') + 1)
+                    : objectKeyOrFileName;
+
+            String contentType = inferContentType(fileName);
+            long fileSize = 0L;
 
             try {
-                if (!storageService.bucketExists(defaultBucket)) {
-                    storageService.createBucket(defaultBucket);
+                StorageObject metadata = storageService.getMetadata(defaultBucket, objectKeyOrFileName);
+                if (metadata != null) {
+                    if (metadata.getContentType() != null) {
+                        contentType = metadata.getContentType();
+                    }
+                    fileSize = metadata.getSize();
                 }
-
-                String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
-                String objectKey = String.format("threads/%s/%s_%s", threadId, UUID.randomUUID(), sanitizedFilename);
-
-                StorageObject storageObject = storageService.upload(
-                        defaultBucket,
-                        objectKey,
-                        file.getInputStream(),
-                        file.getContentType() != null ? file.getContentType() : "application/octet-stream",
-                        file.getSize()
-                );
-
-                Attachment attachment = Attachment.create(
-                        originalFilename,
-                        file.getContentType() != null ? file.getContentType() : "application/octet-stream",
-                        file.getSize(),
-                        storageObject.getObjectKey(),
-                        null
-                );
-
-                attachmentRepository.save(attachment);
-                attachmentId = attachment.getId();
-                isFile = true;
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read file for upload: " + originalFilename, e);
+            } catch (Exception e) {
+                if (logger != null) {
+                    logger.debug("Could not fetch metadata for objectKey: {}. Using inferred values.", objectKeyOrFileName);
+                }
             }
+
+            Attachment attachment = Attachment.create(
+                    fileName,
+                    contentType,
+                    fileSize,
+                    attachmentUrl,
+                    null
+            );
+
+            attachmentRepository.save(attachment);
+            resolvedAttachmentId = attachment.getId();
+            isFile = true;
         }
 
         Message message = Message.create(
                 threadId,
                 senderId,
-                text,
+                request.text(),
                 isFile,
                 false,
-                attachmentId
+                resolvedAttachmentId
         );
 
         messageRepository.save(message);
+    }
+
+    private String inferContentType(String fileName) {
+        if (fileName == null) return "application/octet-stream";
+        String lower = fileName.toLowerCase();
+        if (lower.endsWith(".pdf")) return "application/pdf";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".txt")) return "text/plain";
+        return "application/octet-stream";
     }
 
     /**
@@ -157,9 +155,13 @@ public class SendMessageService implements SendMessageUseCase {
         if (!threadRepository.existsById(threadId)) {
             try {
                 threadRepository.save(new Thread(threadId));
-                logger.info("Lazily created thread [{}]", threadId);
+                if (logger != null) {
+                    logger.info("Lazily created thread [{}]", threadId);
+                }
             } catch (DataIntegrityViolationException e) {
-                logger.debug("Thread [{}] was concurrently created by another transaction, proceeding.", threadId);
+                if (logger != null) {
+                    logger.debug("Thread [{}] was concurrently created by another transaction, proceeding.", threadId);
+                }
             }
         }
     }

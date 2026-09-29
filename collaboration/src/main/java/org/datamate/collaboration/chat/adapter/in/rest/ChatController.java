@@ -12,22 +12,21 @@ import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.UUID;
 
 /**
  * Incoming REST Adapter for the Chat domain.
  * <p>
- * Exposes the messaging API contracts defined in the Architecture Specification (Section 4):
+ * Exposes the messaging API contracts:
  * <ul>
- *   <li>{@code POST /api/threads/{threadId}/messages} - Send a new message (supports JSON or multipart attachment)</li>
+ *   <li>{@code POST /api/threads/{threadId}/messages} - Send a new message (JSON payload supporting text and pre-uploaded attachment URLs)</li>
  *   <li>{@code GET  /api/threads/{threadId}/messages} - Fetch paginated chat history</li>
  * </ul>
  * <p>
- * Follows the RMS multi-part attachment pattern where text and files can be sent in a single request.
+ * Follows the RMS pattern where the frontend uploads files to MinIO first, obtains the URLs,
+ * and sends them in the JSON body.
  */
 @RestController
 @RequestMapping("/api/threads/{threadId}/messages")
@@ -44,19 +43,8 @@ public class ChatController {
             @Valid @RequestBody SendMessageRequest request,
             Principal principal) {
 
-        sendMessageUseCase.sendMessage(threadId, principal.getName(), request);
-    }
-
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public void sendMessageWithAttachment(
-            @PathVariable UUID threadId,
-            @RequestParam(value = "text", required = false) String text,
-            @RequestPart(value = "file", required = false) MultipartFile file,
-            // TODO (Epic 3.1): Extract senderId from Security Principal (Ticket JWT)
-            @RequestHeader("X-Sender-Id") String senderId) {
-
-        sendMessageUseCase.sendMessageWithAttachment(threadId, senderId, text, file);
+        String senderId = (principal != null && principal.getName() != null) ? principal.getName() : "Anonymous";
+        sendMessageUseCase.sendMessage(threadId, senderId, request);
     }
 
     @GetMapping
