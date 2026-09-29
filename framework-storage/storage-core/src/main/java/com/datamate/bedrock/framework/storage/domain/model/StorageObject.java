@@ -2,33 +2,24 @@ package com.datamate.bedrock.framework.storage.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ═══════════════════════════════════════════════════════════════
- * STORAGE OBJECT - Metadata for a file in storage
- * ═══════════════════════════════════════════════════════════════
+ * Storage Object - Domain Model
  * 
- * This class represents a file stored in MinIO (or any other provider).
- * It contains all information ABOUT the file, but not the actual 
- * bytes of the file.
- * 
- * USAGE:
- * - Returned after an upload
- * - Returned when listing files
- * - Returned when getting metadata
- * 
- * ═══════════════════════════════════════════════════════════════
+ * Represents metadata for a stored object in storage.
  */
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class StorageObject {
 
     /**
@@ -68,10 +59,6 @@ public class StorageObject {
     @Builder.Default
     private Map<String, String> metadata = new HashMap<>();
 
-    // ═══════════════════════════════════════════════════════════
-    // HELPER METHODS
-    // ═══════════════════════════════════════════════════════════
-
     /**
      * Returns human-readable size
      * Example: 1024 -> "1 KB", 1048576 -> "1 MB"
@@ -96,18 +83,5 @@ public class StorageObject {
             return "";
         }
         return objectKey.substring(objectKey.lastIndexOf(".") + 1).toLowerCase();
-    }
-
-    /**
-     * Helper to add a single metadata entry
-     * 
-     * @param key Metadata key
-     * @param value Metadata value
-     */
-    public void addMetadata(String key, String value) {
-        if (this.metadata == null) {
-            this.metadata = new HashMap<>();
-        }
-        this.metadata.put(key, value);
     }
 }

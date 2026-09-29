@@ -10,6 +10,8 @@ import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort
 import org.datamate.collaboration.chat.domain.model.Attachment;
 import org.datamate.collaboration.chat.domain.model.Message;
 import org.datamate.collaboration.chat.domain.model.Thread;
+import org.datamate.collaboration.exception.CollaborationErrorCodes;
+import org.datamate.collaboration.exception.DomainValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,12 +25,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.InputStream;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -155,22 +158,57 @@ class SendMessageServiceTest {
     }
 
     @Test
-    @DisplayName("should reject blocked file extension")
+    @DisplayName("should reject blocked file extension with DomainValidationException")
     void shouldRejectBlockedFileExtension() {
         MockMultipartFile blockedFile = new MockMultipartFile(
                 "file", "malicious.exe", "application/octet-stream", "bad content".getBytes()
         );
 
         assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, blockedFile))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("File type not allowed");
+                .isInstanceOf(DomainValidationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FILE_TYPE_BLOCKED.code());
     }
 
     @Test
-    @DisplayName("should reject when both text and file are empty")
+    @DisplayName("should reject when both text and file are empty with DomainValidationException")
     void shouldReject_WhenBothTextAndFileEmpty() {
         assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, "  ", null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Message text or file attachment must be provided");
+                .isInstanceOf(DomainValidationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code());
+    }
+
+    @Test
+    @DisplayName("should reject when sending message with empty text and no attachment")
+    void shouldReject_WhenSendingMessageWithEmptyTextAndNoAttachment() {
+        SendMessageRequest invalidRequest = new SendMessageRequest("   ", null);
+
+        assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, invalidRequest))
+                .isInstanceOf(DomainValidationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code());
+    }
+
+    @Test
+    @DisplayName("should reject when file size exceeds 5MB")
+    void shouldReject_WhenFileSizeExceedsLimit() {
+        byte[] largeContent = new byte[6 * 1024 * 1024];
+        MockMultipartFile largeFile = new MockMultipartFile(
+                "file", "large.pdf", "application/pdf", largeContent
+        );
+
+        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, largeFile))
+                .isInstanceOf(DomainValidationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FILE_SIZE_EXCEEDED.code());
+    }
+
+    @Test
+    @DisplayName("should reject when file name is blank")
+    void shouldReject_WhenFileNameIsBlank() {
+        MockMultipartFile emptyNameFile = new MockMultipartFile(
+                "file", "   ", "application/pdf", "content".getBytes()
+        );
+
+        assertThatThrownBy(() -> sendMessageService.sendMessageWithAttachment(threadId, senderId, null, emptyNameFile))
+                .isInstanceOf(DomainValidationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FIELD_BLANK.code());
     }
 }

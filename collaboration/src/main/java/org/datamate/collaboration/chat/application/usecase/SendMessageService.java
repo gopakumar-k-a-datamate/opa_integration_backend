@@ -13,6 +13,8 @@ import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort
 import org.datamate.collaboration.chat.domain.model.Attachment;
 import org.datamate.collaboration.chat.domain.model.Message;
 import org.datamate.collaboration.chat.domain.model.Thread;
+import org.datamate.collaboration.exception.CollaborationErrorCodes;
+import org.datamate.collaboration.exception.DomainValidationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,10 @@ public class SendMessageService implements SendMessageUseCase {
     @Override
     @Transactional
     public void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
+        if (request == null || ((request.text() == null || request.text().trim().isEmpty()) && request.attachmentId() == null)) {
+            throw new DomainValidationException(
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or attachmentId");
+        }
         ensureThreadExists(threadId);
 
         boolean isFile = request.attachmentId() != null;
@@ -69,7 +75,8 @@ public class SendMessageService implements SendMessageUseCase {
     @Transactional
     public void sendMessageWithAttachment(UUID threadId, String senderId, String text, MultipartFile file) {
         if ((text == null || text.trim().isEmpty()) && (file == null || file.isEmpty())) {
-            throw new IllegalArgumentException("Message text or file attachment must be provided");
+            throw new DomainValidationException(
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or file");
         }
 
         ensureThreadExists(threadId);
@@ -80,16 +87,23 @@ public class SendMessageService implements SendMessageUseCase {
         if (file != null && !file.isEmpty()) {
             String originalFilename = file.getOriginalFilename();
             if (originalFilename == null || originalFilename.isBlank()) {
-                throw new IllegalArgumentException("File name must not be empty");
+                throw new DomainValidationException(
+                        CollaborationErrorCodes.FIELD_BLANK.code(), "fileName");
             }
 
             String lower = originalFilename.toLowerCase();
-            if (BLOCKED_EXTENSIONS.stream().anyMatch(lower::endsWith)) {
-                throw new IllegalArgumentException("File type not allowed: " + originalFilename);
+            String matchedExtension = BLOCKED_EXTENSIONS.stream()
+                    .filter(lower::endsWith)
+                    .findFirst()
+                    .orElse(null);
+            if (matchedExtension != null) {
+                throw new DomainValidationException(
+                        CollaborationErrorCodes.FILE_TYPE_BLOCKED.code(), originalFilename, matchedExtension);
             }
 
             if (file.getSize() > MAX_FILE_SIZE) {
-                throw new IllegalArgumentException("File size exceeds the 5MB limit: " + originalFilename);
+                throw new DomainValidationException(
+                        CollaborationErrorCodes.FILE_SIZE_EXCEEDED.code(), originalFilename, file.getSize(), MAX_FILE_SIZE);
             }
 
             try {
