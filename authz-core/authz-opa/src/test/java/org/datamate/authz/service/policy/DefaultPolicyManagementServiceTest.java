@@ -157,12 +157,12 @@ class DefaultPolicyManagementServiceTest {
         service.savePolicies(req);
 
         verify(bundleCacheRepository).upsertBundle("finance", null, null);
-        verify(policyRepository, never()).upsert(any(), any(), any(), any(), any(), any(), anyBoolean(), any(), anyBoolean(), any());
+        verify(policyRepository, never()).upsert(any(), any(), any(), any(), any(), any(), anyBoolean(), any(), anyBoolean(), any(), any());
     }
 
     @Test
     void savePolicies_deleteMissingReason() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, true, null, null, false, null);
+        PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, true, null, null, false, null, null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
@@ -173,7 +173,7 @@ class DefaultPolicyManagementServiceTest {
 
     @Test
     void savePolicies_disableMissingReason() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, false, null, null, false, null);
+        PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, false, null, null, false, null, null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
         when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
@@ -184,7 +184,7 @@ class DefaultPolicyManagementServiceTest {
 
     @Test
     void savePolicies_softDeleteExisting() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, false, true, "Not needed", null, false, null);
+        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, false, true, "Not needed", null, false, null, null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
         Permission perm = mock(Permission.class);
@@ -206,7 +206,7 @@ class DefaultPolicyManagementServiceTest {
 
     @Test
     void savePolicies_upsertNew_customRegoValidationFailure() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "invalid rego");
+        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "invalid rego", null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
         Permission perm = mock(Permission.class);
@@ -224,7 +224,7 @@ class DefaultPolicyManagementServiceTest {
     void savePolicies_upsertNew_success() throws Exception {
         ObjectMapper testMapper = new ObjectMapper();
         JsonNode jsonNode = testMapper.readTree("{\"operator\": \"AND\", \"children\": []}");
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, jsonNode, true, false, null, null, false, null);
+        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, jsonNode, true, false, null, null, false, null, null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
         Permission perm = mock(Permission.class);
@@ -237,13 +237,13 @@ class DefaultPolicyManagementServiceTest {
 
         service.savePolicies(req);
 
-        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, "{\"operator\":\"AND\",\"children\":[]}", true, null, false, null);
+        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, "{\"operator\":\"AND\",\"children\":[]}", true, null, false, null, null);
         verify(bundleCacheRepository).upsertBundle("finance", null, null);
     }
 
     @Test
     void savePolicies_upsertNew_customRego_success() throws Exception {
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "allow_rule if { input.resource.special == true }");
+        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "allow_rule if { input.resource.special == true }", null);
         SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
         Permission perm = mock(Permission.class);
@@ -256,7 +256,7 @@ class DefaultPolicyManagementServiceTest {
 
         service.savePolicies(req);
 
-        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, null, true, null, true, "allow_rule if { input.resource.special == true }");
+        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, null, true, null, true, "allow_rule if { input.resource.special == true }", null);
         verify(bundleCacheRepository).upsertBundle("finance", null, null);
     }
 

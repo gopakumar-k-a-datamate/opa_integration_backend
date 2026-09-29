@@ -148,7 +148,7 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                     permission.getAction(),
                     resource.getNamespace(),
                     resource.getName(),
-                    null, null, null, false, null, null, false, false, null
+                    null, null, null, false, null, null, false, false, null, null
             );
         }
 
@@ -166,7 +166,8 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                 policy.getDeletedReason(),
                 policy.isDeprecated(),
                 policy.isUseCustomRego(),
-                policy.getCustomRegoSnippet()
+                policy.getCustomRegoSnippet(),
+                policy.getDenialMessage()
         );
     }
 
@@ -282,7 +283,8 @@ public class DefaultPolicyManagementService implements PolicyManagementService {
                         item.enabled(),
                         item.disabledReason(),
                         item.useCustomRego(),
-                        item.customRegoSnippet()
+                        item.customRegoSnippet(),
+                        item.denialMessage()
                 );
             }
         }

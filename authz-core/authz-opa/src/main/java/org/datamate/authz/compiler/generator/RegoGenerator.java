@@ -108,7 +108,8 @@ public class RegoGenerator {
 
         sb.append("default allow := false\n");
         sb.append("default allow_rule := false\n");
-        sb.append("default deny_rule := false\n\n");
+        sb.append("default deny_rule := false\n");
+        sb.append("default denial_message := set()\n\n");
 
         List<NotBlock> deferredBlocks = new ArrayList<>();
         int notBlockCounter = 0;
@@ -163,7 +164,24 @@ public class RegoGenerator {
             sb.append("}\n\n");
         }
 
-        sb.append("allow if {\n    allow_rule\n    not deny_rule\n}\n");
+        // Emit denial_message blocks — once per policy, outside the DNF loop (Problem 1)
+        for (Policy policy : policies) {
+            String permissionCode = permCodeLookup.get(policy.getPermissionId());
+            if (permissionCode == null) continue;
+            generateDenialMessageBlock(policy, permissionCode, sb);
+        }
+
+        // Final allow decision
+        sb.append("allow if {\n    allow_rule\n    not deny_rule\n}\n\n");
+
+        // Reason output — Problem 3: concat all triggered denial messages with "; "
+        sb.append("reason := msg if {\n");
+        sb.append("    count(denial_message) > 0\n");
+        sb.append("    msg := concat(\"; \", denial_message)\n");
+        sb.append("} else := \"Access Denied: You do not have permission to perform this action.\" if {\n");
+        sb.append("    not allow\n");
+        sb.append("}\n");
+
         return sb.toString();
     }
 
@@ -251,6 +269,59 @@ public class RegoGenerator {
         }
         sb.append("    input.permission == \"").append(permissionCode).append("\"\n");
     }
+
+    /**
+     * Generates a {@code denial_message} Rego rule for the given policy.
+     *
+     * <p>Rules:
+     * <ul>
+     *   <li>Skipped if {@code denialMessage} is null/blank (admin left it empty).</li>
+     *   <li>Skipped for unconditional ALLOW policies (Problem 5: they can never cause a denial).</li>
+     *   <li>Skipped for custom Rego policies (they manage their own {@code denial_message} blocks).</li>
+     *   <li>Uses only the header conditions (role + permission) — NOT the resource conditions (Problem 1).</li>
+     *   <li>For ALLOW policies: fires when {@code not allow_rule} — i.e. user is a candidate but access denied.</li>
+     *   <li>For DENY policies: fires when {@code deny_rule} — i.e. this deny rule was triggered.</li>
+     * </ul>
+     */
+    private void generateDenialMessageBlock(Policy policy, String permissionCode, StringBuilder sb) {
+        String msg = policy.getDenialMessage();
+        if (msg == null || msg.isBlank()) return;
+
+        // Problem 5: unconditional ALLOW can never cause a denial — skip
+        if (policy.isAllow() && policy.isUnconditional()) return;
+
+        // Custom Rego manages its own denial_message blocks inside the snippet — skip
+        if (policy.hasCustomRego()) return;
+
+        // Escape for Rego string safety
+        String escaped = msg.replace("\\", "\\\\").replace("\"", "\\\"");
+
+        sb.append("# Policy ").append(policy.getId()).append(": denial message\n");
+        sb.append("denial_message[\"").append(escaped).append("\"] if {\n");
+
+        // Header only — role or user identity check
+        if (policy.isRolePolicy()) {
+            sb.append("    \"").append(policy.getSubjectId()).append("\" in input.user.roles\n");
+        } else if (policy.isUserPolicy()) {
+            try {
+                long numericId = Long.parseLong(policy.getSubjectId());
+                sb.append("    input.user.id == ").append(numericId).append("\n");
+            } catch (NumberFormatException e) {
+                sb.append("    input.user.id == \"").append(policy.getSubjectId()).append("\"\n");
+            }
+        }
+        sb.append("    input.permission == \"").append(permissionCode).append("\"\n");
+
+        if (policy.isDeny()) {
+            // Fires when the deny rule itself matched
+            sb.append("    deny_rule\n");
+        } else {
+            // Fires when user is a candidate (role/perm matched) but overall access was still denied
+            sb.append("    not allow_rule\n");
+        }
+        sb.append("}\n\n");
+    }
+
 
     private static final int MAX_DNF_CLAUSES = 50;
 

@@ -64,7 +64,7 @@ public class CompilerTest {
         // Step 1: Create a dummy Policy entity holding the JSON
         Policy policy = Policy.reconstitute(
                 1L, 100L, SubjectType.ROLE, "ACCOUNTANT",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -82,6 +82,7 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
+        default denial_message := set()
         
         # Policy ID: 1
         allow_rule if {
@@ -101,6 +102,13 @@ public class CompilerTest {
         allow if {
             allow_rule
             not deny_rule
+        }
+        
+        reason := msg if {
+            count(denial_message) > 0
+            msg := concat("; ", denial_message)
+        } else := "Access Denied: You do not have permission to perform this action." if {
+            not allow
         }
         """.trim();
 
@@ -148,7 +156,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 2L, 101L, SubjectType.ROLE, "DOCTOR",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -164,6 +172,7 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
+        default denial_message := set()
         
         # Policy ID: 2
         allow_rule if {
@@ -190,6 +199,13 @@ public class CompilerTest {
         allow if {
             allow_rule
             not deny_rule
+        }
+        
+        reason := msg if {
+            count(denial_message) > 0
+            msg := concat("; ", denial_message)
+        } else := "Access Denied: You do not have permission to perform this action." if {
+            not allow
         }
         """.trim();
 
@@ -234,7 +250,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 3L, 102L, SubjectType.ROLE, "SUPER_ADMIN",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -250,6 +266,7 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
+        default denial_message := set()
         
         # Policy ID: 3
         allow_rule if {
@@ -288,6 +305,13 @@ public class CompilerTest {
             allow_rule
             not deny_rule
         }
+        
+        reason := msg if {
+            count(denial_message) > 0
+            msg := concat("; ", denial_message)
+        } else := "Access Denied: You do not have permission to perform this action." if {
+            not allow
+        }
         """.trim();
 
         assertEquals(expectedRego, actualRego.trim());
@@ -317,7 +341,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 4L, 103L, SubjectType.ROLE, "MANAGER",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -333,6 +357,7 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
+        default denial_message := set()
         
         # Policy ID: 4
         allow_rule if {
@@ -345,6 +370,13 @@ public class CompilerTest {
         allow if {
             allow_rule
             not deny_rule
+        }
+        
+        reason := msg if {
+            count(denial_message) > 0
+            msg := concat("; ", denial_message)
+        } else := "Access Denied: You do not have permission to perform this action." if {
+            not allow
         }
         """.trim();
 

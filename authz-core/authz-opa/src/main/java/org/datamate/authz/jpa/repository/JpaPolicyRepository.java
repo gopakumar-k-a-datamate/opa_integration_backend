@@ -52,13 +52,14 @@ public class JpaPolicyRepository implements PolicyRepository {
     @Override
     public Policy upsert(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                               PolicyEffect effect, String expressionJson, boolean enabled,
-                              String disabledReason, boolean useCustomRego, String customRegoSnippet) {
+                              String disabledReason, boolean useCustomRego, String customRegoSnippet,
+                              String denialMessage) {
         PolicyJpaEntity entity = repository
                 .findByPermissionIdAndSubjectTypeAndSubjectIdAndDeletedAtIsNull(
                         permissionId, subjectType, subjectId)
                 .orElseGet(PolicyJpaEntity::new);
 
-        updateEntity(entity, id, permissionId, subjectType, subjectId, effect, expressionJson, enabled, disabledReason, useCustomRego, customRegoSnippet);
+        updateEntity(entity, id, permissionId, subjectType, subjectId, effect, expressionJson, enabled, disabledReason, useCustomRego, customRegoSnippet, denialMessage);
 
         try {
             return toDomain(repository.save(entity));
@@ -98,12 +99,15 @@ public class JpaPolicyRepository implements PolicyRepository {
         return Policy.reconstitute(
                 e.getId(), e.getPermissionId(), e.getSubjectType(), e.getSubjectId(),
                 e.getEffect(), e.getExpressionJson(), e.isEnabled(), e.getDisabledReason(),
-                e.isDeprecated(), e.isUseCustomRego(), e.getCustomRegoSnippet(), e.getVersion(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt(), e.getDeletedReason()
+                e.isDeprecated(), e.isUseCustomRego(), e.getCustomRegoSnippet(),
+                e.getDenialMessage(),
+                e.getVersion(), e.getCreatedAt(), e.getUpdatedAt(), e.getDeletedAt(), e.getDeletedReason()
         );
     }
 
     private void updateEntity(PolicyJpaEntity entity, Long id, Long permissionId, SubjectType subjectType, String subjectId,
-                             PolicyEffect effect, String expressionJson, boolean enabled, String disabledReason, boolean useCustomRego, String customRegoSnippet) {
+                             PolicyEffect effect, String expressionJson, boolean enabled, String disabledReason,
+                             boolean useCustomRego, String customRegoSnippet, String denialMessage) {
         if (entity.getId() == null) {
             entity.setId(id);
         }
@@ -116,6 +120,7 @@ public class JpaPolicyRepository implements PolicyRepository {
         entity.setDisabledReason(disabledReason);
         entity.setUseCustomRego(useCustomRego);
         entity.setCustomRegoSnippet(customRegoSnippet);
+        entity.setDenialMessage(denialMessage);
         entity.setDeletedAt(null);
     }
 
