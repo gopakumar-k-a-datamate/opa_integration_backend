@@ -9,6 +9,8 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: "0"
+    schemas: pharmacy
+    default-schema: pharmacy
     locations: classpath:db/migration
 
   # RabbitMQ — Subject Sync consumer
@@ -50,3 +52,15 @@ logging:
   level:
     org.datamate.authz: DEBUG
     org.datamate.pharmacy.messaging: DEBUG   # Logs subject sync receive/apply events
+
+# Swagger / OpenAPI Configuration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+swagger:
+  show-permissions: true

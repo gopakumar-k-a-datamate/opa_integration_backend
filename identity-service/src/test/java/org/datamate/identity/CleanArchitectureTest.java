@@ -69,7 +69,6 @@ public class CleanArchitectureTest {
                 "..application..",
                 "..api..",
                 "java..",
-                "org.datamate.sharedkernel..",
                 "com.datamate.bedrock..",
                 "jakarta.validation..",
                 "jakarta.annotation..",

@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 
+/**
+ * Application Use Case for dispensing medication.
+ * Orchestrates business logic, queries data via outbound ports, enforces authorization, and mutates state.
+ * Demonstrates 'Pattern 1: Programmatic ABAC Enforcement'.
+ */
 @Service
 public class DispenseMedicationService {
 
@@ -40,24 +45,20 @@ public class DispenseMedicationService {
         PatientDto patient = patientPort.getPatientById(request.patientId());
 
 
-        if (medication == null || patient == null) {
-            throw new IllegalArgumentException("Invalid medication or patient");
+        if (medication == null) {
+            throw new org.datamate.pharmacy.application.exception.MedicationNotFoundException(request.medicationId());
         }
-        System.out.println("Medication Details");
-        System.out.println("------------------");
-        System.out.println("ID          : " + medication.getId());
-        System.out.println("Name        : " + medication.getName());
-        System.out.println("Drug Class  : " + medication.getDrugClass());
-        System.out.println("Stock       : " + medication.getCurrentStock());
-        System.out.println("Min Stock   : " + medication.getMinimumStockThreshold());
+        if (patient == null) {
+            throw new org.datamate.pharmacy.application.exception.PatientNotFoundException(request.patientId());
+        }
 
-        System.out.println("Patient Details");
-        System.out.println("------------------");
-        System.out.println("Patient ID: " + patient.id());
-        System.out.println("Name: " + patient.name());
-        System.out.println("Age: " + patient.age());
+        log.debug("Medication Details: ID={}, Name={}, Class={}, Stock={}, MinStock={}", 
+                  medication.getId(), medication.getName(), medication.getDrugClass(), 
+                  medication.getCurrentStock(), medication.getMinimumStockThreshold());
+        log.debug("Patient Details: ID={}, Name={}, Age={}", patient.id(), patient.name(), patient.age());
+
         if (medication.getCurrentStock() < request.quantity()) {
-            throw new IllegalStateException("Insufficient stock to dispense");
+            throw new org.datamate.pharmacy.application.exception.InsufficientStockException(medication.getName(), request.quantity(), medication.getCurrentStock());
         }
 
         log.info("Gathered Context -> Drug Class: {}, Patient Age: {}", medication.getDrugClass(), patient.age());

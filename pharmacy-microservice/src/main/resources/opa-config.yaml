@@ -17,4 +17,7 @@ bundles:
 default_authorization_decision: /app/authz/pharmacy/allow
 
 # 2. Java Application Configuration
+database:
+  schema: pharmacy
+
 evaluation_url: http://localhost:8183/v1/data/app/authz/pharmacy/allow
