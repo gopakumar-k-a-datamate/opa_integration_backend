@@ -89,7 +89,7 @@ class DefaultPolicyCompilerTest {
         when(policy.getId()).thenReturn(100L);
         when(policy.getPermissionId()).thenReturn(10L);
         when(policy.isDeprecated()).thenReturn(false);
-        when(policy.getExpressionJson()).thenReturn("{\"field\":\"amount\",\"comparison\":\"EQUALS\",\"value\":\"100\"}");
+        when(policy.getExpressionJson()).thenReturn("{\"field\":\"amount\",\"comparison\":\"EQUALS\",\"value\":\"100\",\"valueType\":\"VALUE\"}");
         when(policyRepository.findAllEnabled()).thenReturn(List.of(policy));
 
         when(validation.validate(anyString())).thenReturn(new RegoValidationResult(true, List.of()));

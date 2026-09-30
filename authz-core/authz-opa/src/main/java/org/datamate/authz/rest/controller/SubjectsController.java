@@ -17,42 +17,49 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.datamate.authz.api.endpoint.AuthorizationContext.SubjectsAuthContext;
 
 import java.util.List;
 
 /**
- * Standard REST controller for listing, searching, and paginating subjects (Roles and Users).
- * Activated by providing a bean named {@link AuthzBeans#SUBJECTS}.
+ * Standard REST controller for listing, searching, and paginating subjects
+ * (Roles and Users). Activated by providing a bean named
+ * {@link AuthzBeans#SUBJECTS}.
  */
 @RestController
 @RequestMapping("/internal/authz/subjects")
 public class SubjectsController {
 
-    private final SubjectManagementService subjectManagementService;
-    private final EndpointAuthorization authorization;
+	private final SubjectManagementService subjectManagementService;
+	private final EndpointAuthorization authorization;
 
-    public SubjectsController(
-            SubjectManagementService subjectManagementService,
-            @Qualifier(AuthzBeans.SUBJECTS) EndpointAuthorization authorization) {
-        this.subjectManagementService = subjectManagementService;
-        this.authorization = authorization;
-    }
+	public SubjectsController(SubjectManagementService subjectManagementService,
+			@Qualifier(AuthzBeans.SUBJECTS) EndpointAuthorization authorization) {
+		this.subjectManagementService = subjectManagementService;
+		this.authorization = authorization;
+	}
 
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public Paged<AuthzSubjectDto> getSubjects(
-            @RequestParam(value = "type", required = false) SubjectType type,
-            @RequestParam(value = "subjectType", required = false) SubjectType subjectType,
-            @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
+	@GetMapping
+	@ResponseStatus(HttpStatus.OK)
+	public Paged<AuthzSubjectDto> getSubjects(@RequestParam(value = "type", required = false) SubjectType type,
+			@RequestParam(value = "subjectType", required = false) SubjectType subjectType,
+			@RequestParam(value = "search", required = false) String search,
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "size", defaultValue = "10") int size) {
 
-        SubjectType targetType = (type != null) ? type : subjectType;
-        if (targetType != null) {
-            authorization.authorize(new AuthorizationContext.SubjectsAuthContext(targetType));
-        }
+		SubjectType targetType = (type != null) ? type : subjectType;
+		if (targetType != null) {
+			authorization.authorize(new AuthorizationContext.SubjectsAuthContext(targetType));
+		}
 
-        PageQuery pageQuery = new PageQuery(page, size);
-        return subjectManagementService.getSubjects(targetType, search, pageQuery);
-    }
+		PageQuery pageQuery = new PageQuery(page, size);
+		return subjectManagementService.getSubjects(targetType, search, pageQuery);
+	}
+
+	@GetMapping("/select")
+	public ResponseEntity<List<AuthzSubjectDto>> listSubjects(@RequestParam("type") SubjectType type) {
+
+		authorization.authorize(new SubjectsAuthContext(type));
+		return ResponseEntity.ok(subjectManagementService.listSubjects(type));
+	}
 }

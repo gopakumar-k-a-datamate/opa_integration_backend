@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
 import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 import org.datamate.authz.api.principal.PrincipalProvider;
@@ -23,6 +24,9 @@ import org.datamate.authz.client.OpaPolicyValidator;
 import org.datamate.authz.rest.client.RestPolicyEvaluationClient;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.api.policy.PolicyValidation;
+import org.datamate.authz.jpa.config.AuthzSchemaIntegrator;
+import org.hibernate.jpa.boot.spi.IntegratorProvider;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.datamate.authz.api.endpoint.AuthzBeans;
 import org.datamate.authz.api.endpoint.EndpointAuthorization;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,6 +38,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.AccessDeniedException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ResourceLoader;
+import java.util.List;
 
 /**
  * Single entry point for Bedrock Authz auto-configuration.
@@ -58,21 +65,44 @@ public class BedrockAuthzAutoConfiguration {
         public static class AuthzFlywayConfiguration {
             
             private final DataSource dataSource;
+            private final Environment env;
+            private final ResourceLoader resourceLoader;
 
-            public AuthzFlywayConfiguration(DataSource dataSource) {
+            public AuthzFlywayConfiguration(DataSource dataSource, Environment env, ResourceLoader resourceLoader) {
                 this.dataSource = dataSource;
+                this.env = env;
+                this.resourceLoader = resourceLoader;
             }
             
             @PostConstruct
             public void migrateAuthz() {
-                Flyway.configure()
+                FluentConfiguration config = Flyway.configure()
                         .dataSource(dataSource)
                         .locations("classpath:db/authz-migration")
                         .table("authz_flyway_schema_history")
-                        .baselineOnMigrate(true)
-                        .load()
-                        .migrate();
+                        .baselineOnMigrate(true);
+
+                String schema = OpaConfigParser.getSchema(env, resourceLoader);
+                if (!"public".equalsIgnoreCase(schema)) {
+                    config.schemas(schema);
+                    config.createSchemas(true);
+                }
+
+                config.load().migrate();
             }
+        }
+        
+        @Bean
+        public HibernatePropertiesCustomizer authzSchemaHibernateCustomizer(Environment env, ResourceLoader resourceLoader) {
+            return hibernateProperties -> {
+                String schema = OpaConfigParser.getSchema(env, resourceLoader);
+                if (!"public".equalsIgnoreCase(schema)) {
+                    hibernateProperties.put(
+                        "hibernate.integrator_provider",
+                        (IntegratorProvider) () -> List.of(new AuthzSchemaIntegrator(schema))
+                    );
+                }
+            };
         }
     }
 

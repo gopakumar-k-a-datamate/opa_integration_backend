@@ -65,11 +65,51 @@ class RegoGeneratorTest {
         when(p.isUserPolicy()).thenReturn(true);
         when(p.getSubjectId()).thenReturn("123");
         when(p.isDeny()).thenReturn(true);
-        when(p.getExpressionJson()).thenReturn("{\"field\":\"amount\",\"comparison\":\">\",\"value\":100}");
+        when(p.getExpressionJson()).thenReturn("{\"field\":\"amount\",\"comparison\":\">\",\"value\":100,\"valueType\":\"VALUE\"}");
 
         String rego = generator.generate("finance", List.of(p), Map.of(300L, "finance:spend"));
         
         assertTrue(rego.contains("deny_rule if {\n    input.user.id == 123\n    input.permission == \"finance:spend\"\n    input.resource.amount > 100\n}"));
+    }
+
+    @Test
+    void generate_fieldwiseCondition() {
+        Policy p = mock(Policy.class);
+        when(p.getId()).thenReturn(35L);
+        when(p.getPermissionId()).thenReturn(350L);
+        when(p.isUserPolicy()).thenReturn(true);
+        when(p.getSubjectId()).thenReturn("123");
+        when(p.isAllow()).thenReturn(true);
+        when(p.getExpressionJson()).thenReturn("{\"field\":\"resource.assignedDoctorId\",\"comparison\":\"==\",\"value\":\"user.id\",\"valueType\":\"FIELD\"}");
+
+        String rego = generator.generate("pharmacy", List.of(p), Map.of(350L, "pharmacy:read"));
+
+        assertTrue(rego.contains("input.resource.assignedDoctorId == input.user.id"));
+    }
+
+    @Test
+    void generate_fieldListCondition() {
+        Policy p = mock(Policy.class);
+        when(p.getId()).thenReturn(36L);
+        when(p.getPermissionId()).thenReturn(360L);
+        when(p.isUserPolicy()).thenReturn(true);
+        when(p.getSubjectId()).thenReturn("123");
+        when(p.isAllow()).thenReturn(true);
+        when(p.getExpressionJson()).thenReturn("{\"field\":\"user.id\",\"comparison\":\"IN\",\"value\":[\"resource.doc1\",\"resource.doc2\"],\"valueType\":\"FIELD_LIST\"}");
+
+        String rego = generator.generate("pharmacy", List.of(p), Map.of(360L, "pharmacy:read"));
+
+        assertTrue(rego.contains("input.user.id in {input.resource.doc1, input.resource.doc2}"));
+    }
+
+    @Test
+    void generate_regoInjectionPayload_throwsException() {
+        Policy p = mock(Policy.class);
+        when(p.getId()).thenReturn(37L);
+        when(p.getPermissionId()).thenReturn(370L);
+        when(p.getExpressionJson()).thenReturn("{\"field\":\"amount\\n}\\nallow_rule if { true }\\n#\",\"comparison\":\"==\",\"value\":100,\"valueType\":\"VALUE\"}");
+
+        assertThrows(AuthzInvalidPayloadException.class, () -> generator.generate("pharmacy", List.of(p), Map.of(370L, "pharmacy:read")));
     }
     
     @Test
@@ -81,8 +121,8 @@ class RegoGeneratorTest {
         when(p.getSubjectId()).thenReturn("abc"); // string ID
         when(p.isAllow()).thenReturn(true);
         when(p.getExpressionJson()).thenReturn("{\"operator\":\"AND\",\"children\":[" +
-                "{\"field\":\"status\",\"comparison\":\"in\",\"value\":[\"ACTIVE\",\"PENDING\"]}," +
-                "{\"field\":\"tags\",\"comparison\":\"contains\",\"value\":\"VIP\"}" +
+                "{\"field\":\"status\",\"comparison\":\"in\",\"value\":[\"ACTIVE\",\"PENDING\"],\"valueType\":\"VALUE\"}," +
+                "{\"field\":\"tags\",\"comparison\":\"contains\",\"value\":\"VIP\",\"valueType\":\"VALUE\"}" +
                 "]}");
 
         String rego = generator.generate("finance", List.of(p), Map.of(300L, "finance:spend"));
@@ -101,7 +141,7 @@ class RegoGeneratorTest {
         when(p.getSubjectId()).thenReturn("USER");
         when(p.isAllow()).thenReturn(true);
         when(p.getExpressionJson()).thenReturn("{\"operator\":\"NOT\",\"children\":[" +
-                "{\"field\":\"department\",\"comparison\":\"=\",\"value\":\"HR\"}" +
+                "{\"field\":\"department\",\"comparison\":\"=\",\"value\":\"HR\",\"valueType\":\"VALUE\"}" +
                 "]}");
 
         String rego = generator.generate("finance", List.of(p), Map.of(400L, "finance:read"));
@@ -116,7 +156,7 @@ class RegoGeneratorTest {
         StringBuilder json = new StringBuilder("{\"operator\":\"OR\",\"children\":[");
         for (int i = 0; i < 52; i++) { // Max is 50
             if (i > 0) json.append(",");
-            json.append("{\"field\":\"f").append(i).append("\",\"comparison\":\"=\",\"value\":1}");
+            json.append("{\"field\":\"f").append(i).append("\",\"comparison\":\"=\",\"value\":1,\"valueType\":\"VALUE\"}");
         }
         json.append("]}");
         
@@ -128,3 +168,4 @@ class RegoGeneratorTest {
         assertThrows(AuthzInvalidPayloadException.class, () -> generator.generate("finance", List.of(p), Map.of(500L, "finance:read")));
     }
 }
+
