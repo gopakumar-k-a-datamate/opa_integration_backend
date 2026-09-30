@@ -1,5 +1,6 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
@@ -18,14 +20,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class TarGzBundleServiceTest {
 
     @Mock
-    private com.datamate.bedrock.framework.common.logging.service.Logger log;
+    private Logger log;
 
     @InjectMocks
     private TarGzBundleService service;
 
     @BeforeEach
     void setUp() throws Exception {
-        java.lang.reflect.Field logField = TarGzBundleService.class.getDeclaredField("log");
+        Field logField = TarGzBundleService.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(service, log);
     }
