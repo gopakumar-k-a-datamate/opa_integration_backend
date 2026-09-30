@@ -26,6 +26,11 @@
             <artifactId>bedrock-exception-starter</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.datamate.bedrock.framework.common.logging</groupId>
+            <artifactId>bedrock-logging-starter</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
         <!-- Bedrock Auditing — BaseAuditableEntity for JPA audit fields (aligned with dental project) -->
         <dependency>
             <groupId>com.datamate.bedrock.framework.common.auditing</groupId>

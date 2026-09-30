@@ -1,7 +1,10 @@
 package org.datamate.identity.identity.application.usecase.user;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.identity.application.dto.user.CreateUserRequest;
 import org.datamate.identity.identity.application.dto.user.UserDto;
@@ -17,6 +20,7 @@ import org.datamate.identity.identity.domain.model.role.enums.RoleStatus;
 import org.datamate.identity.identity.domain.exception.role.RoleNotFoundException;
 import org.datamate.identity.identity.domain.exception.user.InvalidRoleAssignmentException;
 import org.datamate.identity.identity.domain.model.user.entity.User;
+import org.datamate.identity.identity.domain.log.IdentityLogKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +43,14 @@ public class CreateUserService implements CreateUserUseCase {
 
     @Override
     @Transactional
+    @LogAction(
+        action = "CREATE_USER",
+        isAudit = true,
+        attributes = {
+            @LogAttribute(key = "targetUsername", value = "#request.userName()"),
+            @LogAttribute(key = "email", value = "#request.email()")
+        }
+    )
     public UserDto createUser(CreateUserRequest request) {
         log.info("Creating user '{}'", request.userName());
         if (userPort.existsByUserName(request.userName())) {
@@ -82,6 +94,12 @@ public class CreateUserService implements CreateUserUseCase {
         );
 
         User savedUser = userPort.save(newUser);
+
+        // Dynamically enrich canonical action log with computed results using standardized domain LogKey
+        LogContext.put(IdentityLogKey.TARGET_USER_ID, savedUser.getId().toString());
+        if (request.roles() != null) {
+            LogContext.put(IdentityLogKey.ROLES_ASSIGNED, request.roles());
+        }
 
         newUser.pullEvents().forEach(eventPublisher::publishEvent);
 

@@ -62,3 +62,12 @@ springdoc:
 
 swagger:
   show-permissions: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,loggers"
+  endpoint:
+    loggers:
+      enabled: true

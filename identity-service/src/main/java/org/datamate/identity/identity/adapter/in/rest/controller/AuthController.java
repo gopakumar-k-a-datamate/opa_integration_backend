@@ -1,6 +1,8 @@
 package org.datamate.identity.identity.adapter.in.rest.controller;
 
 import com.datamate.bedrock.framework.common.auditing.annotation.AuditLog;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.datamate.identity.identity.application.dto.auth.AuthResponse;
@@ -20,6 +22,10 @@ public class AuthController {
     private final RefreshTokenUseCase refreshTokenUseCase;
 
     @PostMapping("/login")
+    @LogAction(
+        action = "USER_LOGIN",
+        attributes = @LogAttribute(key = "attemptedUsername", value = "#request.userName()")
+    )
     @AuditLog(action = "USER_LOGIN", resource = "AUTH", description = "User login attempt", includeArgs = true)
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = loginUseCase.login(request);

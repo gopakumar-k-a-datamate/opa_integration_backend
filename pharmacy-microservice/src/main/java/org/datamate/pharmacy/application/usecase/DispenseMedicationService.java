@@ -8,9 +8,13 @@ import org.datamate.pharmacy.application.dto.PatientDto;
 import org.datamate.pharmacy.application.port.out.InventoryAlertPort;
 import org.datamate.pharmacy.application.port.out.MedicationPort;
 import org.datamate.pharmacy.application.port.out.PatientPort;
+import org.datamate.pharmacy.domain.log.PharmacyLogKey;
 import org.springframework.stereotype.Service;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
 
 /**
  * Application Use Case for dispensing medication.
@@ -39,11 +43,19 @@ public class DispenseMedicationService {
         this.inventoryAlertPort = inventoryAlertPort;
     }
 
+    @LogAction(
+        action = "DISPENSE_MEDICATION",
+        isAudit = true,
+        attributes = {
+            @LogAttribute(key = "medicationId", value = "#request.medicationId()"),
+            @LogAttribute(key = "patientId", value = "#request.patientId()"),
+            @LogAttribute(key = "quantity", value = "#request.quantity()")
+        }
+    )
     public String dispense(DispenseMedicationRequest request) {
         // 1. Gather Context
         MedicationDto medication = medicationPort.getMedicationById(request.medicationId());
         PatientDto patient = patientPort.getPatientById(request.patientId());
-
 
         if (medication == null) {
             throw new org.datamate.pharmacy.application.exception.MedicationNotFoundException(request.medicationId());
@@ -51,6 +63,11 @@ public class DispenseMedicationService {
         if (patient == null) {
             throw new org.datamate.pharmacy.application.exception.PatientNotFoundException(request.patientId());
         }
+
+        // Contextual dynamic enrichment using standardized domain LogKey
+        LogContext.put(PharmacyLogKey.DRUG_CLASS, medication.getDrugClass());
+        LogContext.put(PharmacyLogKey.PATIENT_AGE, patient.age());
+        LogContext.put(PharmacyLogKey.PREVIOUS_STOCK, medication.getCurrentStock());
 
         log.debug("Medication Details: ID={}, Name={}, Class={}, Stock={}, MinStock={}", 
                   medication.getId(), medication.getName(), medication.getDrugClass(), 
@@ -76,6 +93,8 @@ public class DispenseMedicationService {
         // 4. Execute Business Logic (State Mutation)
         medication.setCurrentStock(medication.getCurrentStock() - request.quantity());
         medicationPort.saveMedication(medication);
+
+        LogContext.put(PharmacyLogKey.REMAINING_STOCK, medication.getCurrentStock());
         
         log.info("Successfully dispensed {} units of {} to {}", 
                 request.quantity(), medication.getName(), patient.name());
