@@ -3,8 +3,11 @@ package org.datamate.collaboration.chat.application.usecase;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import lombok.RequiredArgsConstructor;
+import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
+import org.datamate.collaboration.chat.application.mapper.MessageMapper;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
+import org.datamate.collaboration.chat.application.port.out.MessageBroadcastPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
 import org.datamate.collaboration.chat.domain.model.Message;
@@ -36,6 +39,8 @@ public class SendMessageService implements SendMessageUseCase {
 
     private final MessageRepositoryPort messageRepository;
     private final ThreadRepositoryPort threadRepository;
+    private final MessageMapper messageMapper;
+    private final MessageBroadcastPort messageBroadcastPort;
 
     @Override
     @Transactional
@@ -51,10 +56,10 @@ public class SendMessageService implements SendMessageUseCase {
                 null
         );
 
-        messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
 
-        // TODO (Epic 2.2): Publish "New Message Saved" event to internal broker
-        // for REST-to-WebSocket fanout across all server nodes.
+        MessageDto messageDto = messageMapper.toDto(savedMessage != null ? savedMessage : message);
+        messageBroadcastPort.broadcastMessage(threadId, messageDto);
     }
 
     /**
