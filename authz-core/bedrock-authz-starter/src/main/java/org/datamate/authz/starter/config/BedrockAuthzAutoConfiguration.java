@@ -1,5 +1,7 @@
 package org.datamate.authz.starter.config;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,6 +42,9 @@ import org.springframework.security.access.AccessDeniedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -74,8 +79,8 @@ public class BedrockAuthzAutoConfiguration {
                 this.resourceLoader = resourceLoader;
             }
             
-            @PostConstruct
-            public void migrateAuthz() {
+            @Bean(name = "authzFlywayMigration")
+            public Object migrateAuthz() {
                 FluentConfiguration config = Flyway.configure()
                         .dataSource(dataSource)
                         .locations("classpath:db/authz-migration")
@@ -89,7 +94,25 @@ public class BedrockAuthzAutoConfiguration {
                 }
 
                 config.load().migrate();
+                return new Object();
             }
+        }
+
+        @Bean
+        public static BeanFactoryPostProcessor flywayDependsOnAuthzFlyway() {
+            return beanFactory -> {
+                if (beanFactory.containsBeanDefinition("flywayInitializer")) {
+                    BeanDefinition bd = beanFactory.getBeanDefinition("flywayInitializer");
+                    String[] dependsOn = bd.getDependsOn();
+                    if (dependsOn == null) {
+                        bd.setDependsOn("authzFlywayMigration");
+                    } else {
+                        List<String> dependsOnList = new ArrayList<>(Arrays.asList(dependsOn));
+                        dependsOnList.add("authzFlywayMigration");
+                        bd.setDependsOn(dependsOnList.toArray(new String[0]));
+                    }
+                }
+            };
         }
         
         @Bean

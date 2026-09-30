@@ -1,5 +1,6 @@
 package org.datamate.authz.compiler.generator;
 
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.compiler.ast.AstNode;
 import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
@@ -108,8 +109,7 @@ public class RegoGenerator {
 
         sb.append("default allow := false\n");
         sb.append("default allow_rule := false\n");
-        sb.append("default deny_rule := false\n");
-        sb.append("default denial_message := set()\n\n");
+        sb.append("default deny_rule := false\n\n");
 
         List<NotBlock> deferredBlocks = new ArrayList<>();
         int notBlockCounter = 0;
@@ -165,9 +165,14 @@ public class RegoGenerator {
         }
 
         // Emit denial_message blocks — once per policy, outside the DNF loop (Problem 1)
+        boolean hasDenialMessages = false;
         for (Policy policy : policies) {
             String permissionCode = permCodeLookup.get(policy.getPermissionId());
             if (permissionCode == null) continue;
+            String msg = policy.getDenialMessage();
+            if (msg != null && !msg.isBlank()) {
+                hasDenialMessages = true;
+            }
             generateDenialMessageBlock(policy, permissionCode, sb);
         }
 
@@ -175,12 +180,19 @@ public class RegoGenerator {
         sb.append("allow if {\n    allow_rule\n    not deny_rule\n}\n\n");
 
         // Reason output — Problem 3: concat all triggered denial messages with "; "
-        sb.append("reason := msg if {\n");
-        sb.append("    count(denial_message) > 0\n");
-        sb.append("    msg := concat(\"; \", denial_message)\n");
-        sb.append("} else := \"Access Denied: You do not have permission to perform this action.\" if {\n");
-        sb.append("    not allow\n");
-        sb.append("}\n");
+        if (hasDenialMessages) {
+            sb.append("reason := msg if {\n");
+            sb.append("    denial_msgs := [m | some m in denial_message]\n");
+            sb.append("    count(denial_msgs) > 0\n");
+            sb.append("    msg := concat(\"; \", denial_msgs)\n");
+            sb.append("} else := \"").append(AuthzConstants.DEFAULT_DENIAL_MESSAGE).append("\" if {\n");
+            sb.append("    not allow\n");
+            sb.append("}\n");
+        } else {
+            sb.append("reason := \"").append(AuthzConstants.DEFAULT_DENIAL_MESSAGE).append("\" if {\n");
+            sb.append("    not allow\n");
+            sb.append("}\n");
+        }
 
         return sb.toString();
     }

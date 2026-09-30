@@ -1,6 +1,6 @@
 -- Insert condition fields for pharmacy:dispensation:execute (Permission ID: 4)
 
-INSERT INTO authz_condition_field (permission_id, field_name, field_type, display_name)
+INSERT INTO pharmacy.authz_condition_field (permission_id, field_name, field_type, display_name)
 VALUES
 (4, 'drugCategory', 'STRING', 'Drug Category'),
 (4, 'patientAge', 'NUMBER', 'Patient Age'),

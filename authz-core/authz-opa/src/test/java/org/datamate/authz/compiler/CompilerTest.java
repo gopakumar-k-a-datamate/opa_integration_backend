@@ -1,6 +1,7 @@
 package org.datamate.authz.compiler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.compiler.generator.RegoGenerator;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -8,7 +9,6 @@ import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +82,6 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
-        default denial_message := set()
         
         # Policy ID: 1
         allow_rule if {
@@ -104,13 +103,10 @@ public class CompilerTest {
             not deny_rule
         }
         
-        reason := msg if {
-            count(denial_message) > 0
-            msg := concat("; ", denial_message)
-        } else := "Access Denied: You do not have permission to perform this action." if {
+        reason := "%s" if {
             not allow
         }
-        """.trim();
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }
@@ -172,7 +168,6 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
-        default denial_message := set()
         
         # Policy ID: 2
         allow_rule if {
@@ -201,13 +196,10 @@ public class CompilerTest {
             not deny_rule
         }
         
-        reason := msg if {
-            count(denial_message) > 0
-            msg := concat("; ", denial_message)
-        } else := "Access Denied: You do not have permission to perform this action." if {
+        reason := "%s" if {
             not allow
         }
-        """.trim();
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }
@@ -266,7 +258,6 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
-        default denial_message := set()
         
         # Policy ID: 3
         allow_rule if {
@@ -306,13 +297,10 @@ public class CompilerTest {
             not deny_rule
         }
         
-        reason := msg if {
-            count(denial_message) > 0
-            msg := concat("; ", denial_message)
-        } else := "Access Denied: You do not have permission to perform this action." if {
+        reason := "%s" if {
             not allow
         }
-        """.trim();
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }
@@ -357,7 +345,6 @@ public class CompilerTest {
         default allow := false
         default allow_rule := false
         default deny_rule := false
-        default denial_message := set()
         
         # Policy ID: 4
         allow_rule if {
@@ -372,13 +359,10 @@ public class CompilerTest {
             not deny_rule
         }
         
-        reason := msg if {
-            count(denial_message) > 0
-            msg := concat("; ", denial_message)
-        } else := "Access Denied: You do not have permission to perform this action." if {
+        reason := "%s" if {
             not allow
         }
-        """.trim();
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }

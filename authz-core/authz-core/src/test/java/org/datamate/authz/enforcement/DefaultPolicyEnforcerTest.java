@@ -2,10 +2,10 @@ package org.datamate.authz.enforcement;
 
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.api.principal.PrincipalProvider;
 import org.datamate.authz.dto.policy.EvaluationResult;
-import org.datamate.authz.enforcement.AuthorizationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.datamate.authz.exception.AuthzDeniedException;
-import org.datamate.authz.exception.AuthzInvalidPayloadException;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -102,7 +102,7 @@ class DefaultPolicyEnforcerTest {
     void evaluate_string_success() {
         when(principalProvider.getUserId()).thenReturn("user456");
         when(principalProvider.getRoles()).thenReturn(List.of("USER"));
-        when(policyEvaluationClient.evaluate(eq("hr"), any(AuthorizationContext.class))).thenReturn(EvaluationResult.denied("Access Denied: You do not have permission to perform this action."));
+        when(policyEvaluationClient.evaluate(eq("hr"), any(AuthorizationContext.class))).thenReturn(EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE));
 
         boolean result = enforcer.evaluate("hr:employee:write");
 

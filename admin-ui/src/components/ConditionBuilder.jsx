@@ -165,7 +165,8 @@ const ConditionGroup = ({ node, fields, permissionCode, onChange, onRemove, isRo
     const newRule = { 
       field: defaultField?.fieldName || '', 
       comparison: '==', 
-      value: defaultValue 
+      value: defaultValue,
+      valueType: 'VALUE'
     };
     const newChildren = [...(node.children || []), newRule];
     onChange({ ...node, children: newChildren });
@@ -327,9 +328,11 @@ const ConditionBuilder = ({ permissionCode, policy, validationErrors, onClose, o
   const existingExpression = policy?.expressionJson;
   const initUseCustomRego = policy?.useCustomRego || false;
   const initCustomRegoSnippet = policy?.customRegoSnippet || '';
+  const initDenialMessage = policy?.denialMessage || '';
 
   const [useCustomRego, setUseCustomRego] = useState(initUseCustomRego);
   const [customRegoSnippet, setCustomRegoSnippet] = useState(initCustomRegoSnippet);
+  const [denialMessage, setDenialMessage] = useState(initDenialMessage);
 
   const [expressionTree, setExpressionTree] = useState(() => {
     if (existingExpression?.operator) {
@@ -349,12 +352,12 @@ const ConditionBuilder = ({ permissionCode, policy, validationErrors, onClose, o
 
   const handleSave = () => {
     if (useCustomRego) {
-      onSave(permissionCode, null, true, customRegoSnippet);
+      onSave(permissionCode, null, true, customRegoSnippet, denialMessage);
     } else {
       if (!expressionTree.children || expressionTree.children.length === 0) {
-        onSave(permissionCode, null, false, '');
+        onSave(permissionCode, null, false, '', denialMessage);
       } else {
-        onSave(permissionCode, expressionTree, false, '');
+        onSave(permissionCode, expressionTree, false, '', denialMessage);
       }
     }
   };
@@ -469,7 +472,18 @@ const ConditionBuilder = ({ permissionCode, policy, validationErrors, onClose, o
           </div>
         )}
 
-        <div style={{ padding: '1rem 0 0 0', display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '1rem' }}>
+        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '1rem', background: 'rgba(255, 255, 255, 0.02)' }}>
+          <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 500 }}>Denial Message (Optional)</label>
+          <input 
+            type="text" 
+            placeholder="Human-readable message shown to end users when this policy causes a denial..." 
+            value={denialMessage} 
+            onChange={(e) => setDenialMessage(e.target.value)}
+            style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'rgba(0, 0, 0, 0.2)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+          />
+        </div>
+
+        <div style={{ padding: '1rem 0 0 0', display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '0' }}>
           <button className="btn" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSave}>Apply</button>
         </div>
