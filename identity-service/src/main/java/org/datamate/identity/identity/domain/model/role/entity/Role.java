@@ -20,6 +20,7 @@ public class Role extends AggregateRoot {
     private final String name;
     private final String description;
     private final RoleStatus status;
+    private final boolean isSystem;
     private final String referenceSystem;
     private final String referenceValue;
     private final Long version;
@@ -33,6 +34,7 @@ public class Role extends AggregateRoot {
             String name,
             String description,
             RoleStatus status,
+            boolean isSystem,
             String referenceSystem,
             String referenceValue,
             Long version,
@@ -47,6 +49,7 @@ public class Role extends AggregateRoot {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.isSystem = isSystem;
         this.referenceSystem = referenceSystem;
         this.referenceValue = referenceValue;
         this.version = version;
@@ -68,6 +71,7 @@ public class Role extends AggregateRoot {
                 name,
                 description,
                 RoleStatus.INACTIVE,
+                false,
                 null,
                 null,
                 null,
@@ -76,6 +80,38 @@ public class Role extends AggregateRoot {
                 LocalDateTime.now(),
                 createdBy,
                 LocalDateTime.now()
+        );
+    }
+
+    public static Role reconstitute(
+            UUID id,
+            String name,
+            String description,
+            RoleStatus status,
+            boolean isSystem,
+            String referenceSystem,
+            String referenceValue,
+            Long version,
+            Long domainVersion,
+            EntityReference<UUID> createdBy,
+            LocalDateTime createdDate,
+            EntityReference<UUID> lastModifiedBy,
+            LocalDateTime lastModifiedDate
+    ) {
+        return new Role(
+                id,
+                name,
+                description,
+                status,
+                isSystem,
+                referenceSystem,
+                referenceValue,
+                version,
+                domainVersion,
+                createdBy,
+                createdDate,
+                lastModifiedBy,
+                lastModifiedDate
         );
     }
 
@@ -93,11 +129,12 @@ public class Role extends AggregateRoot {
             EntityReference<UUID> lastModifiedBy,
             LocalDateTime lastModifiedDate
     ) {
-        return new Role(
+        return reconstitute(
                 id,
                 name,
                 description,
                 status,
+                false,
                 referenceSystem,
                 referenceValue,
                 version,
@@ -136,11 +173,16 @@ public class Role extends AggregateRoot {
     public Role updateInformation(String name, String description, EntityReference<UUID> lastModifiedBy) {
         validateUpdate(name, lastModifiedBy);
 
+        if (this.isSystem && !this.name.equalsIgnoreCase(name)) {
+            throw new InvalidRoleDataException("role.validation.system.role", "Built-in system role '" + this.name + "' cannot be renamed.");
+        }
+
         Role updatedRole = new Role(
                 this.id,
                 name,
                 description,
                 this.status,
+                this.isSystem,
                 this.referenceSystem,
                 this.referenceValue,
                 this.version,
@@ -171,6 +213,7 @@ public class Role extends AggregateRoot {
                 this.name,
                 this.description,
                 RoleStatus.ACTIVE,
+                this.isSystem,
                 this.referenceSystem,
                 this.referenceValue,
                 this.version,
@@ -192,6 +235,9 @@ public class Role extends AggregateRoot {
     }
 
     public Role deactivate(EntityReference<UUID> updatedBy) {
+        if (this.isSystem) {
+            throw new InvalidRoleDataException("role.validation.system.role", "Built-in system role '" + this.name + "' cannot be deactivated.");
+        }
         if (this.status == RoleStatus.INACTIVE) {
             throw new InvalidRoleDataException("role.validation.already.inactive", "Role is already inactive.");
         }
@@ -200,6 +246,7 @@ public class Role extends AggregateRoot {
                 this.name,
                 this.description,
                 RoleStatus.INACTIVE,
+                this.isSystem,
                 this.referenceSystem,
                 this.referenceValue,
                 this.version,

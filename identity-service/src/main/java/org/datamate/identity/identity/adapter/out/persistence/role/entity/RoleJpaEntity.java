@@ -41,6 +41,9 @@ public class RoleJpaEntity extends BaseAuditableEntity {
     @Column(nullable = false)
     private RoleStatus status;
 
+    @Column(name = "is_system", nullable = false)
+    private boolean isSystem = false;
+
     @Column(name = "reference_system", length = 50)
     private String referenceSystem;
 
@@ -74,4 +77,17 @@ public class RoleJpaEntity extends BaseAuditableEntity {
 
     @Column(name = "last_modified_by_value", length = 255)
     private String lastModifiedByValue;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RoleJpaEntity that = (RoleJpaEntity) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : getClass().hashCode();
+    }
 }
