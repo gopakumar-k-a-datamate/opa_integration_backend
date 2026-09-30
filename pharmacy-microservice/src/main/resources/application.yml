@@ -9,6 +9,8 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: "0"
+    schemas: pharmacy
+    default-schema: pharmacy
     locations: classpath:db/migration
 
   # RabbitMQ — Subject Sync consumer
