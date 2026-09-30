@@ -76,7 +76,7 @@ public class PolicyJpaEntity {
     @Column(name = "deleted_reason")
     private String deletedReason;
 
-    public void setDeletedAt(java.time.LocalDateTime deletedAt) {
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
 

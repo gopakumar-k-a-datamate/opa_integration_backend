@@ -1,11 +1,13 @@
 package org.datamate.authz.enforcement;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.api.principal.PrincipalProvider;
 import org.datamate.authz.dto.policy.EvaluationResult;
 import org.datamate.authz.enforcement.AuthorizationContext;
+import org.datamate.authz.model.policy.enumtype.FieldType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.datamate.authz.exception.AuthzDeniedException;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,24 +35,24 @@ class DefaultPolicyEnforcerTest {
     private PrincipalProvider principalProvider;
 
     @Mock
-    private com.datamate.bedrock.framework.common.logging.service.Logger log;
+    private Logger log;
 
     @InjectMocks
     private DefaultPolicyEnforcer enforcer;
 
     @BeforeEach
     void setUp() throws Exception {
-        java.lang.reflect.Field logField = DefaultPolicyEnforcer.class.getDeclaredField("log");
+        Field logField = DefaultPolicyEnforcer.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(enforcer, log);
     }
 
     @PolicyResource(namespace = "finance", resourceName = "invoice", action = "read")
     static class TestResource {
-        @PolicyField(displayName = "Department", type = org.datamate.authz.model.policy.enumtype.FieldType.STRING)
+        @PolicyField(displayName = "Department", type = FieldType.STRING)
         private String department = "HR";
         
-        @PolicyField(displayName = "Amount", type = org.datamate.authz.model.policy.enumtype.FieldType.NUMBER)
+        @PolicyField(displayName = "Amount", type = FieldType.NUMBER)
         private int amount = 500;
         
         private String ignored = "hidden";

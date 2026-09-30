@@ -1,5 +1,6 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
 import org.datamate.authz.api.policy.PermissionRepository;
@@ -25,6 +26,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +49,7 @@ class DefaultPolicyCompilerTest {
     @Mock private PolicyValidation validation;
     @Mock private TarGzBundleService bundleBuilder;
     
-    @Mock private com.datamate.bedrock.framework.common.logging.service.Logger log;
+    @Mock private Logger log;
 
     private DefaultPolicyCompiler compiler;
 
@@ -65,7 +69,7 @@ class DefaultPolicyCompilerTest {
                 regoGen
         );
         
-        java.lang.reflect.Field logField = DefaultPolicyCompiler.class.getDeclaredField("log");
+        Field logField = DefaultPolicyCompiler.class.getDeclaredField("log");
         logField.setAccessible(true);
         logField.set(compiler, log);
     }
@@ -201,7 +205,7 @@ class DefaultPolicyCompilerTest {
 
     private String computeMd5(byte[] data) {
         try {
-            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("MD5").digest(data));
+            return HexFormat.of().formatHex(MessageDigest.getInstance("MD5").digest(data));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
