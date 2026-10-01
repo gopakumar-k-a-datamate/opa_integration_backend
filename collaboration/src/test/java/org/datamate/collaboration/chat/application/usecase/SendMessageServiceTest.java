@@ -1,7 +1,10 @@
 package org.datamate.collaboration.chat.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
+import org.datamate.collaboration.chat.application.mapper.MessageMapper;
+import org.datamate.collaboration.chat.application.port.out.MessageBroadcastPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
 import org.datamate.collaboration.chat.domain.model.Message;
@@ -33,6 +36,12 @@ class SendMessageServiceTest {
 
     @Mock
     private ThreadRepositoryPort threadRepository;
+
+    @Mock
+    private MessageMapper messageMapper;
+
+    @Mock
+    private MessageBroadcastPort messageBroadcastPort;
 
     @Mock
     private Logger logger;
@@ -123,5 +132,19 @@ class SendMessageServiceTest {
         List<Message> savedMessages = captor.getAllValues();
         assertThat(savedMessages.get(0).getId())
                 .isNotEqualTo(savedMessages.get(1).getId());
+    }
+
+    @Test
+    @DisplayName("should broadcast message after saving")
+    void shouldBroadcastMessage_AfterSaving() {
+        when(threadRepository.existsById(threadId)).thenReturn(true);
+        Message savedMessage = Message.create(threadId, senderId, text, false, false, null);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        MessageDto expectedDto = new MessageDto(savedMessage.getId(), senderId, text, false, false, null, savedMessage.getTimestamp());
+        when(messageMapper.toDto(savedMessage)).thenReturn(expectedDto);
+
+        sendMessageService.sendMessage(threadId, senderId, request);
+
+        verify(messageBroadcastPort).broadcastMessage(threadId, expectedDto);
     }
 }
