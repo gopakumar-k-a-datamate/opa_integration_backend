@@ -18,6 +18,7 @@ public interface UserPersistencePort {
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, UUID id);
     boolean existsByUserNameAndIdNot(String userName, UUID id);
+    long countActiveUsersWithRoleExcept(String roleName, UUID exceptUserId);
     List<User> findAll();
     Paged<User> searchUsers(UserSearchCriteria criteria, PageQuery pageQuery);
 }

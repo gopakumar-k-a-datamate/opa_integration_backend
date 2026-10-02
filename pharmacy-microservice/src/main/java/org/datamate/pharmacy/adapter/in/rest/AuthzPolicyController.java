@@ -35,11 +35,14 @@ public class AuthzPolicyController {
     }
 
     @GetMapping("/policies")
-    public ResponseEntity<List<PolicyGridItemDto>> getPolicies(
+    public Object getPolicies(
             @RequestParam SubjectType subjectType,
             @RequestParam String subjectId,
-            @RequestParam String namespace) {
-        return ResponseEntity.ok(pharmacyAuthzService.getPolicies(subjectType, subjectId, namespace));
+            @RequestParam String namespace,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return pharmacyAuthzService.getPolicies(subjectType, subjectId, namespace, search, page, size);
     }
 
     @PutMapping("/policies")
