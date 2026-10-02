@@ -1,24 +1,30 @@
 package com.datamate.bedrock.framework.storage.adapter.minio;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.storage.application.dto.UploadRequest;
 import com.datamate.bedrock.framework.storage.application.port.StorageProvider;
 import com.datamate.bedrock.framework.storage.domain.exception.StorageException;
 import com.datamate.bedrock.framework.storage.domain.model.StorageObject;
 import io.minio.*;
-import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
+/**
+ * MinIO Storage Provider implementation.
+ * Integrates with Bedrock Logger.
+ */
 @Service
 @RequiredArgsConstructor
 public class MinioStorageService implements StorageProvider {
+
+    @EnableLogger
+    private Logger log;
 
     private final MinioClient minioClient;
 
@@ -39,10 +45,12 @@ public class MinioStorageService implements StorageProvider {
                     .objectKey(objectKey)
                     .size(size)
                     .contentType(contentType)
-                    .lastModified(LocalDateTime.now())
+                    .lastModified(Instant.now())
                     .build();
         } catch (Exception e) {
-            log.error("Error uploading file to Minio", e);
+            if (log != null) {
+                log.error("Error uploading file to MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to upload file to Minio", e);
         }
     }
@@ -64,7 +72,9 @@ public class MinioStorageService implements StorageProvider {
                             .object(objectKey)
                             .build());
         } catch (Exception e) {
-            log.error("Error downloading file from Minio", e);
+            if (log != null) {
+                log.error("Error downloading file from MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to download file from Minio", e);
         }
     }
@@ -74,7 +84,9 @@ public class MinioStorageService implements StorageProvider {
         try (InputStream is = download(bucketName, objectKey)) {
             return is.readAllBytes();
         } catch (Exception e) {
-            log.error("Error downloading file as bytes from Minio", e);
+            if (log != null) {
+                log.error("Error downloading file as bytes from MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to download file as bytes from Minio", e);
         }
     }
@@ -98,7 +110,9 @@ public class MinioStorageService implements StorageProvider {
                             .object(objectKey)
                             .build());
         } catch (Exception e) {
-            log.error("Error deleting file from Minio", e);
+            if (log != null) {
+                log.error("Error deleting file from MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to delete file from Minio", e);
         }
     }
@@ -121,11 +135,13 @@ public class MinioStorageService implements StorageProvider {
                     .objectKey(objectKey)
                     .size(stat.size())
                     .contentType(stat.contentType())
-                    .lastModified(stat.lastModified().toLocalDateTime())
+                    .lastModified(stat.lastModified().toInstant())
                     .etag(stat.etag())
                     .build();
         } catch (Exception e) {
-            log.error("Error getting metadata from Minio", e);
+            if (log != null) {
+                log.error("Error getting metadata from MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to get metadata from Minio", e);
         }
     }
@@ -154,7 +170,9 @@ public class MinioStorageService implements StorageProvider {
                                 .build());
             }
         } catch (Exception e) {
-            log.error("Error creating bucket in Minio", e);
+            if (log != null) {
+                log.error("Error creating bucket in MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to create bucket in Minio", e);
         }
     }
@@ -167,7 +185,9 @@ public class MinioStorageService implements StorageProvider {
                             .bucket(bucketName)
                             .build());
         } catch (Exception e) {
-            log.error("Error checking bucket existence in Minio", e);
+            if (log != null) {
+                log.debug("Error checking bucket existence in MinIO: {}", e.getMessage());
+            }
             return false;
         }
     }
@@ -180,7 +200,9 @@ public class MinioStorageService implements StorageProvider {
                             .bucket(bucketName)
                             .build());
         } catch (Exception e) {
-            log.error("Error deleting bucket from Minio", e);
+            if (log != null) {
+                log.error("Error deleting bucket from MinIO: {}", e.getMessage());
+            }
             throw new StorageException("Failed to delete bucket from Minio", e);
         }
     }

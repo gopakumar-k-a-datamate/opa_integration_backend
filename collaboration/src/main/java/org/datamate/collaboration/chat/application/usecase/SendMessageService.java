@@ -5,9 +5,11 @@ import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.storage.application.port.StorageService;
 import com.datamate.bedrock.framework.storage.domain.model.StorageObject;
 import lombok.RequiredArgsConstructor;
+import org.datamate.collaboration.chat.application.dto.SendMessageCommand;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
 import org.datamate.collaboration.chat.application.port.out.AttachmentRepositoryPort;
+import org.datamate.collaboration.chat.application.port.out.DocumentConversionPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
 import org.datamate.collaboration.chat.domain.model.Attachment;
@@ -20,6 +22,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +33,7 @@ import java.util.UUID;
  * Implements {@link SendMessageUseCase}. Handles the command side of messaging.
  * Follows the RMS standard: the frontend uploads files to cloud storage (MinIO) first,
  * and sends a JSON payload containing the message text and/or attachmentUrls.
+ * Also handles office document to PDF preview conversion via {@link DocumentConversionPort}.
  */
 @Service
 @RequiredArgsConstructor
@@ -43,13 +48,14 @@ public class SendMessageService implements SendMessageUseCase {
     private final ThreadRepositoryPort threadRepository;
     private final AttachmentRepositoryPort attachmentRepository;
     private final StorageService storageService;
+    private final DocumentConversionPort documentConversionPort;
 
     @Value("${bedrock.storage.minio.bucket:chat-attachments}")
     private String defaultBucket;
 
     @Override
     @Transactional
-    public void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
+    public void sendMessage(UUID threadId, String senderId, SendMessageCommand request) {
         if (request == null) {
             throw new DomainValidationException(
                     CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "request");
@@ -113,12 +119,41 @@ public class SendMessageService implements SendMessageUseCase {
                 }
             }
 
+            // Convert office documents to PDF preview if applicable
+            String previewUrl = null;
+            if (documentConversionPort != null && documentConversionPort.isConvertible(fileName)) {
+                try {
+                    InputStream originalStream = storageService.download(defaultBucket, objectKeyOrFileName);
+                    if (originalStream != null) {
+                        byte[] pdfBytes = documentConversionPort.convertToPdf(originalStream, fileName);
+                        if (pdfBytes != null && pdfBytes.length > 0) {
+                            String previewKey = String.format("previews/%s/%s.pdf", threadId, fileName);
+                            StorageObject previewObject = storageService.upload(
+                                    defaultBucket,
+                                    previewKey,
+                                    new ByteArrayInputStream(pdfBytes),
+                                    "application/pdf",
+                                    pdfBytes.length
+                            );
+                            previewUrl = previewObject.getObjectKey();
+                            if (logger != null) {
+                                logger.info("Generated PDF preview for [{}] at [{}]", fileName, previewUrl);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    if (logger != null) {
+                        logger.warn("PDF preview conversion skipped or failed for [{}]: {}", fileName, e.getMessage());
+                    }
+                }
+            }
+
             Attachment attachment = Attachment.create(
                     fileName,
                     contentType,
                     fileSize,
                     attachmentUrl,
-                    null
+                    previewUrl
             );
 
             attachmentRepository.save(attachment);

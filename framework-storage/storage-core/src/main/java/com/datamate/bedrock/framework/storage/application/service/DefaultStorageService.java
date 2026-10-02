@@ -1,57 +1,61 @@
 package com.datamate.bedrock.framework.storage.application.service;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.storage.application.dto.UploadCommand;
 import com.datamate.bedrock.framework.storage.application.dto.UploadRequest;
 import com.datamate.bedrock.framework.storage.application.port.StorageProvider;
 import com.datamate.bedrock.framework.storage.application.port.StorageService;
 import com.datamate.bedrock.framework.storage.domain.model.StorageObject;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-
 /**
- * ═══════════════════════════════════════════════════════════════
- * DEFAULT STORAGE SERVICE - Application Logic (The Brain)
- * ═══════════════════════════════════════════════════════════════
- * 
- * This class implements the Inbound Port (StorageService) by
- * This class implements the Inbound Port (StorageService) by
- * orchestrating the Outbound Port (StorageProvider).
- * 
- * It is where ORCHESTRATION and BUSINESS RULES live.
+ * Default Storage Application Service.
+ * Implements inbound port {@link StorageService} by orchestrating the outbound {@link StorageProvider}.
+ * Employs Bedrock Logger for structured, professional log auditing.
  */
-@Slf4j
 @Service
 @Primary
 @RequiredArgsConstructor
 public class DefaultStorageService implements StorageService {
+
+    @EnableLogger
+    private Logger log;
 
     private final StorageProvider provider;
 
     @Override
     public StorageObject upload(String bucketName, String objectKey, InputStream inputStream, String contentType,
             long size) {
-        // --- START ORCHESTRATION LOGIC ---
         String processedKey = objectKey;
-        if (!objectKey.startsWith("br_")) {
-            processedKey = "br_" + objectKey; // Bedrock standard prefix
-            log.info("📍 ORCHESTRATOR: Auto-prefixed file: {} -> {}", objectKey, processedKey);
+        if (objectKey != null && !objectKey.startsWith("br_")) {
+            processedKey = "br_" + objectKey;
+            if (log != null) {
+                log.info("Auto-prefixed storage object key: {} -> {}", objectKey, processedKey);
+            }
         }
 
-        log.info("📝 AUDIT: User requested upload of '{}' to bucket '{}'", processedKey, bucketName);
-        // --- END ORCHESTRATION LOGIC ---
+        if (log != null) {
+            log.info("Executing upload for object '{}' in bucket '{}'", processedKey, bucketName);
+        }
 
         return provider.upload(bucketName, processedKey, inputStream, contentType, size);
     }
 
     @Override
     public List<StorageObject> uploadMultiple(List<UploadRequest> requests) {
-        log.debug("📦 ORCHESTRATOR: Processing batch upload of {} files", requests.size());
+        if (log != null) {
+            log.debug("Processing batch upload of {} files", requests != null ? requests.size() : 0);
+        }
+        if (requests == null) {
+            return List.of();
+        }
         return requests.stream()
                 .map(req -> upload(req.getBucketName(), req.getObjectKey(), req.getInputStream(), req.getContentType(),
                         req.getSize()))
@@ -81,7 +85,9 @@ public class DefaultStorageService implements StorageService {
     @Override
     public void delete(String bucketName, String objectKey) {
         String processedKey = processKey(objectKey);
-        log.debug("📝 ORCHESTRATOR: Auditing deletion of {}/{}", bucketName, processedKey);
+        if (log != null) {
+            log.debug("Deleting storage object {}/{}", bucketName, processedKey);
+        }
         provider.delete(bucketName, processedKey);
     }
 
@@ -103,13 +109,17 @@ public class DefaultStorageService implements StorageService {
 
     @Override
     public void createBucket(String bucketName) {
-        log.info("🏗️ ORCHESTRATOR: Requesting bucket creation: {}", bucketName);
+        if (log != null) {
+            log.info("Requesting bucket creation: {}", bucketName);
+        }
         provider.createBucket(bucketName);
     }
 
     @Override
     public boolean bucketExists(String bucketName) {
-        log.info("🔍 ORCHESTRATOR: Checking if bucket exists: {}", bucketName);
+        if (log != null) {
+            log.debug("Checking if bucket exists: {}", bucketName);
+        }
         return provider.bucketExists(bucketName);
     }
 
@@ -119,11 +129,14 @@ public class DefaultStorageService implements StorageService {
     }
 
     private String processKey(String key) {
-        if (key == null)
+        if (key == null) {
             return null;
+        }
         if (!key.startsWith("br_")) {
             String processedKey = "br_" + key;
-            log.debug("📍 ORCHESTRATOR: Auto-prefixed key: {} -> {}", key, processedKey);
+            if (log != null) {
+                log.debug("Auto-prefixed storage key: {} -> {}", key, processedKey);
+            }
             return processedKey;
         }
         return key;

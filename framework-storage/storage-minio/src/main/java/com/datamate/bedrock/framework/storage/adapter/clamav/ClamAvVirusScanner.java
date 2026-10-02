@@ -1,8 +1,10 @@
 package com.datamate.bedrock.framework.storage.adapter.clamav;
 
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.storage.application.dto.ScanResult;
 import com.datamate.bedrock.framework.storage.application.port.VirusScanner;
-import lombok.extern.slf4j.Slf4j;
+import com.datamate.bedrock.framework.storage.domain.exception.StorageException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +16,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @Component
-@Slf4j
 public class ClamAvVirusScanner implements VirusScanner {
+
+    @EnableLogger
+    private Logger log;
+
     private final String host;
     private final int port;
     private final int timeout;
@@ -40,8 +45,10 @@ public class ClamAvVirusScanner implements VirusScanner {
         try {
             return performScan(inputStream);
         } catch (IOException ex) {
-            log.error("ClamAV communication error", ex);
-            throw new RuntimeException("Security scan service unavailable", ex);
+            if (log != null) {
+                log.error("ClamAV communication error: {}", ex.getMessage());
+            }
+            throw new StorageException("Security scan service unavailable", ex);
         }
     }
 
@@ -57,7 +64,9 @@ public class ClamAvVirusScanner implements VirusScanner {
                 streamFile(inputStream, out);
                 finishStream(out);
                 String response = readResponse(in);
-                log.debug("ClamAV raw response: {}", response);
+                if (log != null) {
+                    log.debug("ClamAV raw response: {}", response);
+                }
                 return parseResponse(response);
             }
         }
@@ -87,7 +96,7 @@ public class ClamAvVirusScanner implements VirusScanner {
 
     private ScanResult parseResponse(String response) {
         if (response == null || response.isBlank()) {
-            throw new IllegalStateException("ClamAV returned an empty response");
+            throw new StorageException("ClamAV returned an empty response");
         }
         if (response.contains("OK")) {
             return new ScanResult(true, null, LocalDateTime.now());
@@ -97,10 +106,12 @@ public class ClamAvVirusScanner implements VirusScanner {
                     .replace("stream:", "")
                     .replace("FOUND", "")
                     .trim();
-            log.warn("Malware detected: {}", virusName);
+            if (log != null) {
+                log.warn("Malware detected: {}", virusName);
+            }
             return new ScanResult(false, virusName, LocalDateTime.now());
         }
-        throw new IllegalStateException("Unexpected ClamAV response: " + response);
+        throw new StorageException("Unexpected ClamAV response: " + response);
     }
 
     private String readResponse(InputStream in) throws IOException {

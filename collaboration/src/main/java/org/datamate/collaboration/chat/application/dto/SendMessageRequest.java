@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Inbound DTO for sending a new message.
- * Supports text and/or pre-uploaded attachment URLs (RMS old behavior).
+ * @deprecated Use {@link SendMessageCommand} to strictly adhere to CQRS naming conventions.
  */
+@Deprecated
 public record SendMessageRequest(
         @Size(max = 1000, message = "Message text must not exceed 1000 characters")
         String text,
@@ -27,5 +27,9 @@ public record SendMessageRequest(
 
     public SendMessageRequest(String text, List<String> attachmentUrls) {
         this(text, attachmentUrls, null);
+    }
+
+    public SendMessageCommand toCommand() {
+        return new SendMessageCommand(text, attachmentUrls, attachmentId);
     }
 }

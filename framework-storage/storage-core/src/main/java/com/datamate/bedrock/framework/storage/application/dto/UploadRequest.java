@@ -1,48 +1,24 @@
 package com.datamate.bedrock.framework.storage.application.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Upload Request - Application Layer DTO
+ * Backward-compatible DTO alias for {@link UploadCommand}.
+ * @deprecated Use {@link UploadCommand} to strictly adhere to CQRS naming conventions.
  */
-@Getter
-@Builder
-@AllArgsConstructor
-@ToString(exclude = "inputStream")
-public class UploadRequest {
-
-    @NotBlank(message = "Bucket name is required")
-    private String bucketName;
-
-    @NotBlank(message = "Object key is required")
-    private String objectKey;
-
-    @NotNull(message = "Input stream is required")
-    private InputStream inputStream;
-
-    @Positive(message = "File size must be greater than 0")
-    private long size;
-
-    @NotBlank(message = "Content type is required")
-    private String contentType;
-
-    @Builder.Default
-    private Map<String, String> metadata = new HashMap<>();
-
-    @Builder.Default
-    private List<String> allowedExtensions = new ArrayList<>();
-
-    private Long maxSizeBytes;
+@Deprecated
+@SuperBuilder
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class UploadRequest extends UploadCommand {
+    public UploadRequest(String bucketName, String objectKey, InputStream inputStream, long size, String contentType,
+                         Map<String, String> metadata, List<String> allowedExtensions, Long maxSizeBytes) {
+        super(bucketName, objectKey, inputStream, size, contentType, metadata, allowedExtensions, maxSizeBytes);
+    }
 }

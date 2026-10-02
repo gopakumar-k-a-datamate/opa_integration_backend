@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +14,7 @@ import java.util.Map;
  * Storage Object - Domain Model
  * 
  * Represents metadata for a stored object in storage.
+ * All timestamps are strictly UTC (Instant).
  */
 @Getter
 @Builder
@@ -44,9 +45,9 @@ public class StorageObject {
     private String contentType;
 
     /**
-     * When the file was last uploaded or modified
+     * When the file was last uploaded or modified in UTC
      */
-    private LocalDateTime lastModified;
+    private Instant lastModified;
 
     /**
      * Unique hash of the file content (used for versioning/caching)

@@ -1,5 +1,6 @@
 package org.datamate.collaboration.chat.application.port.in;
 
+import org.datamate.collaboration.chat.application.dto.SendMessageCommand;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 
 import java.util.UUID;
@@ -9,5 +10,9 @@ import java.util.UUID;
  * Clean Architecture compliant: no web/HTTP framework dependencies.
  */
 public interface SendMessageUseCase {
-    void sendMessage(UUID threadId, String senderId, SendMessageRequest request);
+    void sendMessage(UUID threadId, String senderId, SendMessageCommand command);
+
+    default void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
+        sendMessage(threadId, senderId, request != null ? request.toCommand() : null);
+    }
 }

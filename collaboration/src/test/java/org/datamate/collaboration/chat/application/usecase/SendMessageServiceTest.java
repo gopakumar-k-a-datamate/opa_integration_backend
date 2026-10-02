@@ -1,10 +1,11 @@
 package org.datamate.collaboration.chat.application.usecase;
 
-import com.datamate.bedrock.framework.common.logging.service.Logger;
 import com.datamate.bedrock.framework.storage.application.port.StorageService;
 import com.datamate.bedrock.framework.storage.domain.model.StorageObject;
+import org.datamate.collaboration.chat.application.dto.SendMessageCommand;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.out.AttachmentRepositoryPort;
+import org.datamate.collaboration.chat.application.port.out.DocumentConversionPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
 import org.datamate.collaboration.chat.domain.model.Attachment;
@@ -23,17 +24,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("SendMessageService")
+@DisplayName("SendMessageService Unit Tests")
 class SendMessageServiceTest {
 
     @Mock
@@ -49,7 +53,7 @@ class SendMessageServiceTest {
     private StorageService storageService;
 
     @Mock
-    private Logger logger;
+    private DocumentConversionPort documentConversionPort;
 
     @InjectMocks
     private SendMessageService sendMessageService;
@@ -57,16 +61,15 @@ class SendMessageServiceTest {
     private UUID threadId;
     private String senderId;
     private String text;
-    private SendMessageRequest request;
+    private SendMessageCommand request;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(sendMessageService, "logger", logger);
         ReflectionTestUtils.setField(sendMessageService, "defaultBucket", "chat-attachments");
         threadId = UUID.randomUUID();
         senderId = "user-john";
         text = "Hello, World!";
-        request = new SendMessageRequest(text);
+        request = new SendMessageCommand(text);
     }
 
     @Test
@@ -136,7 +139,7 @@ class SendMessageServiceTest {
                         .size(2048L)
                         .build());
 
-        SendMessageRequest attachmentRequest = new SendMessageRequest(
+        SendMessageCommand attachmentRequest = new SendMessageCommand(
                 "Here is the document",
                 List.of("http://localhost:9000/chat-attachments/12345_document.pdf")
         );
@@ -160,11 +163,39 @@ class SendMessageServiceTest {
     }
 
     @Test
+    @DisplayName("should convert office document to PDF preview when convertible")
+    void shouldConvertOfficeDocument_ToPdfPreview_WhenConvertible() {
+        when(threadRepository.existsById(threadId)).thenReturn(true);
+        when(documentConversionPort.isConvertible("document.docx")).thenReturn(true);
+        when(storageService.download(eq("chat-attachments"), eq("document.docx")))
+                .thenReturn(new ByteArrayInputStream("dummy docx content".getBytes()));
+        when(documentConversionPort.convertToPdf(any(), eq("document.docx")))
+                .thenReturn("dummy pdf bytes".getBytes());
+        when(storageService.upload(eq("chat-attachments"), anyString(), any(), eq("application/pdf"), anyLong()))
+                .thenReturn(StorageObject.builder()
+                        .bucketName("chat-attachments")
+                        .objectKey("previews/" + threadId + "/document.docx.pdf")
+                        .build());
+
+        SendMessageCommand docxRequest = new SendMessageCommand(
+                "Here is the docx",
+                List.of("http://localhost:9000/chat-attachments/document.docx")
+        );
+
+        sendMessageService.sendMessage(threadId, senderId, docxRequest);
+
+        ArgumentCaptor<Attachment> attachmentCaptor = ArgumentCaptor.forClass(Attachment.class);
+        verify(attachmentRepository).save(attachmentCaptor.capture());
+        Attachment savedAttachment = attachmentCaptor.getValue();
+        assertThat(savedAttachment.getPreviewUrl()).isEqualTo("previews/" + threadId + "/document.docx.pdf");
+    }
+
+    @Test
     @DisplayName("should persist message when only attachmentUrls is provided and text is empty (captionless attachment)")
     void shouldPersistMessage_WhenOnlyAttachmentUrlsProvided() {
         when(threadRepository.existsById(threadId)).thenReturn(true);
 
-        SendMessageRequest captionlessRequest = new SendMessageRequest(
+        SendMessageCommand captionlessRequest = new SendMessageCommand(
                 null,
                 List.of("http://localhost:9000/chat-attachments/photo.png")
         );
@@ -187,7 +218,7 @@ class SendMessageServiceTest {
         when(threadRepository.existsById(threadId)).thenReturn(true);
         UUID existingAttachmentId = UUID.randomUUID();
 
-        SendMessageRequest directIdRequest = new SendMessageRequest("Message with existing ID", existingAttachmentId);
+        SendMessageCommand directIdRequest = new SendMessageCommand("Message with existing ID", existingAttachmentId);
 
         sendMessageService.sendMessage(threadId, senderId, directIdRequest);
 
@@ -203,7 +234,7 @@ class SendMessageServiceTest {
     @Test
     @DisplayName("should reject blocked file extension in attachmentUrls")
     void shouldRejectBlockedFileExtension_InAttachmentUrls() {
-        SendMessageRequest blockedRequest = new SendMessageRequest(
+        SendMessageCommand blockedRequest = new SendMessageCommand(
                 "Malicious file",
                 List.of("http://localhost:9000/chat-attachments/trojan.exe")
         );
@@ -216,7 +247,7 @@ class SendMessageServiceTest {
     @Test
     @DisplayName("should reject when both text and attachment are missing")
     void shouldReject_WhenBothTextAndAttachmentMissing() {
-        SendMessageRequest emptyRequest = new SendMessageRequest("   ", null, null);
+        SendMessageCommand emptyRequest = new SendMessageCommand("   ", null, null);
 
         assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, emptyRequest))
                 .isInstanceOf(DomainValidationException.class)
@@ -226,7 +257,7 @@ class SendMessageServiceTest {
     @Test
     @DisplayName("should reject when attachment URL is blank")
     void shouldReject_WhenAttachmentUrlIsBlank() {
-        SendMessageRequest blankUrlRequest = new SendMessageRequest(
+        SendMessageCommand blankUrlRequest = new SendMessageCommand(
                 null,
                 List.of("   ")
         );
