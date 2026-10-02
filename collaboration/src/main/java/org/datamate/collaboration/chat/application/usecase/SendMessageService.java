@@ -2,59 +2,185 @@ package org.datamate.collaboration.chat.application.usecase;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.storage.application.port.StorageService;
+import com.datamate.bedrock.framework.storage.domain.model.StorageObject;
 import lombok.RequiredArgsConstructor;
+import org.datamate.collaboration.chat.application.dto.SendMessageCommand;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
+import org.datamate.collaboration.chat.application.port.out.AttachmentRepositoryPort;
+import org.datamate.collaboration.chat.application.port.out.DocumentConversionPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
+import org.datamate.collaboration.chat.domain.model.Attachment;
 import org.datamate.collaboration.chat.domain.model.Message;
 import org.datamate.collaboration.chat.domain.model.Thread;
+import org.datamate.collaboration.exception.CollaborationErrorCodes;
+import org.datamate.collaboration.exception.DomainValidationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Application Service for sending messages.
  * <p>
- * Implements {@link SendMessageUseCase}. This handles the command side of messaging.
- * <p>
- * <strong>Lazy Thread Creation:</strong> Because Domain Services generate the {@code threadId}
- * externally, the Chat Service does not expose a {@code POST /api/threads} endpoint.
- * Instead, the Thread record is automatically upserted the first time a message
- * is sent to it. A {@link DataIntegrityViolationException} catch handles the race
- * condition where two concurrent requests both attempt to create the same Thread.
+ * Implements {@link SendMessageUseCase}. Handles the command side of messaging.
+ * Follows the RMS standard: the frontend uploads files to cloud storage (MinIO) first,
+ * and sends a JSON payload containing the message text and/or attachmentUrls.
+ * Also handles office document to PDF preview conversion via {@link DocumentConversionPort}.
  */
 @Service
 @RequiredArgsConstructor
 public class SendMessageService implements SendMessageUseCase {
+
+    private static final List<String> BLOCKED_EXTENSIONS = List.of(".xml", ".bpmn", ".exe", ".bat", ".sh");
 
     @EnableLogger
     private Logger logger;
 
     private final MessageRepositoryPort messageRepository;
     private final ThreadRepositoryPort threadRepository;
+    private final AttachmentRepositoryPort attachmentRepository;
+    private final StorageService storageService;
+    private final DocumentConversionPort documentConversionPort;
+
+    @Value("${bedrock.storage.minio.bucket:chat-attachments}")
+    private String defaultBucket;
 
     @Override
     @Transactional
-    public void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
+    public void sendMessage(UUID threadId, String senderId, SendMessageCommand request) {
+        if (request == null) {
+            throw new DomainValidationException(
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "request");
+        }
+
+        boolean hasText = request.text() != null && !request.text().trim().isEmpty();
+        boolean hasAttachmentUrls = request.attachmentUrls() != null && !request.attachmentUrls().isEmpty();
+        boolean hasAttachmentId = request.attachmentId() != null;
+
+        if (!hasText && !hasAttachmentUrls && !hasAttachmentId) {
+            throw new DomainValidationException(
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or attachmentUrls");
+        }
+
         ensureThreadExists(threadId);
+
+        UUID resolvedAttachmentId = request.attachmentId();
+        boolean isFile = resolvedAttachmentId != null;
+
+        if (hasAttachmentUrls) {
+            String attachmentUrl = request.attachmentUrls().get(0);
+            if (attachmentUrl == null || attachmentUrl.isBlank()) {
+                throw new DomainValidationException(
+                        CollaborationErrorCodes.FIELD_BLANK.code(), "attachmentUrl");
+            }
+
+            String objectKeyOrFileName = attachmentUrl.contains("/")
+                    ? attachmentUrl.substring(attachmentUrl.lastIndexOf('/') + 1)
+                    : attachmentUrl;
+
+            // Security check: validate against blocked extensions
+            String lower = objectKeyOrFileName.toLowerCase();
+            String matchedExtension = BLOCKED_EXTENSIONS.stream()
+                    .filter(lower::endsWith)
+                    .findFirst()
+                    .orElse(null);
+            if (matchedExtension != null) {
+                throw new DomainValidationException(
+                        CollaborationErrorCodes.FILE_TYPE_BLOCKED.code(), objectKeyOrFileName, matchedExtension);
+            }
+
+            // Extract friendly filename without timestamp prefix if present
+            String fileName = objectKeyOrFileName.contains("_")
+                    ? objectKeyOrFileName.substring(objectKeyOrFileName.indexOf('_') + 1)
+                    : objectKeyOrFileName;
+
+            String contentType = inferContentType(fileName);
+            long fileSize = 0L;
+
+            try {
+                StorageObject metadata = storageService.getMetadata(defaultBucket, objectKeyOrFileName);
+                if (metadata != null) {
+                    if (metadata.getContentType() != null) {
+                        contentType = metadata.getContentType();
+                    }
+                    fileSize = metadata.getSize();
+                }
+            } catch (Exception e) {
+                if (logger != null) {
+                    logger.debug("Could not fetch metadata for objectKey: {}. Using inferred values.", objectKeyOrFileName);
+                }
+            }
+
+            // Convert office documents to PDF preview if applicable
+            String previewUrl = null;
+            if (documentConversionPort != null && documentConversionPort.isConvertible(fileName)) {
+                try {
+                    InputStream originalStream = storageService.download(defaultBucket, objectKeyOrFileName);
+                    if (originalStream != null) {
+                        byte[] pdfBytes = documentConversionPort.convertToPdf(originalStream, fileName);
+                        if (pdfBytes != null && pdfBytes.length > 0) {
+                            String previewKey = String.format("previews/%s/%s.pdf", threadId, fileName);
+                            StorageObject previewObject = storageService.upload(
+                                    defaultBucket,
+                                    previewKey,
+                                    new ByteArrayInputStream(pdfBytes),
+                                    "application/pdf",
+                                    pdfBytes.length
+                            );
+                            previewUrl = previewObject.getObjectKey();
+                            if (logger != null) {
+                                logger.info("Generated PDF preview for [{}] at [{}]", fileName, previewUrl);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    if (logger != null) {
+                        logger.warn("PDF preview conversion skipped or failed for [{}]: {}", fileName, e.getMessage());
+                    }
+                }
+            }
+
+            Attachment attachment = Attachment.create(
+                    fileName,
+                    contentType,
+                    fileSize,
+                    attachmentUrl,
+                    previewUrl
+            );
+
+            attachmentRepository.save(attachment);
+            resolvedAttachmentId = attachment.getId();
+            isFile = true;
+        }
 
         Message message = Message.create(
                 threadId,
                 senderId,
                 request.text(),
+                isFile,
                 false,
-                false,
-                null
+                resolvedAttachmentId
         );
 
         messageRepository.save(message);
+    }
 
-        // TODO (Epic 2.2): Publish "New Message Saved" event to internal broker
-        // for REST-to-WebSocket fanout across all server nodes.
+    private String inferContentType(String fileName) {
+        if (fileName == null) return "application/octet-stream";
+        String lower = fileName.toLowerCase();
+        if (lower.endsWith(".pdf")) return "application/pdf";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".txt")) return "text/plain";
+        return "application/octet-stream";
     }
 
     /**
@@ -64,9 +190,13 @@ public class SendMessageService implements SendMessageUseCase {
         if (!threadRepository.existsById(threadId)) {
             try {
                 threadRepository.save(new Thread(threadId));
-                logger.info("Lazily created thread [{}]", threadId);
+                if (logger != null) {
+                    logger.info("Lazily created thread [{}]", threadId);
+                }
             } catch (DataIntegrityViolationException e) {
-                logger.debug("Thread [{}] was concurrently created by another transaction, proceeding.", threadId);
+                if (logger != null) {
+                    logger.debug("Thread [{}] was concurrently created by another transaction, proceeding.", threadId);
+                }
             }
         }
     }

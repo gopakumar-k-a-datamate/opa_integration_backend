@@ -5,6 +5,7 @@ import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
 import java.time.Instant;
+
 import java.util.UUID;
 
 /**
@@ -53,7 +54,7 @@ public class Message {
      */
     public static Message create(UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId) {
         return new Message(
-                UUID.randomUUID(),
+                UuidV7Generator.generate(),
                 threadId,
                 senderId,
                 text,
