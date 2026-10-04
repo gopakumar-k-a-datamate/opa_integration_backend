@@ -1,5 +1,6 @@
 package org.datamate.collaboration.chat.application.usecase;
 
+import org.datamate.collaboration.chat.application.dto.GetMessagesQuery;
 import org.datamate.collaboration.chat.application.dto.MessageDto;
 import org.datamate.collaboration.chat.application.mapper.MessageMapper;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
@@ -68,6 +69,34 @@ class GetMessagesServiceTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().get(0).senderId()).isEqualTo(senderId);
         assertThat(result.totalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("should delegate GetMessagesQuery overload to PageQuery search")
+    void shouldDelegateGetMessagesQuery_ToPageQuery() {
+        GetMessagesQuery query = new GetMessagesQuery(1, 20);
+        PageQuery expectedPageQuery = new PageQuery(1, 20);
+        String senderId = "user-123";
+        Message message = Message.restore(
+                UUID.randomUUID(),
+                threadId,
+                senderId,
+                "Hello via CQRS Query",
+                false,
+                false,
+                null,
+                Instant.now()
+        );
+        Paged<Message> expectedPage = new Paged<>(List.of(message), 1, 20, 1, 1, false, false);
+        MessageDto expectedDto = new MessageDto(message.getId(), message.getSenderId(), message.getText(), message.isFile(), message.isSystemMessage(), message.getAttachmentId(), message.getTimestamp());
+
+        when(messageRepository.findByThreadId(threadId, expectedPageQuery)).thenReturn(expectedPage);
+        when(messageMapper.toDto(message)).thenReturn(expectedDto);
+
+        Paged<MessageDto> result = getMessagesService.getMessages(threadId, query);
+
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).text()).isEqualTo("Hello via CQRS Query");
     }
 
     @Test

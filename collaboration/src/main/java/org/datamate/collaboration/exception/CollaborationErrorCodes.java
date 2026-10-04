@@ -5,10 +5,10 @@ package org.datamate.collaboration.exception;
  * <p>
  * Follows the Bedrock convention: {@code COLLAB-[MODULE]-[NUMBER]}.
  * <ul>
- *   <li>{@code COLLAB-VAL} — Domain validation / invariant violations</li>
- *   <li>{@code COLLAB-CHT} — Chat module</li>
- *   <li>{@code COLLAB-ATT} — Attachment module</li>
- *   <li>{@code COLLAB-SEC} — Security / authorization module</li>
+ *   <li>{@code COLLAB-VAL} - Domain validation / invariant violations</li>
+ *   <li>{@code COLLAB-CHT} - Chat module</li>
+ *   <li>{@code COLLAB-ATT} - Attachment module</li>
+ *   <li>{@code COLLAB-SEC} - Security / authorization module</li>
  * </ul>
  * <p>
  * These codes are resolved against Spring's {@code MessageSource} for
@@ -17,7 +17,7 @@ package org.datamate.collaboration.exception;
  */
 public enum CollaborationErrorCodes {
 
-    // ========== Validation (VAL) — Reusable domain invariant violations ==========
+    // ========== Validation (VAL) - Reusable domain invariant violations ==========
 
     /** A required field is null. Args: fieldName. */
     REQUIRED_FIELD_MISSING("COLLAB-VAL-001"),
@@ -52,6 +52,9 @@ public enum CollaborationErrorCodes {
 
     /** ClamAV detected a virus in the uploaded file. Args: fileName. */
     VIRUS_DETECTED("COLLAB-ATT-004"),
+
+    /** Document conversion to PDF preview failed. Args: reason. */
+    DOCUMENT_CONVERSION_FAILED("COLLAB-ATT-005"),
 
     // ========== Security Module (SEC) ==========
 

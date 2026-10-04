@@ -5,7 +5,9 @@ import com.datamate.bedrock.framework.common.exception.service.MessageResolver;
 import com.datamate.bedrock.framework.common.exception.spring.service.web.GlobalExceptionHandler;
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.datamate.collaboration.exception.ApplicationValidationException;
 import org.datamate.collaboration.exception.CollaborationBaseException;
+import org.datamate.collaboration.exception.DocumentConversionException;
 import org.datamate.collaboration.exception.DomainValidationException;
 import org.datamate.collaboration.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -26,9 +28,11 @@ import java.time.OffsetDateTime;
  * <p>
  * Mapping:
  * <ul>
- *   <li>{@link ResourceNotFoundException} → HTTP 404 Not Found</li>
- *   <li>{@link DomainValidationException} → HTTP 400 Bad Request</li>
- *   <li>All other {@code BaseAppException} subclasses → Bedrock's severity-based mapping (inherited)</li>
+ *   <li>{@link ResourceNotFoundException} -> HTTP 404 Not Found</li>
+ *   <li>{@link DomainValidationException} -> HTTP 400 Bad Request</li>
+ *   <li>{@link ApplicationValidationException} -> HTTP 400 Bad Request</li>
+ *   <li>{@link DocumentConversionException} -> HTTP 422 Unprocessable Entity</li>
+ *   <li>All other {@code BaseAppException} subclasses -> Bedrock's severity-based mapping (inherited)</li>
  * </ul>
  */
 @RestControllerAdvice
@@ -43,7 +47,9 @@ public class CollaborationExceptionHandler extends GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
-        logger.warn("Resource not found [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+        if (logger != null) {
+            logger.warn("Resource not found [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+        }
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         enrich(pd, ex);
@@ -52,9 +58,33 @@ public class CollaborationExceptionHandler extends GlobalExceptionHandler {
 
     @ExceptionHandler(DomainValidationException.class)
     public ProblemDetail handleDomainValidation(DomainValidationException ex) {
-        logger.warn("Domain validation failed [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+        if (logger != null) {
+            logger.warn("Domain validation failed [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+        }
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        enrich(pd, ex);
+        return pd;
+    }
+
+    @ExceptionHandler(ApplicationValidationException.class)
+    public ProblemDetail handleApplicationValidation(ApplicationValidationException ex) {
+        if (logger != null) {
+            logger.warn("Application validation failed [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+        }
+
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        enrich(pd, ex);
+        return pd;
+    }
+
+    @ExceptionHandler(DocumentConversionException.class)
+    public ProblemDetail handleDocumentConversion(DocumentConversionException ex) {
+        if (logger != null) {
+            logger.error("Document conversion error [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+        }
+
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         enrich(pd, ex);
         return pd;
     }

@@ -1,27 +1,28 @@
 package org.datamate.collaboration.chat.application.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.PaginationHelper;
 
 /**
  * Inbound Query for fetching paginated messages within a thread.
  * Strictly adheres to CQRS naming conventions (Query for read-only data fetch).
+ * Leverages Bedrock's {@link PaginationHelper} for framework-consistent validation and bounds clamping.
  */
-public record GetMessagesQuery(
-        @Min(value = 1, message = "Page number must be at least 1")
-        int page,
+public record GetMessagesQuery(int page, int size) {
 
-        @Min(value = 1, message = "Page size must be at least 1")
-        @Max(value = 100, message = "Page size must not exceed 100")
-        int size
-) {
     public GetMessagesQuery {
-        if (page < 1) page = 1;
-        if (size < 1) size = 20;
-        if (size > 100) size = 100;
+        page = PaginationHelper.validatePageNumber(page);
+        size = PaginationHelper.validateLimit(size);
     }
 
     public GetMessagesQuery() {
-        this(1, 20);
+        this(1, 10);
+    }
+
+    /**
+     * Converts this validated CQRS query into Bedrock's domain {@link PageQuery}.
+     */
+    public PageQuery toPageQuery() {
+        return new PageQuery(page, size);
     }
 }

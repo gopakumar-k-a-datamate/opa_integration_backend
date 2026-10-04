@@ -9,11 +9,11 @@ import java.util.UUID;
 
 /**
  * Inbound Use Case Port for fetching paginated messages in a thread.
+ * Clean Architecture compliant: pure interface contract without implementation logic.
  */
 public interface GetMessagesUseCase {
+
     Paged<MessageDto> getMessages(UUID threadId, PageQuery query);
 
-    default Paged<MessageDto> getMessages(UUID threadId, GetMessagesQuery query) {
-        return getMessages(threadId, new PageQuery(query != null ? query.page() : 1, query != null ? query.size() : 20));
-    }
+    Paged<MessageDto> getMessages(UUID threadId, GetMessagesQuery query);
 }

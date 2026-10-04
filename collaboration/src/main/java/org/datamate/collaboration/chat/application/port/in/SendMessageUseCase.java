@@ -7,12 +7,11 @@ import java.util.UUID;
 
 /**
  * Inbound Use Case Port for sending messages in a thread.
- * Clean Architecture compliant: no web/HTTP framework dependencies.
+ * Clean Architecture compliant: pure interface contract without implementation logic.
  */
 public interface SendMessageUseCase {
+
     void sendMessage(UUID threadId, String senderId, SendMessageCommand command);
 
-    default void sendMessage(UUID threadId, String senderId, SendMessageRequest request) {
-        sendMessage(threadId, senderId, request != null ? request.toCommand() : null);
-    }
+    void sendMessage(UUID threadId, String senderId, SendMessageRequest request);
 }

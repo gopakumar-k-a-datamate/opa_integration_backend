@@ -11,8 +11,8 @@ import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort
 import org.datamate.collaboration.chat.domain.model.Attachment;
 import org.datamate.collaboration.chat.domain.model.Message;
 import org.datamate.collaboration.chat.domain.model.Thread;
+import org.datamate.collaboration.exception.ApplicationValidationException;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
-import org.datamate.collaboration.exception.DomainValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -232,6 +232,16 @@ class SendMessageServiceTest {
     }
 
     @Test
+    @DisplayName("should reject when command is null")
+    void shouldReject_WhenCommandIsNull() {
+        SendMessageCommand nullCommand = null;
+
+        assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, nullCommand))
+                .isInstanceOf(ApplicationValidationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code());
+    }
+
+    @Test
     @DisplayName("should reject blocked file extension in attachmentUrls")
     void shouldRejectBlockedFileExtension_InAttachmentUrls() {
         SendMessageCommand blockedRequest = new SendMessageCommand(
@@ -240,7 +250,7 @@ class SendMessageServiceTest {
         );
 
         assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, blockedRequest))
-                .isInstanceOf(DomainValidationException.class)
+                .isInstanceOf(ApplicationValidationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FILE_TYPE_BLOCKED.code());
     }
 
@@ -250,7 +260,7 @@ class SendMessageServiceTest {
         SendMessageCommand emptyRequest = new SendMessageCommand("   ", null, null);
 
         assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, emptyRequest))
-                .isInstanceOf(DomainValidationException.class)
+                .isInstanceOf(ApplicationValidationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code());
     }
 
@@ -263,7 +273,21 @@ class SendMessageServiceTest {
         );
 
         assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, blankUrlRequest))
-                .isInstanceOf(DomainValidationException.class)
+                .isInstanceOf(ApplicationValidationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CollaborationErrorCodes.FIELD_BLANK.code());
+    }
+
+    @Test
+    @DisplayName("should persist message when legacy SendMessageRequest overload is invoked")
+    void shouldPersistMessage_WhenSendMessageRequestProvided() {
+        when(threadRepository.existsById(threadId)).thenReturn(true);
+        SendMessageRequest legacyRequest = new SendMessageRequest("Hello from legacy request");
+
+        sendMessageService.sendMessage(threadId, senderId, legacyRequest);
+
+        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository).save(messageCaptor.capture());
+        Message saved = messageCaptor.getValue();
+        assertThat(saved.getText()).isEqualTo("Hello from legacy request");
     }
 }
