@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WebSocketMessageBroadcastAdapter implements MessageBroadcastPort {
 
-    private static final String TOPIC_PREFIX = "/topic/discussion.";
+    private static final String TOPIC_PREFIX = "/topic/thread.";
 
     private final SimpMessagingTemplate messagingTemplate;
 

@@ -51,7 +51,7 @@ class WebSocketMessageBroadcastAdapterTest {
 
         adapter.broadcastMessage(threadId, messageDto);
 
-        String expectedDestination = "/topic/discussion." + threadId;
+        String expectedDestination = "/topic/thread." + threadId;
         verify(messagingTemplate).convertAndSend(expectedDestination, messageDto);
     }
 }
