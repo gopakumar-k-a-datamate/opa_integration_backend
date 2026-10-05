@@ -7,15 +7,10 @@ import org.datamate.collaboration.chat.application.port.out.AttachmentRepository
 import org.datamate.collaboration.chat.domain.model.Attachment;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Outgoing Adapter implementing {@link AttachmentRepositoryPort} using JPA.
- * <p>
- * Handles bidirectional mapping between the pure domain {@link Attachment}
- * and the JPA-managed {@link AttachmentJpaEntity}.
- */
 @Component
 @RequiredArgsConstructor
 public class AttachmentPersistenceAdapter implements AttachmentRepositoryPort {
@@ -31,8 +26,12 @@ public class AttachmentPersistenceAdapter implements AttachmentRepositoryPort {
 
     @Override
     public Optional<Attachment> findById(UUID id) {
-        return repository.findById(id)
-                .map(this::toDomain);
+        return repository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public List<Attachment> findAllById(List<UUID> ids) {
+        return repository.findAllById(ids).stream().map(this::toDomain).toList();
     }
 
     private AttachmentJpaEntity toEntity(Attachment attachment) {

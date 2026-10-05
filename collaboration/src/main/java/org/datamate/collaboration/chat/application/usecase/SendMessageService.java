@@ -59,7 +59,7 @@ public class SendMessageService implements SendMessageUseCase {
     private final StorageService storageService;
     private final DocumentConversionPort documentConversionPort;
 
-    @Value("")
+    @Value("${bedrock.storage.minio.bucket}")
     private String defaultBucket;
 
     @Override

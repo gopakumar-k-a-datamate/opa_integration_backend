@@ -19,7 +19,7 @@ public class SecurityConfigStub {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+            .cors(org.springframework.security.config.Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
             // TODO (Epic 3): Replace StubAuthenticationFilter with JwtAuthenticationFilter
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().authenticated()

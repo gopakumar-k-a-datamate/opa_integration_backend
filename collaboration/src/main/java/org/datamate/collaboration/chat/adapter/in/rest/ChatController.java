@@ -26,6 +26,7 @@ import java.util.UUID;
  *   <li>{@code GET  /api/v1/collaboration/threads/{threadId}/messages} - Fetch message history (CQRS Query)</li>
  * </ul>
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/collaboration/threads/{threadId}/messages")
 @RequiredArgsConstructor
