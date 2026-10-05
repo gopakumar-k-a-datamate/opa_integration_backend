@@ -13,6 +13,10 @@ import org.datamate.identity.identity.domain.model.role.entity.Role;
 import org.datamate.identity.identity.application.mapper.role.RoleDtoMapper;
 import org.datamate.identity.identity.application.service.role.AuditActorResolver;
 import com.datamate.bedrock.framework.common.ddd.datatype.EntityReference;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
+import org.datamate.identity.identity.domain.log.IdentityLogKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +38,12 @@ public class CreateRoleService implements CreateRoleUseCase {
 
     @Override
     @Transactional
+    @LogAction(
+        action = "CREATE_ROLE",
+        attributes = {
+            @LogAttribute(key = "roleName", value = "#request.name()")
+        }
+    )
     public RoleDto createRole(RoleRequest request) {
         log.info("Creating role '{}'", request.name());
         if (rolePort.existsByNameIgnoreCase(request.name())) {
@@ -45,6 +55,9 @@ public class CreateRoleService implements CreateRoleUseCase {
         Role role = Role.create(request.name(), request.description(), createdBy);
         Role saved = rolePort.save(role);
         
+        LogContext.put(IdentityLogKey.ROLE_ID, saved.getId().toString());
+        LogContext.put(IdentityLogKey.ROLE_NAME, saved.getName());
+
         // Register the event and publish it
         saved.publishCreationEvent().pullEvents().forEach(eventPublisher::publishEvent);
         

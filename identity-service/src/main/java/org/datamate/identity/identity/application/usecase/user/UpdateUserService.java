@@ -11,6 +11,10 @@ import org.datamate.identity.identity.application.port.out.user.UserPersistenceP
 import org.datamate.identity.identity.domain.exception.user.UserAlreadyExistsException;
 import org.datamate.identity.identity.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.identity.domain.model.user.entity.User;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
+import org.datamate.identity.identity.domain.log.IdentityLogKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,14 @@ public class UpdateUserService implements UpdateUserUseCase {
 
     @Override
     @Transactional
+    @LogAction(
+        action = "UPDATE_USER",
+        attributes = {
+            @LogAttribute(key = "targetUserId", value = "#id.toString()"),
+            @LogAttribute(key = "targetUsername", value = "#request.userName()"),
+            @LogAttribute(key = "email", value = "#request.email()")
+        }
+    )
     public UserDto updateUser(UUID id, UpdateUserRequest request, String adminUsername) {
         log.info("Starting update of user ID: {} by admin: {}", id, adminUsername);
 
@@ -61,6 +73,9 @@ public class UpdateUserService implements UpdateUserUseCase {
         );
 
         User savedUser = userPort.save(updatedUser);
+
+        LogContext.put(IdentityLogKey.TARGET_USER_ID, savedUser.getId().toString());
+        LogContext.put(IdentityLogKey.TARGET_USERNAME, savedUser.getUserName());
 
         updatedUser.pullEvents().forEach(eventPublisher::publishEvent);
 

@@ -7,6 +7,10 @@ import org.datamate.identity.identity.application.port.in.user.DeactivateUserUse
 import org.datamate.identity.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.identity.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.identity.domain.model.user.entity.User;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
+import org.datamate.identity.identity.domain.log.IdentityLogKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,12 @@ public class DeactivateUserService implements DeactivateUserUseCase {
 
     @Override
     @Transactional
+    @LogAction(
+        action = "DEACTIVATE_USER",
+        attributes = {
+            @LogAttribute(key = "targetUserId", value = "#id.toString()")
+        }
+    )
     public void deactivateUser(UUID id, String adminUsername) {
         log.info("Starting deactivation of user ID: {} by admin: {}", id, adminUsername);
 
@@ -35,6 +45,9 @@ public class DeactivateUserService implements DeactivateUserUseCase {
 
         User deactivatedUser = user.deactivate(adminUsername);
         userPort.save(deactivatedUser);
+
+        LogContext.put(IdentityLogKey.TARGET_USER_ID, deactivatedUser.getId().toString());
+        LogContext.put(IdentityLogKey.TARGET_USERNAME, deactivatedUser.getUserName());
 
         deactivatedUser.pullEvents().forEach(eventPublisher::publishEvent);
 

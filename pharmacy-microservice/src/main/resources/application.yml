@@ -50,8 +50,11 @@ bedrock:
 
 logging:
   level:
-    org.datamate.authz: DEBUG
-    org.datamate.pharmacy.messaging: DEBUG   # Logs subject sync receive/apply events
+    root: INFO
+    org.datamate.authz: WARN                 # Silences high-frequency OPA bundle polling
+    org.datamate.pharmacy.messaging: INFO   # Subject sync events
+    org.springframework: WARN               # Silences framework startup chatter
+    org.hibernate: WARN                     # Silences Hibernate SQL / schema metadata chatter
 
 # Swagger / OpenAPI Configuration
 springdoc:

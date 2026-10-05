@@ -45,7 +45,6 @@ public class CreateUserService implements CreateUserUseCase {
     @Transactional
     @LogAction(
         action = "CREATE_USER",
-        isAudit = true,
         attributes = {
             @LogAttribute(key = "targetUsername", value = "#request.userName()"),
             @LogAttribute(key = "email", value = "#request.email()")

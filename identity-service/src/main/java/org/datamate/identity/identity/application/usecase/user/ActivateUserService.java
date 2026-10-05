@@ -7,6 +7,10 @@ import org.datamate.identity.identity.application.port.in.user.ActivateUserUseCa
 import org.datamate.identity.identity.application.port.out.user.UserPersistencePort;
 import org.datamate.identity.identity.domain.exception.user.UserNotFoundException;
 import org.datamate.identity.identity.domain.model.user.entity.User;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
+import org.datamate.identity.identity.domain.log.IdentityLogKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,12 @@ public class ActivateUserService implements ActivateUserUseCase {
 
     @Override
     @Transactional
+    @LogAction(
+        action = "ACTIVATE_USER",
+        attributes = {
+            @LogAttribute(key = "targetUserId", value = "#id.toString()")
+        }
+    )
     public void activateUser(UUID id, String adminUsername) {
         log.info("Starting activation of user ID: {} by admin: {}", id, adminUsername);
 
@@ -35,6 +45,9 @@ public class ActivateUserService implements ActivateUserUseCase {
 
         User activatedUser = user.activate(adminUsername);
         userPort.save(activatedUser);
+
+        LogContext.put(IdentityLogKey.TARGET_USER_ID, activatedUser.getId().toString());
+        LogContext.put(IdentityLogKey.TARGET_USERNAME, activatedUser.getUserName());
 
         activatedUser.pullEvents().forEach(eventPublisher::publishEvent);
 

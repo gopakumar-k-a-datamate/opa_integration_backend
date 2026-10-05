@@ -13,6 +13,10 @@ import org.datamate.identity.identity.domain.exception.user.UserNotFoundExceptio
 import org.datamate.identity.identity.domain.model.role.entity.Role;
 import org.datamate.identity.identity.domain.model.user.entity.User;
 import org.datamate.identity.identity.domain.model.role.enums.RoleStatus;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAction;
+import com.datamate.bedrock.framework.common.logging.annotation.LogAttribute;
+import com.datamate.bedrock.framework.common.logging.util.LogContext;
+import org.datamate.identity.identity.domain.log.IdentityLogKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +35,12 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
 
     @Override
     @Transactional
+    @LogAction(
+        action = "ASSIGN_ROLE",
+        attributes = {
+            @LogAttribute(key = "targetUserId", value = "#userId.toString()")
+        }
+    )
     public UserDto updateUserRoles(UUID userId, UpdateUserRolesRequest request, String adminUsername) {
         User user = userPort.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -50,6 +60,10 @@ public class UpdateUserRolesService implements UpdateUserRolesUseCase {
 
         User updatedUser = user.assignRoles(request.roles(), adminUsername);
         User savedUser = userPort.save(updatedUser);
+
+        LogContext.put(IdentityLogKey.TARGET_USER_ID, savedUser.getId().toString());
+        LogContext.put(IdentityLogKey.TARGET_USERNAME, savedUser.getUserName());
+        LogContext.put(IdentityLogKey.ROLES_ASSIGNED, request.roles());
 
         updatedUser.pullEvents().forEach(eventPublisher::publishEvent);
 

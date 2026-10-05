@@ -45,7 +45,6 @@ public class DispenseMedicationService {
 
     @LogAction(
         action = "DISPENSE_MEDICATION",
-        isAudit = true,
         attributes = {
             @LogAttribute(key = "medicationId", value = "#request.medicationId()"),
             @LogAttribute(key = "patientId", value = "#request.patientId()"),
