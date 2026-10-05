@@ -52,9 +52,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        log.info("JWT filter processing request for URI '{}'", request.getRequestURI());
         final String jwt = authHeader.substring(7);
         if (tokenGeneratorPort != null && tokenGeneratorPort.isBlacklisted(jwt)) {
-            log.warn("Attempt to use blacklisted token");
+            log.warn("Attempt to use blacklisted token for URI '{}'", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
@@ -67,24 +68,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .getPayload();
 
             String userId = claims.getSubject();
+            log.info("JWT parsed claims successfully: sub='{}', roles='{}'", userId, claims.get("roles"));
+
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                List<?> rawRoles = claims.get("role", List.class);
-                List<GrantedAuthority> authorities = (rawRoles != null)
-                        ? rawRoles.stream()
-                                .map(Object::toString)
-                                .map(SimpleGrantedAuthority::new)
-                                .collect(Collectors.toList())
-                        : Collections.emptyList();
+                List<?> rawRoles = claims.get("roles", List.class);
+                if (rawRoles == null) {
+                    rawRoles = claims.get("role", List.class);
+                }
+                List<GrantedAuthority> authorities = new java.util.ArrayList<>();
+                if (rawRoles != null) {
+                    for (Object roleObj : rawRoles) {
+                        String roleName = roleObj.toString();
+                        authorities.add(new SimpleGrantedAuthority(roleName));
+                        if (!roleName.startsWith("ROLE_")) {
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName));
+                        }
+                    }
+                }
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userId, null, authorities
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                log.debug("Authenticated user '{}' via JWT", userId);
+                log.info("Successfully set SecurityContextHolder for user '{}' with authorities: {}", userId, authorities);
             }
         } catch (Exception e) {
-            log.warn("Invalid JWT token: {}", e.getMessage());
+            log.error("JWT token validation failed for URI '{}': {}", request.getRequestURI(), e.getMessage(), e);
         }
         
         filterChain.doFilter(request, response);

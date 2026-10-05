@@ -1,7 +1,11 @@
 const getApiUrl = (identifier) => {
-  // identifier can be a namespace (e.g. 'pharmacy') or a permissionCode (e.g. 'pharmacy:prescription:view')
+  // identifier can be a namespace (e.g. 'pharmacy', 'identity') or a permissionCode (e.g. 'pharmacy:prescription:view')
   if (!identifier) return 'http://localhost:8083';
   
+  if (identifier.startsWith('identity')) {
+    return 'http://localhost:8085'; // identity-service
+  }
+
   if (identifier.startsWith('pharmacy')) {
     return 'http://localhost:8083'; // pharmacy-microservice
   }
@@ -24,7 +28,10 @@ export const fetchPolicies = async (subjectType, subjectId, namespace) => {
 export const fetchFields = async (permissionCode) => {
   const baseUrl = getApiUrl(permissionCode);
   try {
-    const res = await fetch(`${baseUrl}/internal/authz/permissions/${permissionCode}/fields`);
+    let res = await fetch(`${baseUrl}/internal/authz/fields/${permissionCode}`);
+    if (!res.ok) {
+      res = await fetch(`${baseUrl}/internal/authz/permissions/${permissionCode}/fields`);
+    }
     if (!res.ok) throw new Error('Failed to fetch');
     return await res.json();
   } catch (err) {
@@ -67,11 +74,11 @@ export const savePolicies = async (subjectType, subjectId, namespace, policies) 
 export const fetchRoles = async () => {
   const baseUrl = 'http://localhost:8085';
   try {
-    const res = await fetch(`${baseUrl}/api/v1/roles`);
-    if (res.ok) {
-      const data = await res.json();
-      return data.content || data;
-    }
+    const res = await fetch(`${baseUrl}/internal/authz/roles`);
+    if (!res.ok) throw new Error('Failed to fetch roles');
+    const data = await res.json();
+    return data.content || data; // Handle List<RoleSelectDto> format
+
   } catch (err) {
     console.warn(`Identity Service ${baseUrl} unavailable, falling back to local microservice authz_subject projection...`);
   }
@@ -91,11 +98,12 @@ export const fetchRoles = async () => {
 export const fetchUsers = async () => {
   const baseUrl = 'http://localhost:8085';
   try {
-    const res = await fetch(`${baseUrl}/api/v1/users`);
-    if (res.ok) {
-      const data = await res.json();
-      return data.content || data;
-    }
+
+    const res = await fetch(`${baseUrl}/internal/authz/users`);
+    if (!res.ok) throw new Error('Failed to fetch users');
+    const data = await res.json();
+    return data.content || data; // Handle List<UserResponseDto> format
+
   } catch (err) {
     console.warn(`Identity Service ${baseUrl} unavailable, falling back to local microservice authz_subject projection...`);
   }

@@ -35,7 +35,7 @@ public class UserPersistenceMapper {
                 entity.getReferenceValue(),
                 entity.getStatus(),
                 entity.getRoles() != null 
-                        ? entity.getRoles().stream().map(RoleJpaEntity::getName).collect(Collectors.toList()) 
+                        ? entity.getRoles().stream().map(r -> r.getId().toString()).collect(Collectors.toList()) 
                         : Collections.emptyList(),
                 entity.isPasswordTemporary(),
                 entity.getVersion(),
@@ -90,7 +90,22 @@ public class UserPersistenceMapper {
         entity.setLastModifiedDate(user.getLastModifiedDate());
 
         if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-            List<RoleJpaEntity> roleEntitiesList = roleRepository.findAllByNameIn(user.getRoles());
+            List<java.util.UUID> roleUuids = new java.util.ArrayList<>();
+            List<String> roleNames = new java.util.ArrayList<>();
+            for (String r : user.getRoles()) {
+                try {
+                    roleUuids.add(java.util.UUID.fromString(r));
+                } catch (IllegalArgumentException e) {
+                    roleNames.add(r);
+                }
+            }
+            List<RoleJpaEntity> roleEntitiesList = new java.util.ArrayList<>();
+            if (!roleUuids.isEmpty()) {
+                roleEntitiesList.addAll(roleRepository.findAllById(roleUuids));
+            }
+            if (!roleNames.isEmpty()) {
+                roleEntitiesList.addAll(roleRepository.findAllByNameIn(roleNames));
+            }
             if (roleEntitiesList.size() != user.getRoles().size()) {
                 throw new RoleNotFoundException();
             }

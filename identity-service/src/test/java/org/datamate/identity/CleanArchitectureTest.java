@@ -145,9 +145,11 @@ public class CleanArchitectureTest {
                         "org.hibernate.jdbc..",            // Allows Hibernate JDBC Expectation annotations in Adapter layer
                         "org.springdoc..",
                         "com.datamate.bedrock..",
+                        "org.datamate.authz..",
+                        "org.datamate.sharedkernel..",
                         "org.datamate.identity.shared..",
                         "net.coobird.thumbnailator..",
-                        "javax.crypto..",
+                        "javax..",
                         "io.jsonwebtoken.."
                 ));
 
