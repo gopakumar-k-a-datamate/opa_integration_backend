@@ -5,7 +5,10 @@ import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
 import org.datamate.authz.compiler.ast.ValueType;
+import org.datamate.authz.compiler.ast.MathOperation;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
@@ -88,11 +91,29 @@ public class AstBuilder {
             throw new AuthzInvalidPayloadException("Invalid AST: Unknown valueType '" + json.get("valueType").asText() + "'.");
         }
 
+        String compareTo = "VALUE";
+        if (json.hasNonNull("compareTo")) {
+            compareTo = json.get("compareTo").asText().toUpperCase();
+        }
+
+        List<MathOperation> mathOps = new ArrayList<>();
+        if (json.hasNonNull("mathOperations") && json.get("mathOperations").isArray()) {
+            for (JsonNode opNode : json.get("mathOperations")) {
+                MathOperation op = new MathOperation();
+                op.setMathOperator(opNode.hasNonNull("mathOperator") ? opNode.get("mathOperator").asText() : "ADD");
+                op.setOperandType(opNode.hasNonNull("operandType") ? opNode.get("operandType").asText() : "FIELD");
+                op.setValue(opNode.hasNonNull("value") ? opNode.get("value").asText() : "0");
+                mathOps.add(op);
+            }
+        }
+
         return new ConditionNode(
                 json.get("field").asText(),
                 json.get("comparison").asText(),
                 json.get("value"),
-                valueType
+                valueType,
+                compareTo,
+                mathOps
         );
     }
 }

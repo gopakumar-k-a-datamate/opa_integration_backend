@@ -26,7 +26,7 @@ public class AuthzEndpointConfig {
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             boolean hasAdmin = auth.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals(POLICY_ADMIN_ROLE_ID) ||
-                                   a.getAuthority().equals("ROLE_" + POLICY_ADMIN_ROLE_ID);
+                                   a.getAuthority().equals("ROLE_" + POLICY_ADMIN_ROLE_ID));
             if (!hasAdmin) {
                 throw new AccessDeniedException("Access Denied: POLICY_ADMIN authority required");
             }
