@@ -70,12 +70,12 @@ class UpdateUserRolesServiceTest {
         UserDto result = service.updateUserRoles(userId, request, "admin_user");
 
         assertNotNull(result);
-        assertEquals(List.of("ADMIN"), result.roles());
+        assertEquals(List.of(adminRole.getId().toString()), result.roles());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userPort).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
-        assertEquals(List.of("ADMIN"), savedUser.getRoles());
+        assertEquals(List.of(adminRole.getId().toString()), savedUser.getRoles());
 
         verify(eventPublisher).publishEvent(any(UserRolesUpdatedEvent.class));
     }
@@ -86,7 +86,7 @@ class UpdateUserRolesServiceTest {
         User existingUser = User.reconstitute(
                 userId, "test_user", "test@example.com", "+12345",
                 "hash", "John", "Doe", "ELLIDER", "EXT-1",
-                UserStatus.ACTIVE, List.of("ADMIN"), false, 1L, 1L,
+                UserStatus.ACTIVE, List.of(UUID.randomUUID().toString()), false, 1L, 1L,
                 "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
         );
 
@@ -126,7 +126,7 @@ class UpdateUserRolesServiceTest {
         UserDto result = service.updateUserRoles(userId, request, "admin_user");
 
         assertNotNull(result);
-        assertEquals(List.of("ADMIN"), result.roles());
+        assertEquals(List.of(adminRole.getId().toString()), result.roles());
     }
 
     @Test
@@ -175,5 +175,88 @@ class UpdateUserRolesServiceTest {
 
         UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("INACTIVE_ROLE"));
         assertThrows(InvalidRoleAssignmentException.class, () -> service.updateUserRoles(userId, request, "admin_user"));
+    }
+
+    @Test
+    void shouldThrowInvalidRoleAssignmentExceptionWhenNonPolicyAdminAssignsPolicyAdmin() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.reconstitute(
+                userId, "test_user", "test@example.com", "+12345",
+                "hash", "John", "Doe", "ELLIDER", "EXT-1",
+                UserStatus.ACTIVE, new ArrayList<>(), false, 1L, 1L,
+                "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+        );
+
+        Role polAdminRole = Role.reconstitute(
+                UUID.randomUUID(), "POLICY_ADMIN", "Policy Admin", RoleStatus.ACTIVE,
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(rolePort.findAll()).thenReturn(List.of(polAdminRole));
+        when(userPort.findByUserNameOrEmail("standard_admin", "standard_admin")).thenReturn(Optional.of(
+                User.reconstitute(
+                        UUID.randomUUID(), "standard_admin", "standard@example.com", "+12345",
+                        "hash", "Standard", "Admin", "ELLIDER", "EXT-1",
+                        UserStatus.ACTIVE, List.of("ADMIN"), false, 1L, 1L,
+                        "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+                )
+        ));
+
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("POLICY_ADMIN"));
+        InvalidRoleAssignmentException ex = assertThrows(InvalidRoleAssignmentException.class,
+                () -> service.updateUserRoles(userId, request, "standard_admin"));
+        assertTrue(ex.getMessage().contains("Only a POLICY_ADMIN can assign the POLICY_ADMIN role"));
+    }
+
+    @Test
+    void shouldAllowPolicyAdminToAssignPolicyAdminRole() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.reconstitute(
+                userId, "test_user", "test@example.com", "+12345",
+                "hash", "John", "Doe", "ELLIDER", "EXT-1",
+                UserStatus.ACTIVE, new ArrayList<>(), false, 1L, 1L,
+                "creator", LocalDateTime.now(), "creator", LocalDateTime.now()
+        );
+
+        Role polAdminRole = Role.reconstitute(
+                UUID.randomUUID(), "POLICY_ADMIN", "Policy Admin", RoleStatus.ACTIVE,
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(rolePort.findAll()).thenReturn(List.of(polAdminRole));
+        when(userPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("POLICY_ADMIN"));
+        UserDto result = service.updateUserRoles(userId, request, "admin@123.com");
+
+        assertNotNull(result);
+        assertTrue(result.roles().contains(polAdminRole.getId().toString()));
+    }
+
+    @Test
+    void shouldThrowWhenRemovingPolicyAdminFromLastActivePolicyAdmin() {
+        UUID userId = UUID.randomUUID();
+        User adminUser = User.reconstitute(
+                userId, "admin@123.com", "admin@123.com", "+12345",
+                "hash", "System", "Admin", null, null,
+                UserStatus.ACTIVE, List.of("POLICY_ADMIN", "ADMIN"), false, 1L, 1L,
+                "system", LocalDateTime.now(), "system", LocalDateTime.now()
+        );
+
+        Role userRole = Role.reconstitute(
+                UUID.randomUUID(), "USER", "User Role", RoleStatus.ACTIVE,
+                null, null, 1L, 1L, auditRef, LocalDateTime.now(), auditRef, LocalDateTime.now()
+        );
+
+        when(userPort.findById(userId)).thenReturn(Optional.of(adminUser));
+        when(rolePort.findAll()).thenReturn(List.of(userRole));
+        when(userPort.countActiveUsersWithRoleExcept("POLICY_ADMIN", userId)).thenReturn(0L);
+
+        UpdateUserRolesRequest request = new UpdateUserRolesRequest(List.of("USER"));
+        InvalidRoleAssignmentException ex = assertThrows(InvalidRoleAssignmentException.class,
+                () -> service.updateUserRoles(userId, request, "admin@123.com"));
+        assertTrue(ex.getMessage().contains("Cannot remove POLICY_ADMIN"));
     }
 }
