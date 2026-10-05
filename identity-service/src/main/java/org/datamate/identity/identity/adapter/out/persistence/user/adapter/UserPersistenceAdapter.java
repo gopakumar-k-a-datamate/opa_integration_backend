@@ -84,6 +84,11 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     }
 
     @Override
+    public long countActiveUsersWithRoleExcept(String roleName, UUID exceptUserId) {
+        return repository.countActiveUsersWithRoleExcept(roleName, exceptUserId);
+    }
+
+    @Override
     public List<User> findAll() {
         return repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate")).stream().map(mapper::mapToDomain).toList();
     }
