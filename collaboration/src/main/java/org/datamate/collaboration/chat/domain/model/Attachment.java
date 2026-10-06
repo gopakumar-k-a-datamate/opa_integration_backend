@@ -1,6 +1,5 @@
 package org.datamate.collaboration.chat.domain.model;
 
-import lombok.Getter;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
@@ -19,7 +18,6 @@ import java.util.UUID;
  * <p>
  * Pure Domain Entity — no Spring, JPA, or framework annotations.
  */
-@Getter
 public class Attachment {
 
     private final UUID id;
@@ -28,6 +26,13 @@ public class Attachment {
     private final long fileSize;
     private final String uploadUrl;
     private final String previewUrl;
+
+        public UUID getId() { return id; }
+    public String getFileName() { return fileName; }
+    public String getMimeType() { return mimeType; }
+    public long getFileSize() { return fileSize; }
+    public String getUploadUrl() { return uploadUrl; }
+    public String getPreviewUrl() { return previewUrl; }
 
     private Attachment(UUID id, String fileName, String mimeType, long fileSize, String uploadUrl, String previewUrl) {
         requireNonNull(id, "attachmentId");
@@ -88,3 +93,4 @@ public class Attachment {
         }
     }
 }
+

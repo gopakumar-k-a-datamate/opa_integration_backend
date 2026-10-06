@@ -87,17 +87,48 @@ public class SendMessageService implements SendMessageUseCase {
         }
     }
 
-    private UUID resolveAttachmentId(SendMessageCommand command) {
+        private UUID resolveAttachmentId(SendMessageCommand command) {
         if (command.attachmentId() != null) {
             return command.attachmentId();
         }
         if (command.attachmentUrls() != null && !command.attachmentUrls().isEmpty()) {
             String url = command.attachmentUrls().get(0);
+            
             try {
+                // If it's just a UUID string passed in an array, parse it
                 String idPart = url.substring(url.lastIndexOf('/') + 1);
                 return UUID.fromString(idPart);
             } catch (Exception e) {
-                logger.warn("Failed to extract UUID from attachmentUrl: {}", url);
+                // Not a UUID. It's a raw MinIO URL.
+                String objectKey = url.substring(url.lastIndexOf('/') + 1);
+                String friendlyFileName = objectKey;
+                
+                int firstUnderscore = objectKey.indexOf('_');
+                if (firstUnderscore != -1) {
+                    int secondUnderscore = objectKey.indexOf('_', firstUnderscore + 1);
+                    if (objectKey.startsWith("br_") && secondUnderscore != -1) {
+                        friendlyFileName = objectKey.substring(secondUnderscore + 1);
+                    } else if (!objectKey.startsWith("br_")) {
+                        friendlyFileName = objectKey.substring(firstUnderscore + 1);
+                    }
+                }
+                
+                String mimeType = "application/octet-stream";
+                String lower = friendlyFileName.toLowerCase();
+                if (lower.endsWith(".png")) mimeType = "image/png";
+                else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
+                else if (lower.endsWith(".pdf")) mimeType = "application/pdf";
+                
+                Attachment attachment = Attachment.create(
+                        friendlyFileName,
+                        mimeType,
+                        0L,
+                        url,
+                        null
+                );
+                attachmentRepository.save(attachment);
+                logger.info("Created missing Attachment entity on the fly for URL: {}", url);
+                return attachment.getId();
             }
         }
         return null;
@@ -118,3 +149,4 @@ public class SendMessageService implements SendMessageUseCase {
         }
     }
 }
+

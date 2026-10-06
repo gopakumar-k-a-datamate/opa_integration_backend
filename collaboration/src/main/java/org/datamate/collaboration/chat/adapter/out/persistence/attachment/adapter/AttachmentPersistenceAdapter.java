@@ -30,6 +30,11 @@ public class AttachmentPersistenceAdapter implements AttachmentRepositoryPort {
     }
 
     @Override
+    public Optional<Attachment> findByUploadUrl(String uploadUrl) {
+        return repository.findByUploadUrl(uploadUrl).map(this::toDomain);
+    }
+
+    @Override
     public List<Attachment> findAllById(List<UUID> ids) {
         return repository.findAllById(ids).stream().map(this::toDomain).toList();
     }
@@ -56,3 +61,4 @@ public class AttachmentPersistenceAdapter implements AttachmentRepositoryPort {
         );
     }
 }
+

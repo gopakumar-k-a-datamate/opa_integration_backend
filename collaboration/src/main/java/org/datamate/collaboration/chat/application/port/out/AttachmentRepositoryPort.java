@@ -9,5 +9,7 @@ import java.util.UUID;
 public interface AttachmentRepositoryPort {
     Attachment save(Attachment attachment);
     Optional<Attachment> findById(UUID id);
+    Optional<Attachment> findByUploadUrl(String uploadUrl);
     List<Attachment> findAllById(List<UUID> ids);
 }
+

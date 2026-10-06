@@ -1,6 +1,5 @@
 package org.datamate.collaboration.chat.domain.model;
 
-import lombok.Getter;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
@@ -20,7 +19,6 @@ import java.util.UUID;
  * <p>
  * Pure Domain Entity — no Spring, JPA, or framework annotations.
  */
-@Getter
 public class Message {
 
     private final UUID id;
@@ -31,6 +29,15 @@ public class Message {
     private final boolean systemMessage;
     private final UUID attachmentId;
     private final Instant timestamp;
+
+        public UUID getId() { return id; }
+    public UUID getThreadId() { return threadId; }
+    public String getSenderId() { return senderId; }
+    public String getText() { return text; }
+    public boolean isFile() { return file; }
+    public boolean isSystemMessage() { return systemMessage; }
+    public UUID getAttachmentId() { return attachmentId; }
+    public Instant getTimestamp() { return timestamp; }
 
     private Message(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, Instant timestamp) {
         requireNonNull(id, "messageId");
@@ -95,3 +102,4 @@ public class Message {
         }
     }
 }
+

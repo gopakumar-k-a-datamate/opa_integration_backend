@@ -55,4 +55,21 @@ public class MessageJpaEntity {
 
     @Column(name = "timestamp", nullable = false, updatable = false)
     private Instant timestamp;
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public UUID getThreadId() { return threadId; }
+    public void setThreadId(UUID threadId) { this.threadId = threadId; }
+    public String getSenderId() { return senderId; }
+    public void setSenderId(String senderId) { this.senderId = senderId; }
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+    public boolean isFile() { return file; }
+    public void setFile(boolean file) { this.file = file; }
+    public boolean isSystemMessage() { return systemMessage; }
+    public void setSystemMessage(boolean systemMessage) { this.systemMessage = systemMessage; }
+    public UUID getAttachmentId() { return attachmentId; }
+    public void setAttachmentId(UUID attachmentId) { this.attachmentId = attachmentId; }
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
 }
