@@ -11,6 +11,7 @@ import org.datamate.collaboration.exception.DocumentConversionException;
 import org.datamate.collaboration.exception.DomainValidationException;
 import org.datamate.collaboration.exception.ResourceNotFoundException;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,10 +30,15 @@ public class CollaborationExceptionHandler extends GlobalExceptionHandler {
     private Logger logger;
     
     private final MessageResolver messageResolver;
+    private final ResourceBundleMessageSource fallbackMessageSource;
 
     public CollaborationExceptionHandler(MessageResolver resolver, ExceptionProperties properties) {
         super(resolver, properties);
         this.messageResolver = resolver;
+        this.fallbackMessageSource = new ResourceBundleMessageSource();
+        this.fallbackMessageSource.setBasename("messages");
+        this.fallbackMessageSource.setDefaultEncoding("UTF-8");
+        this.fallbackMessageSource.setUseCodeAsDefaultMessage(true);
     }
     
     private String resolveMessage(CollaborationBaseException ex) {
@@ -41,6 +47,9 @@ public class CollaborationExceptionHandler extends GlobalExceptionHandler {
             return customMsg;
         }
         String resolved = messageResolver.resolveMessage(ex.getErrorCode(), LocaleContextHolder.getLocale(), ex.getMessageArgs());
+        if (resolved == null || resolved.equals(ex.getErrorCode())) {
+             resolved = fallbackMessageSource.getMessage(ex.getErrorCode(), ex.getMessageArgs(), ex.getErrorCode(), LocaleContextHolder.getLocale());
+        }
         return resolved != null ? resolved : ex.getErrorCode();
     }
 
