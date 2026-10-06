@@ -40,7 +40,7 @@ class PoliciesControllerTest {
     void getPolicies_unpaginated_returnsList() throws Exception {
         PolicyGridItemDto item = new PolicyGridItemDto(
                 "pharmacy:prescription:create", "create", "pharmacy", "prescription",
-                1L, null, null, true, null, null, false, false, null
+                1L, null, null, true, null, null, false, false, null, null
         );
 
         when(policyService.getPolicies(any(PolicySearchQuery.class)))
@@ -58,7 +58,7 @@ class PoliciesControllerTest {
     void getPolicies_paginated_returnsPagedObject() throws Exception {
         PolicyGridItemDto item = new PolicyGridItemDto(
                 "pharmacy:prescription:create", "create", "pharmacy", "prescription",
-                1L, null, null, true, null, null, false, false, null
+                1L, null, null, true, null, null, false, false, null, null
         );
 
         Paged<PolicyGridItemDto> paged = new Paged<>(

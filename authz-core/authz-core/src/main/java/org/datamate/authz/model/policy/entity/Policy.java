@@ -55,6 +55,12 @@ public class Policy {
     private final boolean useCustomRego;
     private final String customRegoSnippet;
 
+    /**
+     * Optional human-readable message shown to end users when this policy causes a denial.
+     * Baked into the OPA bundle at compile time. {@code null} = use generic fallback message.
+     */
+    private final String denialMessage;
+
     /** Optimistic locking version. */
     private final Long version;
 
@@ -67,9 +73,10 @@ public class Policy {
 
     private Policy(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                        PolicyEffect effect, String expressionJson, boolean enabled,
-                       String disabledReason, boolean deprecated, boolean useCustomRego, 
-                       String customRegoSnippet, Long version, LocalDateTime createdAt,
-                       LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
+                       String disabledReason, boolean deprecated, boolean useCustomRego,
+                       String customRegoSnippet, String denialMessage, Long version,
+                       LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt,
+                       String deletedReason) {
         this.id = id;
         this.permissionId = permissionId;
         this.subjectType = subjectType;
@@ -81,6 +88,7 @@ public class Policy {
         this.deprecated = deprecated;
         this.useCustomRego = useCustomRego;
         this.customRegoSnippet = customRegoSnippet;
+        this.denialMessage = denialMessage;
         this.version = version;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -90,17 +98,20 @@ public class Policy {
 
     public static Policy create(Long permissionId, SubjectType subjectType, String subjectId,
                                 PolicyEffect effect, String expressionJson) {
-        return new Policy(null, permissionId, subjectType, subjectId, effect, 
-                          expressionJson, true, null, false, false, null, 0L, LocalDateTime.now(), null, null, null);
+        return new Policy(null, permissionId, subjectType, subjectId, effect,
+                          expressionJson, true, null, false, false, null, null, 0L,
+                          LocalDateTime.now(), null, null, null);
     }
 
     public static Policy reconstitute(Long id, Long permissionId, SubjectType subjectType, String subjectId,
                                       PolicyEffect effect, String expressionJson, boolean enabled,
-                                      String disabledReason, boolean deprecated, boolean useCustomRego, 
-                                      String customRegoSnippet, Long version, LocalDateTime createdAt,
-                                      LocalDateTime updatedAt, LocalDateTime deletedAt, String deletedReason) {
-        return new Policy(id, permissionId, subjectType, subjectId, effect, expressionJson, 
-                          enabled, disabledReason, deprecated, useCustomRego, customRegoSnippet, version, createdAt, updatedAt, deletedAt, deletedReason);
+                                      String disabledReason, boolean deprecated, boolean useCustomRego,
+                                      String customRegoSnippet, String denialMessage, Long version,
+                                      LocalDateTime createdAt, LocalDateTime updatedAt,
+                                      LocalDateTime deletedAt, String deletedReason) {
+        return new Policy(id, permissionId, subjectType, subjectId, effect, expressionJson,
+                          enabled, disabledReason, deprecated, useCustomRego, customRegoSnippet,
+                          denialMessage, version, createdAt, updatedAt, deletedAt, deletedReason);
     }
 
     public boolean hasCustomRego() {
@@ -189,6 +200,14 @@ public class Policy {
 
     public String getCustomRegoSnippet() {
         return customRegoSnippet;
+    }
+
+    /**
+     * Optional human-readable denial message baked into the OPA bundle.
+     * {@code null} means use the generic fallback message.
+     */
+    public String getDenialMessage() {
+        return denialMessage;
     }
 
     public Long getVersion() {

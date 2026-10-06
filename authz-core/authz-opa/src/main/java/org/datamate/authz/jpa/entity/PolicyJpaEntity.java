@@ -76,12 +76,19 @@ public class PolicyJpaEntity {
     @Column(name = "deleted_reason")
     private String deletedReason;
 
+    @Column(name = "denial_message", length = 500)
+    private String denialMessage;
+
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
 
     public void setDeletedReason(String deletedReason) {
         this.deletedReason = deletedReason;
+    }
+
+    public void setDenialMessage(String denialMessage) {
+        this.denialMessage = denialMessage;
     }
 
     public void setDeprecated(boolean deprecated) {
@@ -162,6 +169,10 @@ public class PolicyJpaEntity {
 
     public String getDeletedReason() {
         return deletedReason;
+    }
+
+    public String getDenialMessage() {
+        return denialMessage;
     }
 
     public void setId(Long id) {

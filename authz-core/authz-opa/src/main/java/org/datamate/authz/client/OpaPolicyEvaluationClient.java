@@ -2,6 +2,7 @@ package org.datamate.authz.client;
 
 import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.enforcement.AuthorizationContext;
 import org.springframework.http.HttpEntity;
@@ -69,7 +70,7 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
                             if (allow) {
                                 return EvaluationResult.granted();
                             } else {
-                                String reason = (String) resultMap.getOrDefault("reason", "Access Denied: You do not have permission to perform this action.");
+                                String reason = (String) resultMap.getOrDefault("reason", AuthzConstants.DEFAULT_DENIAL_MESSAGE);
                                 return EvaluationResult.denied(reason);
                             }
                         }
@@ -80,7 +81,7 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
                         if (allow) {
                             return EvaluationResult.granted();
                         } else {
-                            return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
+                            return EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE);
                         }
                     }
                 }
@@ -90,6 +91,6 @@ public class OpaPolicyEvaluationClient implements PolicyEvaluationClient {
         }
         
         log.warn("OPA evaluation returned false/denied (or failed) for permission '{}'", context.permissionCode());
-        return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
+        return EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE);
     }
 }

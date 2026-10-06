@@ -3,6 +3,7 @@ package org.datamate.authz.enforcement;
 import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.datamate.authz.annotation.PolicyField;
 import org.datamate.authz.annotation.PolicyResource;
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
 import org.datamate.authz.api.principal.PrincipalProvider;
 import org.datamate.authz.dto.policy.EvaluationResult;
@@ -105,7 +106,7 @@ class DefaultPolicyEnforcerTest {
     void evaluate_string_success() {
         when(principalProvider.getUserId()).thenReturn("user456");
         when(principalProvider.getRoles()).thenReturn(List.of("USER"));
-        when(policyEvaluationClient.evaluate(eq("hr"), any(AuthorizationContext.class))).thenReturn(EvaluationResult.denied("Access Denied: You do not have permission to perform this action."));
+        when(policyEvaluationClient.evaluate(eq("hr"), any(AuthorizationContext.class))).thenReturn(EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE));
 
         boolean result = enforcer.evaluate("hr:employee:write");
 

@@ -1,6 +1,7 @@
 package org.datamate.authz.compiler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.compiler.generator.RegoGenerator;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.model.policy.enumtype.PolicyEffect;
@@ -8,7 +9,6 @@ import org.datamate.authz.model.policy.enumtype.SubjectType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +64,7 @@ public class CompilerTest {
         // Step 1: Create a dummy Policy entity holding the JSON
         Policy policy = Policy.reconstitute(
                 1L, 100L, SubjectType.ROLE, "ACCOUNTANT",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -102,7 +102,11 @@ public class CompilerTest {
             allow_rule
             not deny_rule
         }
-        """.trim();
+        
+        reason := "%s" if {
+            not allow
+        }
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }
@@ -148,7 +152,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 2L, 101L, SubjectType.ROLE, "DOCTOR",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -191,7 +195,11 @@ public class CompilerTest {
             allow_rule
             not deny_rule
         }
-        """.trim();
+        
+        reason := "%s" if {
+            not allow
+        }
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }
@@ -234,7 +242,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 3L, 102L, SubjectType.ROLE, "SUPER_ADMIN",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -288,7 +296,11 @@ public class CompilerTest {
             allow_rule
             not deny_rule
         }
-        """.trim();
+        
+        reason := "%s" if {
+            not allow
+        }
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }
@@ -317,7 +329,7 @@ public class CompilerTest {
 
         Policy policy = Policy.reconstitute(
                 4L, 103L, SubjectType.ROLE, "MANAGER",
-                PolicyEffect.ALLOW, json, true, null, false, false, null, 1L,
+                PolicyEffect.ALLOW, json, true, null, false, false, null, null, 1L,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
@@ -346,7 +358,11 @@ public class CompilerTest {
             allow_rule
             not deny_rule
         }
-        """.trim();
+        
+        reason := "%s" if {
+            not allow
+        }
+        """.formatted(AuthzConstants.DEFAULT_DENIAL_MESSAGE).trim();
 
         assertEquals(expectedRego, actualRego.trim());
     }

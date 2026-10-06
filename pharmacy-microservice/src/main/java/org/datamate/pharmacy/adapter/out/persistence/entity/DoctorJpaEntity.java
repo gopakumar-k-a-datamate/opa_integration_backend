@@ -2,9 +2,6 @@ package org.datamate.pharmacy.adapter.out.persistence.entity;
 
 import com.datamate.bedrock.framework.common.auditing.entity.BaseAuditableEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * JPA Entity for the doctors table.
@@ -17,9 +14,6 @@ import lombok.Setter;
  */
 @Entity
 @Table(name = "doctors")
-@Getter
-@Setter
-@NoArgsConstructor
 public class DoctorJpaEntity extends BaseAuditableEntity {
 
     @Id
@@ -34,4 +28,39 @@ public class DoctorJpaEntity extends BaseAuditableEntity {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    public DoctorJpaEntity() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

@@ -1,5 +1,6 @@
 package org.datamate.authz.rest.client;
 
+import org.datamate.authz.api.constants.AuthzConstants;
 import org.datamate.authz.enforcement.AuthorizationContext;
 import org.datamate.authz.dto.policy.EvaluationPayload;
 import org.datamate.authz.api.policy.PolicyEvaluationClient;
@@ -55,7 +56,7 @@ public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
                     if (allow) {
                         return EvaluationResult.granted();
                     } else {
-                        return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
+                        return EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE);
                     }
                 } else if (resultObj instanceof Map) {
                     // In case OPA returns {"result": {"allowed": true}}
@@ -72,18 +73,18 @@ public class RestPolicyEvaluationClient implements PolicyEvaluationClient {
                         if (allow) {
                             return EvaluationResult.granted();
                         } else {
-                            String reason = (String) resultMap.getOrDefault("reason", "Access Denied: You do not have permission to perform this action.");
+                            String reason = (String) resultMap.getOrDefault("reason", AuthzConstants.DEFAULT_DENIAL_MESSAGE);
                             return EvaluationResult.denied(reason);
                         }
                     }
                 }
             }
             log.warn("OPA returned non-200 or unparseable response: {}", response);
-            return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
+            return EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE);
         } catch (RestClientException e) {
             log.error("Failed to communicate with OPA sidecar at {}", url, e);
             // Fail-closed mechanism: if OPA is down, deny access.
-            return EvaluationResult.denied("Access Denied: You do not have permission to perform this action.");
+            return EvaluationResult.denied(AuthzConstants.DEFAULT_DENIAL_MESSAGE);
         }
     }
 }
