@@ -5,6 +5,7 @@ import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
 import java.time.Instant;
+
 import java.util.UUID;
 
 /**
@@ -29,9 +30,10 @@ public class Message {
     private final boolean file;
     private final boolean systemMessage;
     private final UUID attachmentId;
+    private final UUID parentId;
     private final Instant timestamp;
 
-    private Message(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, Instant timestamp) {
+    private Message(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, UUID parentId, Instant timestamp) {
         requireNonNull(id, "messageId");
         requireNonNull(threadId, "threadId");
         requireNonNull(senderId, "senderId");
@@ -44,6 +46,7 @@ public class Message {
         this.file = file;
         this.systemMessage = systemMessage;
         this.attachmentId = attachmentId;
+        this.parentId = parentId;
         this.timestamp = timestamp;
     }
 
@@ -51,24 +54,24 @@ public class Message {
      * Factory method for creating a brand new Message.
      * Encapsulates ID generation and timestamping within the domain.
      */
-    public static Message create(UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId) {
+    public static Message create(UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, UUID parentId) {
         return new Message(
-                UUID.randomUUID(),
+                UuidV7Generator.generate(),
                 threadId,
                 senderId,
                 text,
                 file,
                 systemMessage,
                 attachmentId,
-                Instant.now()
+                parentId, Instant.now()
         );
     }
 
     /**
      * Factory method for reconstituting an existing Message from persistence.
      */
-    public static Message restore(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, Instant timestamp) {
-        return new Message(id, threadId, senderId, text, file, systemMessage, attachmentId, timestamp);
+    public static Message restore(UUID id, UUID threadId, String senderId, String text, boolean file, boolean systemMessage, UUID attachmentId, UUID parentId, Instant timestamp) {
+        return new Message(id, threadId, senderId, text, file, systemMessage, attachmentId, parentId, timestamp);
     }
 
     @Override
@@ -94,3 +97,5 @@ public class Message {
         }
     }
 }
+
+

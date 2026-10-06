@@ -55,4 +55,8 @@ public class MessageJpaEntity {
 
     @Column(name = "timestamp", nullable = false, updatable = false)
     private Instant timestamp;
+
+    @Column(name = "parent_id")
+    private UUID parentId;
 }
+
