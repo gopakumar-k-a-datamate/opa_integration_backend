@@ -15,21 +15,21 @@ public record SendMessageRequest(
 
         List<String> attachmentUrls,
 
-        UUID attachmentId
-) {
+        UUID attachmentId,
+        UUID parentId) {
     public SendMessageRequest(String text) {
-        this(text, null, null);
+        this(text, null, null, null);
     }
 
     public SendMessageRequest(String text, UUID attachmentId) {
-        this(text, null, attachmentId);
+        this(text, null, attachmentId, null);
     }
 
     public SendMessageRequest(String text, List<String> attachmentUrls) {
-        this(text, attachmentUrls, null);
+        this(text, attachmentUrls, null, null);
     }
 
     public SendMessageCommand toCommand() {
-        return new SendMessageCommand(text, attachmentUrls, attachmentId);
+        return new SendMessageCommand(text, attachmentUrls, attachmentId, parentId);
     }
 }

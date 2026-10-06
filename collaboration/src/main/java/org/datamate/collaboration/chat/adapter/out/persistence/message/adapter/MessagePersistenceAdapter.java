@@ -68,6 +68,7 @@ public class MessagePersistenceAdapter implements MessageRepositoryPort {
         entity.setFile(message.isFile());
         entity.setSystemMessage(message.isSystemMessage());
         entity.setAttachmentId(message.getAttachmentId());
+        entity.setParentId(message.getParentId());
         entity.setTimestamp(message.getTimestamp());
         return entity;
     }
@@ -81,7 +82,9 @@ public class MessagePersistenceAdapter implements MessageRepositoryPort {
                 entity.isFile(),
                 entity.isSystemMessage(),
                 entity.getAttachmentId(),
-                entity.getTimestamp()
+                entity.getParentId(), entity.getTimestamp()
         );
     }
 }
+
+

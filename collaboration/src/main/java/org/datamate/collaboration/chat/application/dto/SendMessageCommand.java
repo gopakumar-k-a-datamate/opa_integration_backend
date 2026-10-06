@@ -16,17 +16,17 @@ public record SendMessageCommand(
 
         List<String> attachmentUrls,
 
-        UUID attachmentId
-) {
+        UUID attachmentId,
+        UUID parentId) {
     public SendMessageCommand(String text) {
-        this(text, null, null);
+        this(text, null, null, null);
     }
 
     public SendMessageCommand(String text, UUID attachmentId) {
-        this(text, null, attachmentId);
+        this(text, null, attachmentId, null);
     }
 
     public SendMessageCommand(String text, List<String> attachmentUrls) {
-        this(text, attachmentUrls, null);
+        this(text, attachmentUrls, null, null);
     }
 }

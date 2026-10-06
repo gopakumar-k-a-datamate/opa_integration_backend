@@ -82,7 +82,8 @@ public class SendMessageService implements SendMessageUseCase {
                 command.text(),
                 isFile,
                 false,
-                attachmentId
+                attachmentId,
+                command.parentId()
         );
 
         Message savedMessage = messageRepository.save(message);
@@ -315,3 +316,5 @@ public class SendMessageService implements SendMessageUseCase {
      */
     private record AttachmentMetadata(String contentType, long fileSize) {}
 }
+
+

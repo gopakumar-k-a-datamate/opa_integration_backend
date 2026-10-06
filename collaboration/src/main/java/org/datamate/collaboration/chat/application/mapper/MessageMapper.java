@@ -40,6 +40,7 @@ public class MessageMapper {
 
         return new MessageDto(
                 message.getId(),
+                message.getParentId(),
                 message.getSenderId(),
                 message.getText(),
                 message.isFile(),
@@ -49,3 +50,5 @@ public class MessageMapper {
         );
     }
 }
+
+

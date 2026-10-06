@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record MessageDto(
         UUID id,
+        UUID parentId,
         String senderId,
         String text,
         boolean isFile,
@@ -13,3 +14,4 @@ public record MessageDto(
         List<AttachmentResponseDto> attachments,
         Instant timestamp
 ) {}
+
