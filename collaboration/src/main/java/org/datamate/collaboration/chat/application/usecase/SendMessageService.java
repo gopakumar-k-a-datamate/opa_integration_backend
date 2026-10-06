@@ -42,8 +42,8 @@ public class SendMessageService implements SendMessageUseCase {
 
         ensureThreadExists(threadId);
 
-        boolean isFile = command.attachmentId() != null;
-        UUID attachmentId = command.attachmentId();
+        UUID attachmentId = resolveAttachmentId(command);
+        boolean isFile = attachmentId != null;
 
         Message message = Message.create(
                 threadId,
@@ -79,11 +79,28 @@ public class SendMessageService implements SendMessageUseCase {
 
         boolean hasText = command.text() != null && !command.text().trim().isEmpty();
         boolean hasAttachmentId = command.attachmentId() != null;
+        boolean hasAttachmentUrls = command.attachmentUrls() != null && !command.attachmentUrls().isEmpty();
 
-        if (!hasText && !hasAttachmentId) {
+        if (!hasText && !hasAttachmentId && !hasAttachmentUrls) {
             throw new ApplicationValidationException(
-                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or attachmentId");
+                    CollaborationErrorCodes.REQUIRED_FIELD_MISSING.code(), "text or attachment");
         }
+    }
+
+    private UUID resolveAttachmentId(SendMessageCommand command) {
+        if (command.attachmentId() != null) {
+            return command.attachmentId();
+        }
+        if (command.attachmentUrls() != null && !command.attachmentUrls().isEmpty()) {
+            String url = command.attachmentUrls().get(0);
+            try {
+                String idPart = url.substring(url.lastIndexOf('/') + 1);
+                return UUID.fromString(idPart);
+            } catch (Exception e) {
+                logger.warn("Failed to extract UUID from attachmentUrl: {}", url);
+            }
+        }
+        return null;
     }
 
     private void ensureThreadExists(UUID threadId) {
