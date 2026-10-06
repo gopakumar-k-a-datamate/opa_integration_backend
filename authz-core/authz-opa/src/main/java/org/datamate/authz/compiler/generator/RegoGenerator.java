@@ -193,7 +193,7 @@ public class RegoGenerator {
         // Reason output — Problem 3: concat all triggered denial messages with "; "
         if (hasDenialMessages) {
             sb.append("reason := msg if {\n");
-            sb.append("    denial_msgs := [m | some m in denial_message]\n");
+            sb.append("    denial_msgs := [m | denial_message[m]]\n");
             sb.append("    count(denial_msgs) > 0\n");
             sb.append("    msg := concat(\"; \", denial_msgs)\n");
             sb.append("} else := \"").append(AuthzConstants.DEFAULT_DENIAL_MESSAGE).append("\" if {\n");
