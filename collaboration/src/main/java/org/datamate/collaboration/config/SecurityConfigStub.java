@@ -22,6 +22,7 @@ public class SecurityConfigStub {
             .cors(org.springframework.security.config.Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
             // TODO (Epic 3): Replace StubAuthenticationFilter with JwtAuthenticationFilter
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated()
             )
             // Inject our stub filter before standard auth
@@ -30,3 +31,4 @@ public class SecurityConfigStub {
         return http.build();
     }
 }
+

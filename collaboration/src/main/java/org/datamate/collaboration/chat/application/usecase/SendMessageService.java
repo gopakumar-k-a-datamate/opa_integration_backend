@@ -9,6 +9,9 @@ import org.datamate.collaboration.chat.application.dto.SendMessageCommand;
 import org.datamate.collaboration.chat.application.dto.SendMessageRequest;
 import org.datamate.collaboration.chat.application.port.in.SendMessageUseCase;
 import org.datamate.collaboration.chat.application.port.out.AttachmentRepositoryPort;
+import org.datamate.collaboration.chat.application.dto.MessageDto;
+import org.datamate.collaboration.chat.application.mapper.MessageMapper;
+import org.datamate.collaboration.chat.application.port.out.MessageBroadcastPort;
 import org.datamate.collaboration.chat.application.port.out.DocumentConversionPort;
 import org.datamate.collaboration.chat.application.port.out.MessageRepositoryPort;
 import org.datamate.collaboration.chat.application.port.out.ThreadRepositoryPort;
@@ -58,6 +61,8 @@ public class SendMessageService implements SendMessageUseCase {
     private final AttachmentRepositoryPort attachmentRepository;
     private final StorageService storageService;
     private final DocumentConversionPort documentConversionPort;
+    private final MessageMapper messageMapper;
+    private final MessageBroadcastPort messageBroadcastPort;
 
     @Value("${bedrock.storage.minio.bucket}")
     private String defaultBucket;
@@ -80,7 +85,15 @@ public class SendMessageService implements SendMessageUseCase {
                 attachmentId
         );
 
-        messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
+
+        Attachment attachment = null;
+        if (attachmentId != null) {
+            attachment = attachmentRepository.findById(attachmentId).orElse(null);
+        }
+
+        MessageDto messageDto = messageMapper.toDto(savedMessage != null ? savedMessage : message, attachment);
+        messageBroadcastPort.broadcastMessage(threadId, messageDto);
     }
 
     @Override
