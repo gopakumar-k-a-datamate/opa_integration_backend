@@ -58,7 +58,8 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
           deletedReason: p.deletedReason,
           disabledReason: p.disabledReason,
           useCustomRego: p.useCustomRego || false,
-          customRegoSnippet: p.customRegoSnippet
+          customRegoSnippet: p.customRegoSnippet,
+          denialMessage: p.denialMessage
         }));
 
       await savePolicies(subjectType, subjectId, moduleName, payloadPolicies);
@@ -80,10 +81,10 @@ const PolicyGrid = ({ subjectType, subjectId, moduleName }) => {
     }
   };
 
-  const handleConditionsSaved = (permissionCode, newExpression, useCustomRego, customRegoSnippet) => {
+  const handleConditionsSaved = (permissionCode, newExpression, useCustomRego, customRegoSnippet, denialMessage) => {
     setPolicies(prev => prev.map(p => 
       p.permissionCode === permissionCode 
-        ? { ...p, expressionJson: newExpression, useCustomRego, customRegoSnippet, enabled: true, effect: p.effect || 'ALLOW' } 
+        ? { ...p, expressionJson: newExpression, useCustomRego, customRegoSnippet, denialMessage, enabled: true, effect: p.effect || 'ALLOW' } 
         : p
     ));
     setActiveConditionPermission(null);

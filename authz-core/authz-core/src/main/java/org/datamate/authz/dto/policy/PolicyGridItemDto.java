@@ -24,7 +24,8 @@ public record PolicyGridItemDto(
         String deletedReason,
         boolean deprecated,
         boolean useCustomRego,
-        String customRegoSnippet
+        String customRegoSnippet,
+        String denialMessage
 ) {}
 
 
