@@ -85,6 +85,7 @@ public class BedrockAuthzAutoConfiguration {
                         .dataSource(dataSource)
                         .locations("classpath:db/authz-migration")
                         .table("authz_flyway_schema_history")
+                        .baselineVersion("0")
                         .baselineOnMigrate(true);
 
                 String schema = OpaConfigParser.getSchema(env, resourceLoader);
