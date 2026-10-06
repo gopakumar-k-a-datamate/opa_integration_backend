@@ -117,6 +117,12 @@ public class UploadAttachmentService implements UploadAttachmentUseCase {
         } catch (ApplicationValidationException e) {
             throw e;
         } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            String cause = e.getCause() != null && e.getCause().getMessage() != null ? e.getCause().getMessage().toLowerCase() : "";
+            if (msg.contains("403") || msg.contains("forbidden") || msg.contains("virus") || cause.contains("403") || cause.contains("forbidden") || cause.contains("virus")) {
+                logger.warn("Upload rejected (possible virus or forbidden) for file [{}]: {}", originalFilename, e.getMessage());
+                throw new ApplicationValidationException(CollaborationErrorCodes.VIRUS_DETECTED.code(), originalFilename);
+            }
             logger.error("Failed to upload attachment", e);
             throw new RuntimeException("Failed to upload attachment", e);
         }
@@ -157,3 +163,4 @@ public class UploadAttachmentService implements UploadAttachmentUseCase {
         return "application/octet-stream";
     }
 }
+
