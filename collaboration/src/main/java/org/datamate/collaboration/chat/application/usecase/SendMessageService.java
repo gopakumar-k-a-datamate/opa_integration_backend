@@ -131,6 +131,8 @@ public class SendMessageService implements SendMessageUseCase {
     private UUID processAttachmentUrl(UUID threadId, String attachmentUrl) {
         validateAttachmentUrl(attachmentUrl);
 
+        
+
         String objectKeyOrFileName = extractObjectKey(attachmentUrl);
         validateAllowedExtension(objectKeyOrFileName);
 
