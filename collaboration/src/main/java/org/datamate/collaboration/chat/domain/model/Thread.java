@@ -1,6 +1,7 @@
 package org.datamate.collaboration.chat.domain.model;
 
 import com.datamate.bedrock.framework.common.ddd.domain.AggregateRoot;
+import lombok.Getter;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
@@ -11,16 +12,15 @@ import java.util.UUID;
  * <p>
  * Represents a conversation thread. The {@code id} is always generated externally
  * by Domain Services (e.g., EMR, Finance), enabling cross-domain chat inheritance
- * when domain entities transform (e.g., Purchase Request â†’ Purchase Order).
+ * when domain entities transform (e.g., Purchase Request → Purchase Order).
  * <p>
  * Extends Bedrock Framework's {@link AggregateRoot} to support domain events.
- * Pure Domain Entity â€” no Spring, JPA, or framework annotations.
+ * Pure Domain Entity — no Spring, JPA, or framework annotations.
  */
+@Getter
 public class Thread extends AggregateRoot {
 
     private final UUID id;
-
-    public UUID getId() { return id; }
 
     public Thread(UUID id) {
         super();
@@ -43,4 +43,3 @@ public class Thread extends AggregateRoot {
         return id.hashCode();
     }
 }
-

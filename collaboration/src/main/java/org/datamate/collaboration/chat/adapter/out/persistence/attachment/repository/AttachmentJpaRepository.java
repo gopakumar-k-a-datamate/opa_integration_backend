@@ -9,6 +9,4 @@ import java.util.UUID;
  * Spring Data JPA repository for {@link AttachmentJpaEntity}.
  */
 public interface AttachmentJpaRepository extends JpaRepository<AttachmentJpaEntity, UUID> {
-    java.util.Optional<AttachmentJpaEntity> findByUploadUrl(String uploadUrl);
 }
-
