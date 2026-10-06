@@ -10,6 +10,7 @@ import org.datamate.collaboration.exception.CollaborationBaseException;
 import org.datamate.collaboration.exception.DocumentConversionException;
 import org.datamate.collaboration.exception.DomainValidationException;
 import org.datamate.collaboration.exception.ResourceNotFoundException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,71 +21,73 @@ import java.time.OffsetDateTime;
 
 /**
  * Global Exception Handler for the Collaboration Microservice.
- * <p>
- * Extends Bedrock's {@link GlobalExceptionHandler} and adds local
- * {@code @ExceptionHandler} methods for intent-based collaboration exceptions
- * that require specific HTTP status codes not covered by Bedrock's
- * generic severity-based mapping.
- * <p>
- * Mapping:
- * <ul>
- *   <li>{@link ResourceNotFoundException} -> HTTP 404 Not Found</li>
- *   <li>{@link DomainValidationException} -> HTTP 400 Bad Request</li>
- *   <li>{@link ApplicationValidationException} -> HTTP 400 Bad Request</li>
- *   <li>{@link DocumentConversionException} -> HTTP 422 Unprocessable Entity</li>
- *   <li>All other {@code BaseAppException} subclasses -> Bedrock's severity-based mapping (inherited)</li>
- * </ul>
  */
 @RestControllerAdvice
 public class CollaborationExceptionHandler extends GlobalExceptionHandler {
 
     @EnableLogger
     private Logger logger;
+    
+    private final MessageResolver messageResolver;
 
     public CollaborationExceptionHandler(MessageResolver resolver, ExceptionProperties properties) {
         super(resolver, properties);
+        this.messageResolver = resolver;
+    }
+    
+    private String resolveMessage(CollaborationBaseException ex) {
+        String customMsg = ex.getCustomMessage();
+        if (customMsg != null && !customMsg.isBlank()) {
+            return customMsg;
+        }
+        String resolved = messageResolver.resolveMessage(ex.getErrorCode(), LocaleContextHolder.getLocale(), ex.getMessageArgs());
+        return resolved != null ? resolved : ex.getErrorCode();
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
+        String msg = resolveMessage(ex);
         if (logger != null) {
-            logger.warn("Resource not found [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+            logger.warn("Resource not found [errorCode: {}]: {}", ex.getErrorCode(), msg);
         }
 
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, msg);
         enrich(pd, ex);
         return pd;
     }
 
     @ExceptionHandler(DomainValidationException.class)
     public ProblemDetail handleDomainValidation(DomainValidationException ex) {
+        String msg = resolveMessage(ex);
         if (logger != null) {
-            logger.warn("Domain validation failed [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+            logger.warn("Domain validation failed [errorCode: {}]: {}", ex.getErrorCode(), msg);
         }
 
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, msg);
         enrich(pd, ex);
         return pd;
     }
 
     @ExceptionHandler(ApplicationValidationException.class)
     public ProblemDetail handleApplicationValidation(ApplicationValidationException ex) {
+        String msg = resolveMessage(ex);
         if (logger != null) {
-            logger.warn("Application validation failed [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+            logger.warn("Application validation failed [errorCode: {}]: {}", ex.getErrorCode(), msg);
         }
 
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, msg);
         enrich(pd, ex);
         return pd;
     }
 
     @ExceptionHandler(DocumentConversionException.class)
     public ProblemDetail handleDocumentConversion(DocumentConversionException ex) {
+        String msg = resolveMessage(ex);
         if (logger != null) {
-            logger.error("Document conversion error [errorCode: {}]: {}", ex.getErrorCode(), ex.getMessage());
+            logger.error("Document conversion error [errorCode: {}]: {}", ex.getErrorCode(), msg);
         }
 
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, msg);
         enrich(pd, ex);
         return pd;
     }
