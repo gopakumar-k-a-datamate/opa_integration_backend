@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.datamate.collaboration.exception.CollaborationErrorCodes;
 import org.datamate.collaboration.exception.DomainValidationException;
 
+
 import java.util.UUID;
 
 /**
@@ -48,7 +49,7 @@ public class Attachment {
      */
     public static Attachment create(String fileName, String mimeType, long fileSize, String uploadUrl, String previewUrl) {
         return new Attachment(
-                UUID.randomUUID(),
+                UuidV7Generator.generate(),
                 fileName,
                 mimeType,
                 fileSize,
