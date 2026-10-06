@@ -79,7 +79,7 @@ public class PolicyJpaEntity {
     @Column(name = "denial_message", length = 500)
     private String denialMessage;
 
-    public void setDeletedAt(java.time.LocalDateTime deletedAt) {
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
 

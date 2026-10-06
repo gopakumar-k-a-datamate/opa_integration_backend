@@ -1,5 +1,8 @@
 package org.datamate.authz.service.policy;
 
+import com.datamate.bedrock.framework.common.logging.service.Logger;
+import com.datamate.bedrock.framework.common.pagination.PageQuery;
+import com.datamate.bedrock.framework.common.pagination.Paged;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.datamate.authz.api.policy.ConditionFieldRepository;
@@ -12,6 +15,7 @@ import org.datamate.authz.api.subject.SubjectManagementService;
 import org.datamate.authz.compiler.AstBuilder;
 import org.datamate.authz.dto.policy.ConditionFieldDto;
 import org.datamate.authz.dto.policy.PolicyGridItemDto;
+import org.datamate.authz.dto.policy.SubjectDto;
 import org.datamate.authz.exception.AuthzInvalidPayloadException;
 import org.datamate.authz.exception.AuthzInvalidSyntaxException;
 import org.datamate.authz.model.policy.entity.ConditionField;
@@ -31,8 +35,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -48,236 +55,311 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DefaultPolicyManagementServiceTest {
 
-    @Mock private PermissionRepository permissionRepository;
-    @Mock private ConditionFieldRepository conditionFieldRepository;
-    @Mock private ResourceRepository resourceRepository;
-    @Mock private PolicyRepository policyRepository;
-    @Mock private PolicyBundleCacheRepository bundleCacheRepository;
-    @Mock private PolicyValidation validation;
-    @Mock private ObjectMapper objectMapper;
-    @Spy private AstBuilder astBuilder = new AstBuilder();
-    @Mock private SubjectManagementService subjectManagementService;
+	@Mock
+	private PermissionRepository permissionRepository;
+	@Mock
+	private ConditionFieldRepository conditionFieldRepository;
+	@Mock
+	private ResourceRepository resourceRepository;
+	@Mock
+	private PolicyRepository policyRepository;
+	@Mock
+	private PolicyBundleCacheRepository bundleCacheRepository;
+	@Mock
+	private PolicyValidation validation;
+	@Mock
+	private ObjectMapper objectMapper;
+	@Spy
+	private AstBuilder astBuilder = new AstBuilder();
+	@Mock
+	private SubjectManagementService subjectManagementService;
 
-    @Mock private Logger log;
+	@Mock
+	private Logger log;
 
-    @InjectMocks
-    private DefaultPolicyManagementService service;
+	@InjectMocks
+	private DefaultPolicyManagementService service;
 
-    @BeforeEach
-    void setUp() throws Exception {
-        Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
-        logField.setAccessible(true);
-        logField.set(service, log);
-        lenient().when(subjectManagementService.subjectExistsAndActive(any(), anyString())).thenReturn(true);
-    }
+	@BeforeEach
+	void setUp() throws Exception {
+		Field logField = DefaultPolicyManagementService.class.getDeclaredField("log");
+		logField.setAccessible(true);
+		logField.set(service, log);
+		Mockito.lenient().when(subjectManagementService.subjectExistsAndActive(any(), anyString())).thenReturn(true);
 
-    @Test
-    void getConditionFields_permissionNotFound() {
-        when(permissionRepository.findByCode("unknown:read")).thenReturn(Optional.empty());
-        List<ConditionFieldDto> result = service.getConditionFields("unknown:read");
-        assertTrue(result.isEmpty());
-    }
+	}
 
-    @Test
-    void getConditionFields_success() {
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(10L);
-        when(permissionRepository.findByCode("finance:read")).thenReturn(Optional.of(perm));
+	@Test
+	void getConditionFields_permissionNotFound() {
+		when(permissionRepository.findByCode("unknown:read")).thenReturn(Optional.empty());
+		List<ConditionFieldDto> result = service.getConditionFields("unknown:read");
+		assertTrue(result.isEmpty());
+	}
 
-        ConditionField field = mock(ConditionField.class);
-        when(field.getFieldName()).thenReturn("amount");
-        when(field.getFieldType()).thenReturn(FieldType.NUMBER);
+	@Test
+	void getConditionFields_success() {
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(10L);
+		when(permissionRepository.findByCode("finance:read")).thenReturn(Optional.of(perm));
 
-        when(conditionFieldRepository.findAllByPermissionId(10L)).thenReturn(List.of(field));
+		ConditionField field = mock(ConditionField.class);
+		when(field.getFieldName()).thenReturn("amount");
+		when(field.getFieldType()).thenReturn(FieldType.NUMBER);
 
-        List<ConditionFieldDto> result = service.getConditionFields("finance:read");
-        assertEquals(1, result.size());
-        assertEquals("amount", result.get(0).fieldName());
-        assertEquals(FieldType.NUMBER, result.get(0).fieldType());
-    }
+		when(conditionFieldRepository.findAllByPermissionId(10L)).thenReturn(List.of(field));
 
-    @Test
-    void getNamespaces_success() {
-        Resource r1 = mock(Resource.class); when(r1.getNamespace()).thenReturn("finance");
-        Resource r2 = mock(Resource.class); when(r2.getNamespace()).thenReturn("hr");
-        Resource r3 = mock(Resource.class); when(r3.getNamespace()).thenReturn("finance"); // duplicate
+		List<ConditionFieldDto> result = service.getConditionFields("finance:read");
+		assertEquals(1, result.size());
+		assertEquals("amount", result.get(0).fieldName());
+		assertEquals(FieldType.NUMBER, result.get(0).fieldType());
+	}
 
-        when(resourceRepository.findAllActive()).thenReturn(List.of(r1, r2, r3));
+	@Test
+	void getNamespaces_success() {
+		Resource r1 = mock(Resource.class);
+		when(r1.getNamespace()).thenReturn("finance");
+		Resource r2 = mock(Resource.class);
+		when(r2.getNamespace()).thenReturn("hr");
+		Resource r3 = mock(Resource.class);
+		when(r3.getNamespace()).thenReturn("finance"); // duplicate
 
-        List<String> namespaces = service.getNamespaces();
-        assertEquals(2, namespaces.size());
-        assertEquals("finance", namespaces.get(0));
-        assertEquals("hr", namespaces.get(1));
-    }
+		when(resourceRepository.findAllActive()).thenReturn(List.of(r1, r2, r3));
 
-    @Test
-    void getPolicies_success() {
-        Resource res = mock(Resource.class);
-        when(res.getId()).thenReturn(100L);
-        when(res.getNamespace()).thenReturn("finance");
-        when(res.getName()).thenReturn("Finance Service");
+		List<String> namespaces = service.getNamespaces();
+		assertEquals(2, namespaces.size());
+		assertEquals("finance", namespaces.get(0));
+		assertEquals("hr", namespaces.get(1));
+	}
 
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(200L);
-        when(perm.getResourceId()).thenReturn(100L);
-        when(perm.getCode()).thenReturn("finance:read");
-        when(perm.getAction()).thenReturn("read");
+	@Test
+	void getPolicies_success() {
+		Resource res = mock(Resource.class);
+		when(res.getId()).thenReturn(100L);
+		when(res.getNamespace()).thenReturn("finance");
+		when(res.getName()).thenReturn("Finance Service");
 
-        Policy pol = mock(Policy.class);
-        when(pol.getId()).thenReturn(300L);
-        when(pol.getPermissionId()).thenReturn(200L);
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(200L);
+		when(perm.getResourceId()).thenReturn(100L);
+		when(perm.getCode()).thenReturn("finance:read");
+		when(perm.getAction()).thenReturn("read");
 
-        when(pol.getExpressionJson()).thenReturn("{\"type\": \"ConditionNode\"}");
+		Policy pol = mock(Policy.class);
+		when(pol.getId()).thenReturn(300L);
+		when(pol.getPermissionId()).thenReturn(200L);
 
-        when(resourceRepository.findAllActive()).thenReturn(List.of(res));
-        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of(pol));
+		when(pol.getExpressionJson()).thenReturn("{\"type\": \"ConditionNode\"}");
 
-        JsonNode mockNode = mock(JsonNode.class);
-        try {
-            when(objectMapper.readTree(pol.getExpressionJson())).thenReturn(mockNode);
-        } catch (Exception ignored) {}
+		when(resourceRepository.findAllActive()).thenReturn(List.of(res));
+		when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of(pol));
 
-        List<PolicyGridItemDto> result = service.getPolicies(SubjectType.ROLE, "ADMIN", "finance");
-        assertEquals(1, result.size());
-        PolicyGridItemDto dto = result.get(0);
-        assertEquals("finance:read", dto.permissionCode());
-        assertEquals("finance", dto.namespace());
-        assertEquals(300L, dto.policyId());
-        assertEquals(mockNode, dto.expressionJson());
-    }
+		JsonNode mockNode = mock(JsonNode.class);
+		try {
+			when(objectMapper.readTree(pol.getExpressionJson())).thenReturn(mockNode);
+		} catch (Exception ignored) {
+		}
 
-    @Test
-    void savePolicies_emptyRequest() {
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of());
+		List<PolicyGridItemDto> result = service.getPolicies(SubjectType.ROLE, "ADMIN", "finance");
+		assertEquals(1, result.size());
+		PolicyGridItemDto dto = result.get(0);
+		assertEquals("finance:read", dto.permissionCode());
+		assertEquals("finance", dto.namespace());
+		assertEquals(300L, dto.policyId());
+		assertEquals(mockNode, dto.expressionJson());
+	}
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
-        when(permissionRepository.findAllActive()).thenReturn(List.of());
+	@Test
+	void savePolicies_emptyRequest() {
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of());
 
-        service.savePolicies(req);
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+		when(permissionRepository.findAllActive()).thenReturn(List.of());
 
-        verify(bundleCacheRepository).upsertBundle("finance", null, null);
-        verify(policyRepository, never()).upsert(any(), any(), any(), any(), any(), any(), anyBoolean(), any(), anyBoolean(), any(), any());
-    }
+		service.savePolicies(req);
 
-    @Test
-    void savePolicies_deleteMissingReason() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, true, null, null, false, null, null);
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+		verify(bundleCacheRepository).upsertBundle("finance", null, null);
+		verify(policyRepository, never()).upsert(any(), any(), any(), any(), any(), any(), anyBoolean(), any(),
+				anyBoolean(), any());
+	}
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
-        when(permissionRepository.findAllActive()).thenReturn(List.of());
+	@Test
+	void savePolicies_deleteMissingReason() {
+		PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, true, null,
+				null, false, null);
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
-        assertThrows(AuthzInvalidPayloadException.class, () -> service.savePolicies(req));
-    }
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+		when(permissionRepository.findAllActive()).thenReturn(List.of());
 
-    @Test
-    void savePolicies_disableMissingReason() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, false, null, null, false, null, null);
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+		assertThrows(AuthzInvalidPayloadException.class, () -> service.savePolicies(req));
+	}
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
-        when(permissionRepository.findAllActive()).thenReturn(List.of());
+	@Test
+	void savePolicies_disableMissingReason() {
+		PolicyItemRequest item = new PolicyItemRequest("finance:delete", PolicyEffect.ALLOW, null, false, false, null,
+				null, false, null);
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
-        assertThrows(AuthzInvalidPayloadException.class, () -> service.savePolicies(req));
-    }
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+		when(permissionRepository.findAllActive()).thenReturn(List.of());
 
-    @Test
-    void savePolicies_softDeleteExisting() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, false, true, "Not needed", null, false, null, null);
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+		assertThrows(AuthzInvalidPayloadException.class, () -> service.savePolicies(req));
+	}
 
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(10L);
-        when(perm.getCode()).thenReturn("finance:read");
+	@Test
+	void savePolicies_softDeleteExisting() {
+		PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, false, true,
+				"Not needed", null, false, null);
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
-        Policy existing = mock(Policy.class);
-        when(existing.getId()).thenReturn(100L);
-        when(existing.getPermissionId()).thenReturn(10L);
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(10L);
+		when(perm.getCode()).thenReturn("finance:read");
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of(existing));
-        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+		Policy existing = mock(Policy.class);
+		when(existing.getId()).thenReturn(100L);
+		when(existing.getPermissionId()).thenReturn(10L);
 
-        service.savePolicies(req);
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of(existing));
+		when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
 
-        verify(policyRepository).softDelete(100L, "Not needed");
-        verify(bundleCacheRepository).upsertBundle("finance", null, null);
-    }
+		service.savePolicies(req);
 
-    @Test
-    void savePolicies_upsertNew_customRegoValidationFailure() {
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "invalid rego", null);
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+		verify(policyRepository).softDelete(100L, "Not needed");
+		verify(bundleCacheRepository).upsertBundle("finance", null, null);
+	}
 
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(10L);
-        when(perm.getCode()).thenReturn("finance:read");
+	@Test
+	void savePolicies_upsertNew_customRegoValidationFailure() {
+		PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null,
+				null, true, "invalid rego");
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
-        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(validation.validate("invalid rego")).thenReturn(new RegoValidationResult(false, List.of(new RegoValidationError(1, 1, "Syntax error"))));
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(10L);
+		when(perm.getCode()).thenReturn("finance:read");
 
-        assertThrows(AuthzInvalidSyntaxException.class, () -> service.savePolicies(req));
-    }
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+		when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+		when(validation.validate("invalid rego"))
+				.thenReturn(new RegoValidationResult(false, List.of(new RegoValidationError(1, 1, "Syntax error"))));
 
-    @Test
-    void savePolicies_upsertNew_success() throws Exception {
-        ObjectMapper testMapper = new ObjectMapper();
-        JsonNode jsonNode = testMapper.readTree("{\"operator\": \"AND\", \"children\": []}");
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, jsonNode, true, false, null, null, false, null, null);
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+		assertThrows(AuthzInvalidSyntaxException.class, () -> service.savePolicies(req));
+	}
 
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(10L);
-        when(perm.getCode()).thenReturn("finance:read");
+	@Test
+	void savePolicies_upsertNew_success() throws Exception {
+		ObjectMapper testMapper = new ObjectMapper();
+		JsonNode jsonNode = testMapper.readTree("{\"operator\": \"AND\", \"children\": []}");
+		PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, jsonNode, true, false, null,
+				null, false, null);
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
-        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(objectMapper.writeValueAsString(jsonNode)).thenReturn("{\"operator\":\"AND\",\"children\":[]}");
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(10L);
+		when(perm.getCode()).thenReturn("finance:read");
 
-        service.savePolicies(req);
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+		when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+		when(objectMapper.writeValueAsString(jsonNode)).thenReturn("{\"operator\":\"AND\",\"children\":[]}");
 
-        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, "{\"operator\":\"AND\",\"children\":[]}", true, null, false, null, null);
-        verify(bundleCacheRepository).upsertBundle("finance", null, null);
-    }
+		service.savePolicies(req);
 
-    @Test
-    void savePolicies_upsertNew_customRego_success() throws Exception {
-        PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null, null, true, "allow_rule if { input.resource.special == true }", null);
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
+		verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW,
+				"{\"operator\":\"AND\",\"children\":[]}", true, null, false, null);
+		verify(bundleCacheRepository).upsertBundle("finance", null, null);
+	}
 
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(10L);
-        when(perm.getCode()).thenReturn("finance:read");
+	@Test
+	void savePolicies_upsertNew_customRego_success() throws Exception {
+		PolicyItemRequest item = new PolicyItemRequest("finance:read", PolicyEffect.ALLOW, null, true, false, null,
+				null, true, "allow_rule if { input.resource.special == true }");
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of(item));
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
-        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
-        when(validation.validate("allow_rule if { input.resource.special == true }")).thenReturn(new RegoValidationResult(true, List.of()));
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(10L);
+		when(perm.getCode()).thenReturn("finance:read");
 
-        service.savePolicies(req);
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of());
+		when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+		when(validation.validate("allow_rule if { input.resource.special == true }"))
+				.thenReturn(new RegoValidationResult(true, List.of()));
 
-        verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, null, true, null, true, "allow_rule if { input.resource.special == true }", null);
-        verify(bundleCacheRepository).upsertBundle("finance", null, null);
-    }
+		service.savePolicies(req);
 
-    @Test
-    void savePolicies_softDeleteAbsentFromPayload() {
-        SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of());
+		verify(policyRepository).upsert(null, 10L, SubjectType.ROLE, "ADMIN", PolicyEffect.ALLOW, null, true, null,
+				true, "allow_rule if { input.resource.special == true }");
+		verify(bundleCacheRepository).upsertBundle("finance", null, null);
+	}
 
-        Permission perm = mock(Permission.class);
-        when(perm.getId()).thenReturn(10L);
-        when(perm.getCode()).thenReturn("finance:read");
+	@Test
+	void savePolicies_softDeleteAbsentFromPayload() {
+		SavePoliciesRequest req = new SavePoliciesRequest(SubjectType.ROLE, "ADMIN", "finance", List.of());
 
-        Policy existing = mock(Policy.class);
-        when(existing.getId()).thenReturn(100L);
-        when(existing.getPermissionId()).thenReturn(10L);
+		Permission perm = mock(Permission.class);
+		when(perm.getId()).thenReturn(10L);
+		when(perm.getCode()).thenReturn("finance:read");
 
-        when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of(existing));
-        when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
+		Policy existing = mock(Policy.class);
+		when(existing.getId()).thenReturn(100L);
+		when(existing.getPermissionId()).thenReturn(10L);
 
-        service.savePolicies(req);
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ADMIN")).thenReturn(List.of(existing));
+		when(permissionRepository.findAllActive()).thenReturn(List.of(perm));
 
-        verify(policyRepository).softDelete(100L, "Removed policy in state sync.");
-        verify(bundleCacheRepository).upsertBundle("finance", null, null);
-    }
+		service.savePolicies(req);
+
+		verify(policyRepository).softDelete(100L, "Removed policy in state sync.");
+		verify(bundleCacheRepository).upsertBundle("finance", null, null);
+	}
+
+	@Test
+	void getPolicies_paginated_and_search() {
+		Resource r = mock(Resource.class);
+		when(r.getId()).thenReturn(1L);
+		when(r.getNamespace()).thenReturn("finance");
+		when(r.getName()).thenReturn("journal");
+
+		Permission p1 = mock(Permission.class);
+		when(p1.getId()).thenReturn(10L);
+		when(p1.getResourceId()).thenReturn(1L);
+		when(p1.getCode()).thenReturn("finance:journal:create");
+		when(p1.getAction()).thenReturn("create");
+
+		Permission p2 = mock(Permission.class);
+		when(p2.getId()).thenReturn(20L);
+		when(p2.getResourceId()).thenReturn(1L);
+		when(p2.getCode()).thenReturn("finance:journal:read");
+		when(p2.getAction()).thenReturn("read");
+
+		when(resourceRepository.findAllActive()).thenReturn(List.of(r));
+		when(permissionRepository.findAllActive()).thenReturn(List.of(p1, p2));
+		when(policyRepository.findBySubject(SubjectType.ROLE, "ACCOUNTANT")).thenReturn(List.of());
+
+		PageQuery pageQuery = new PageQuery(1, 10);
+		Paged<PolicyGridItemDto> result = service.getPolicies(SubjectType.ROLE, "ACCOUNTANT", "finance", "create",
+				pageQuery);
+
+		assertNotNull(result);
+		assertEquals(1, result.content().size());
+		assertEquals("finance:journal:create", result.content().get(0).permissionCode());
+		assertEquals(1, result.totalElements());
+	}
+
+	@Test
+	void getSubjects_paginated() {
+		SubjectDto subject = new SubjectDto(SubjectType.ROLE, "ACCOUNTANT");
+		Page<SubjectDto> mockPage = new PageImpl<>(List.of(subject));
+
+		when(policyRepository.findSubjects(eq(SubjectType.ROLE), eq("ACC"), any())).thenReturn(mockPage);
+
+		PageQuery pageQuery = new PageQuery(1, 10);
+		Paged<SubjectDto> result = service.getSubjects(SubjectType.ROLE, "ACC", pageQuery);
+
+		assertNotNull(result);
+		assertEquals(1, result.content().size());
+		assertEquals("ACCOUNTANT", result.content().get(0).subjectId());
+		assertEquals(1, result.totalElements());
+	}
 }

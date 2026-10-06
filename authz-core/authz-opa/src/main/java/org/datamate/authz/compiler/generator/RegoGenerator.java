@@ -6,6 +6,7 @@ import org.datamate.authz.compiler.ast.ConditionNode;
 import org.datamate.authz.compiler.ast.GroupNode;
 import org.datamate.authz.compiler.ast.LogicalOperator;
 import org.datamate.authz.compiler.ast.ValueType;
+import org.datamate.authz.compiler.ast.MathOperation;
 import org.datamate.authz.model.policy.entity.Policy;
 import org.datamate.authz.compiler.AstBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -85,6 +86,16 @@ public class RegoGenerator {
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    private String formatMathOperator(String op) {
+        if (op == null) return "+";
+        switch (op.trim().toUpperCase()) {
+            case "SUBTRACT": return "-";
+            case "MULTIPLY": return "*";
+            case "DIVIDE": return "/";
+            case "ADD": default: return "+";
+        }
     }
 
     public String generate(String namespace, List<Policy> policies, Map<Long, String> permCodeLookup) {
@@ -257,6 +268,42 @@ public class RegoGenerator {
                             .append(formatValue(cond.getValue()))
                             .append("\n");
                 }
+                break;
+            case MATH_EXPRESSION:
+                String mathExpression = leftPath;
+                StringBuilder mathGuards = new StringBuilder();
+                
+                if (cond.getMathOperations() != null) {
+                    for (MathOperation mathOp : cond.getMathOperations()) {
+                        String symbol = formatMathOperator(mathOp.getMathOperator());
+                        String nextOperand;
+                        
+                        if ("FIELD".equalsIgnoreCase(mathOp.getOperandType())) {
+                            nextOperand = formatPath(mathOp.getValue());
+                            if ("/".equals(symbol)) {
+                                mathGuards.append("    ").append(nextOperand).append(" != 0\n");
+                            }
+                        } else {
+                            nextOperand = mathOp.getValue();
+                            if ("/".equals(symbol) && "0".equals(nextOperand)) {
+                                throw new AuthzInvalidPayloadException("Division by zero in static math operation.");
+                            }
+                        }
+                        
+                        mathExpression = String.format("(%s %s %s)", mathExpression, symbol, nextOperand);
+                    }
+                }
+                
+                String targetPath;
+                if ("FIELD".equalsIgnoreCase(cond.getCompareTo())) {
+                    targetPath = formatPath(cond.getValue().asText());
+                } else {
+                    targetPath = formatValue(cond.getValue());
+                }
+                
+                sb.append(mathGuards.toString());
+                sb.append("    ").append(mathExpression).append(" ")
+                  .append(cond.getComparison()).append(" ").append(targetPath).append("\n");
                 break;
         }
     }
