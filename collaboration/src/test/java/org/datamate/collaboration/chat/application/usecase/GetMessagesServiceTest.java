@@ -61,11 +61,9 @@ class GetMessagesServiceTest {
                 "Hello",
                 false,
                 false,
-                null,
-                Instant.now()
-        );
+                null, null, Instant.now());
         Paged<Message> expectedPage = new Paged<>(List.of(message), 1, 20, 1, 1, false, false);
-        MessageDto expectedDto = new MessageDto(message.getId(), message.getSenderId(), message.getText(), message.isFile(), message.isSystemMessage(), null, message.getTimestamp());
+        MessageDto expectedDto = new MessageDto(message.getId(), message.getParentId(), message.getSenderId(), message.getText(), message.isFile(), message.isSystemMessage(), null, message.getTimestamp());
 
         when(messageRepository.findByThreadId(threadId, query)).thenReturn(expectedPage);
         when(messageMapper.toDto(eq(message), any())).thenReturn(expectedDto);
@@ -90,11 +88,9 @@ class GetMessagesServiceTest {
                 "Hello via CQRS Query",
                 false,
                 false,
-                null,
-                Instant.now()
-        );
+                null, null, Instant.now());
         Paged<Message> expectedPage = new Paged<>(List.of(message), 1, 20, 1, 1, false, false);
-        MessageDto expectedDto = new MessageDto(message.getId(), message.getSenderId(), message.getText(), message.isFile(), message.isSystemMessage(), null, message.getTimestamp());
+        MessageDto expectedDto = new MessageDto(message.getId(), message.getParentId(), message.getSenderId(), message.getText(), message.isFile(), message.isSystemMessage(), null, message.getTimestamp());
 
         when(messageRepository.findByThreadId(threadId, expectedPageQuery)).thenReturn(expectedPage);
         when(messageMapper.toDto(eq(message), any())).thenReturn(expectedDto);
@@ -119,3 +115,4 @@ class GetMessagesServiceTest {
         assertThat(result.totalElements()).isZero();
     }
 }
+

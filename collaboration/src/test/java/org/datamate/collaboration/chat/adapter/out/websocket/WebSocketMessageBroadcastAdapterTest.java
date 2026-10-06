@@ -41,6 +41,7 @@ class WebSocketMessageBroadcastAdapterTest {
         UUID threadId = UUID.randomUUID();
         MessageDto messageDto = new MessageDto(
                 UUID.randomUUID(),
+                null,
                 "user-123",
                 "Hello, STOMP!",
                 false,
@@ -55,3 +56,6 @@ class WebSocketMessageBroadcastAdapterTest {
         verify(messagingTemplate).convertAndSend(expectedDestination, messageDto);
     }
 }
+
+
+

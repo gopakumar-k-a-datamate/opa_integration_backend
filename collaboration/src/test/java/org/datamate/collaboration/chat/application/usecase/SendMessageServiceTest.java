@@ -257,7 +257,7 @@ class SendMessageServiceTest {
     @Test
     @DisplayName("should reject when both text and attachment are missing")
     void shouldReject_WhenBothTextAndAttachmentMissing() {
-        SendMessageCommand emptyRequest = new SendMessageCommand("   ", null, null);
+        SendMessageCommand emptyRequest = new SendMessageCommand("   ", null, null, null);
 
         assertThatThrownBy(() -> sendMessageService.sendMessage(threadId, senderId, emptyRequest))
                 .isInstanceOf(ApplicationValidationException.class)
