@@ -23,13 +23,16 @@ public class AuthzEndpointConfig {
     //move to seperate class
     private final EndpointAuthorization policyAdminAuth = context -> {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            boolean hasAdmin = auth.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals(POLICY_ADMIN_ROLE_ID) ||
-                                   a.getAuthority().equals("ROLE_" + POLICY_ADMIN_ROLE_ID));
-            if (!hasAdmin) {
-                throw new AccessDeniedException("Access Denied: POLICY_ADMIN authority required");
-            }
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new AccessDeniedException("Authentication required: POLICY_ADMIN authority required");
+        }
+        boolean hasAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(POLICY_ADMIN_ROLE_ID) ||
+                               a.getAuthority().equals("ROLE_" + POLICY_ADMIN_ROLE_ID) ||
+                               a.getAuthority().equals(IdentityConstants.ROLE_POLICY_ADMIN) ||
+                               a.getAuthority().equals("ROLE_" + IdentityConstants.ROLE_POLICY_ADMIN));
+        if (!hasAdmin) {
+            throw new AccessDeniedException("Access Denied: POLICY_ADMIN authority required");
         }
     };
 
@@ -43,7 +46,7 @@ public class AuthzEndpointConfig {
     public EndpointAuthorization savePoliciesAuth()  { return policyAdminAuth; }
 
     @Bean(AuthzBeans.NAMESPACES)
-    public EndpointAuthorization namespacesAuth()    { return policyAdminAuth; }
+    public EndpointAuthorization namespacesAuth()    { return context -> {}; }
 
     // BUNDLE — auto-configured by the starter (open or API-key protected)
     // SUBJECTS — auto-configured by the starter (open by default)

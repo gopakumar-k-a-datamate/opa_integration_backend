@@ -50,10 +50,11 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
                 .requestMatchers("/actuator/**", "/error").permitAll()
-                // OPA sidecar bundle polling and Admin UI policy management
+                // OPA sidecar bundle polling and namespace discovery
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/internal/authz/bundle/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/internal/authz/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/internal/authz/policies").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/internal/authz/namespaces").permitAll()
+                // Policy authoring and administration endpoints require authentication
+                .requestMatchers("/internal/authz/**").authenticated()
                 // Subject discovery endpoints for Admin UI
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/roles", "/api/v1/roles/select", "/api/v1/users").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/users/*/change-password").authenticated()
