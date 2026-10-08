@@ -6,7 +6,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Locator;
 import io.jsonwebtoken.JwsHeader;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -14,7 +13,6 @@ import java.security.Key;
 /**
  * Service responsible for verifying and parsing JWT Chat Tickets.
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtVerifier {

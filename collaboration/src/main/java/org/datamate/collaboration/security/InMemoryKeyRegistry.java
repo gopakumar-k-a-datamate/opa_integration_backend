@@ -1,6 +1,7 @@
 package org.datamate.collaboration.security;
 
-import lombok.extern.slf4j.Slf4j;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
@@ -15,9 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * In-memory implementation of KeyRegistry.
  * In a production microservice environment, this might be replaced by a JWKS-fetching implementation.
  */
-@Slf4j
 @Component
 public class InMemoryKeyRegistry implements KeyRegistry {
+
+    @EnableLogger
+    private Logger logger;
 
     private final Map<String, PublicKey> keys = new ConcurrentHashMap<>();
 
@@ -45,9 +48,13 @@ public class InMemoryKeyRegistry implements KeyRegistry {
             PublicKey pubKey = keyFactory.generatePublic(keySpec);
             
             keys.put(kid, pubKey);
-            log.info("Successfully registered public key for kid: {}", kid);
+            if (logger != null) {
+                logger.info("Successfully registered public key for kid: {}", kid);
+            }
         } catch (Exception e) {
-            log.error("Failed to load public key for kid: {}", kid, e);
+            if (logger != null) {
+                logger.error("Failed to load public key for kid: {}", kid, e);
+            }
             throw new IllegalArgumentException("Invalid public key format for kid: " + kid, e);
         }
     }

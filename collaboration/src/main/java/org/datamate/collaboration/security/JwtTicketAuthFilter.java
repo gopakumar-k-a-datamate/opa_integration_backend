@@ -7,7 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.datamate.bedrock.framework.common.logging.annotation.EnableLogger;
+import com.datamate.bedrock.framework.common.logging.service.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,9 +19,11 @@ import java.io.IOException;
  * Middleware filter that intercepts incoming REST requests, extracts the JWT Ticket,
  * and sets the authenticated user in the SecurityContext.
  */
-@Slf4j
 @RequiredArgsConstructor
 public class JwtTicketAuthFilter extends OncePerRequestFilter {
+
+    @EnableLogger
+    private Logger logger;
 
     private static final String BEARER_PREFIX = "Bearer ";
     private final JwtVerifier jwtVerifier;
@@ -45,11 +48,15 @@ public class JwtTicketAuthFilter extends OncePerRequestFilter {
             TicketAuthentication authentication = new TicketAuthentication(claims);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             
-            log.debug("Successfully authenticated user: {} for thread: {}", 
-                    authentication.getSub(), authentication.getThreadId());
+            if (logger != null) {
+                logger.debug("Successfully authenticated user: {} for thread: {}", 
+                        authentication.getSub(), authentication.getThreadId());
+            }
 
         } catch (JwtException e) {
-            log.warn("JWT Ticket authentication failed: {}", e.getMessage());
+            if (logger != null) {
+                logger.warn("JWT Ticket authentication failed: {}", e.getMessage());
+            }
             SecurityContextHolder.clearContext();
             // We do not return 401 here directly, we let the AuthenticationEntryPoint handle it
             // so Spring Security can uniformly process the failure.
