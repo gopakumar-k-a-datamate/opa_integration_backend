@@ -37,6 +37,7 @@ public class ChatHttpSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/ws/**").permitAll() // WebSockets authenticated separately via interceptors
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                .requestMatchers("/api/v1/dev/**").permitAll() // Allow generating dev tokens
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtTicketAuthFilter(jwtVerifier), UsernamePasswordAuthenticationFilter.class)
